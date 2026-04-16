@@ -1,0 +1,306 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 1920 1080"
+     preserveAspectRatio="xMidYMid slice"
+     role="img"
+     aria-label="AI system architecture background diagram">
+
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" class="arch-element"/>
+    </marker>
+    <marker id="arrow-sm" markerWidth="6" markerHeight="6" refX="5" refY="2.5" orient="auto">
+      <path d="M0,0 L0,5 L6,2.5 z" class="arch-element"/>
+    </marker>
+  </defs>
+
+  <!-- ═══════════════════════════════════════════════════
+       CONNECTION LINES (drawn first, under components)
+       ═══════════════════════════════════════════════════ -->
+
+  <!-- Lambda cluster → Central hex -->
+  <path d="M255,265 L255,520 L890,520" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- API Gateway → Central hex (top) -->
+  <path d="M960,215 L960,450" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- Central hex → DynamoDB (right) -->
+  <path d="M1030,520 L1670,520" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- Central hex → Neptune / Graph DB (bottom) -->
+  <path d="M960,590 L960,845" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- S3 → Central hex -->
+  <path d="M245,820 L899,820 L899,590" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- EC2 → Step Functions -->
+  <path d="M1660,260 L1660,760" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- Step Functions → DynamoDB -->
+  <path d="M1600,795 L1720,795 L1720,574" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- Cloud → Lambda cluster -->
+  <path d="M195,490 L255,490 L255,307" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- Memgraph/PostgreSQL → DynamoDB -->
+  <path d="M1510,355 L1580,355 L1580,490 L1670,490" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- Central hex → Memgraph (upper-right) -->
+  <path d="M1030,490 L1430,490 L1430,380" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- Playwright browser → Central hex -->
+  <path d="M430,865 L899,865 L899,590" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- Neptune → Playwright (bottom connector) -->
+  <path d="M910,900 L380,900 L380,895" class="arch-element" stroke-width="1.2" stroke-dasharray="6,4" fill="none"/>
+
+  <!-- API Gateway → EC2 (horizontal) -->
+  <path d="M1010,165 L1620,165 L1620,140" class="arch-element" stroke-width="1.2" stroke-dasharray="6,4" fill="none"/>
+
+  <!-- Lambda → API Gateway (dashed async) -->
+  <path d="M290,190 L960,190" class="arch-element" stroke-width="1.2" stroke-dasharray="6,4" fill="none" marker-end="url(#arrow-sm)"/>
+
+  <!-- ═══════════════════════════════════════════════════
+       CENTRAL AI HEXAGON (cx=960, cy=520, r=70)
+       ═══════════════════════════════════════════════════ -->
+  <polygon points="960,450 1021,485 1021,555 960,590 899,555 899,485"
+           class="arch-element" stroke-width="2.5" fill="none"/>
+  <!-- Inner hexagon -->
+  <polygon points="960,466 1005,491 1005,541 960,566 915,541 915,491"
+           class="arch-element" stroke-width="1" fill="none" opacity="0.6"/>
+  <!-- Cross lines inside hex -->
+  <line x1="960" y1="450" x2="960" y2="590" class="arch-element" stroke-width="0.8" opacity="0.4"/>
+  <line x1="899" y1="485" x2="1021" y2="555" class="arch-element" stroke-width="0.8" opacity="0.4"/>
+  <line x1="899" y1="555" x2="1021" y2="485" class="arch-element" stroke-width="0.8" opacity="0.4"/>
+  <!-- "AI" label in center -->
+  <text x="960" y="527" class="arch-text" text-anchor="middle" font-family="monospace" font-size="22" font-weight="bold" letter-spacing="2">AI</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       NEURAL NET NODES (r=130 from center 960,520)
+       ═══════════════════════════════════════════════════ -->
+  <!-- 0°   → (1090, 520) -->
+  <circle cx="1090" cy="520" r="7" class="arch-element" stroke-width="1.5" fill="none"/>
+  <line x1="1030" y1="520" x2="1083" y2="520" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <!-- 45°  → (1052, 428) -->
+  <circle cx="1052" cy="428" r="7" class="arch-element" stroke-width="1.5" fill="none"/>
+  <line x1="1021" y1="485" x2="1048" y2="435" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <!-- 90°  → (960, 390) -->
+  <circle cx="960" cy="390" r="7" class="arch-element" stroke-width="1.5" fill="none"/>
+  <line x1="960" y1="450" x2="960" y2="397" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <!-- 135° → (868, 428) -->
+  <circle cx="868" cy="428" r="7" class="arch-element" stroke-width="1.5" fill="none"/>
+  <line x1="899" y1="485" x2="875" y2="435" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <!-- 180° → (830, 520) -->
+  <circle cx="830" cy="520" r="7" class="arch-element" stroke-width="1.5" fill="none"/>
+  <line x1="890" y1="520" x2="837" y2="520" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <!-- 225° → (868, 612) -->
+  <circle cx="868" cy="612" r="7" class="arch-element" stroke-width="1.5" fill="none"/>
+  <line x1="899" y1="555" x2="875" y2="605" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <!-- 270° → (960, 650) -->
+  <circle cx="960" cy="650" r="7" class="arch-element" stroke-width="1.5" fill="none"/>
+  <line x1="960" y1="590" x2="960" y2="643" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <!-- 315° → (1052, 612) -->
+  <circle cx="1052" cy="612" r="7" class="arch-element" stroke-width="1.5" fill="none"/>
+  <line x1="1021" y1="555" x2="1048" y2="605" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <!-- Inter-node connections (outer ring) -->
+  <line x1="1090" y1="520" x2="1052" y2="428" class="arch-element" stroke-width="0.6" opacity="0.35"/>
+  <line x1="1052" y1="428" x2="960"  y2="390" class="arch-element" stroke-width="0.6" opacity="0.35"/>
+  <line x1="960"  y1="390" x2="868"  y2="428" class="arch-element" stroke-width="0.6" opacity="0.35"/>
+  <line x1="868"  y1="428" x2="830"  y2="520" class="arch-element" stroke-width="0.6" opacity="0.35"/>
+  <line x1="830"  y1="520" x2="868"  y2="612" class="arch-element" stroke-width="0.6" opacity="0.35"/>
+  <line x1="868"  y1="612" x2="960"  y2="650" class="arch-element" stroke-width="0.6" opacity="0.35"/>
+  <line x1="960"  y1="650" x2="1052" y2="612" class="arch-element" stroke-width="0.6" opacity="0.35"/>
+  <line x1="1052" y1="612" x2="1090" y2="520" class="arch-element" stroke-width="0.6" opacity="0.35"/>
+
+  <!-- ═══════════════════════════════════════════════════
+       LAMBDA CLUSTER (top-left, ~240,220)
+       ═══════════════════════════════════════════════════ -->
+  <circle cx="220" cy="190" r="42" class="arch-element" stroke-width="2" fill="none"/>
+  <text x="220" y="197" class="arch-text" text-anchor="middle" font-family="monospace" font-size="26" font-weight="bold">λ</text>
+  <circle cx="295" cy="210" r="42" class="arch-element" stroke-width="2" fill="none"/>
+  <text x="295" y="217" class="arch-text" text-anchor="middle" font-family="monospace" font-size="26" font-weight="bold">λ</text>
+  <circle cx="255" cy="275" r="42" class="arch-element" stroke-width="2" fill="none"/>
+  <text x="255" y="282" class="arch-text" text-anchor="middle" font-family="monospace" font-size="26" font-weight="bold">λ</text>
+  <text x="255" y="345" class="arch-text" text-anchor="middle" font-family="monospace" font-size="11">Lambda</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       API GATEWAY SHIELD (top-center, ~960,130)
+       ═══════════════════════════════════════════════════ -->
+  <path d="M960,115 L1005,135 L1005,185 Q960,215 960,215 Q915,185 915,185 L915,135 Z"
+        class="arch-element" stroke-width="2" fill="none"/>
+  <!-- Inner shield line -->
+  <path d="M960,128 L993,143 L993,178 Q960,200 960,200 Q927,178 927,178 L927,143 Z"
+        class="arch-element" stroke-width="0.8" fill="none" opacity="0.5"/>
+  <text x="960" y="168" class="arch-text" text-anchor="middle" font-family="monospace" font-size="13" font-weight="bold">API</text>
+  <text x="960" y="230" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">API Gateway</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       EC2 SERVER RACK (top-right, ~1620,140)
+       ═══════════════════════════════════════════════════ -->
+  <rect x="1600" y="130" width="90" height="130" rx="3" class="arch-element" stroke-width="2" fill="none"/>
+  <!-- Rack unit dividers -->
+  <line x1="1600" y1="155" x2="1690" y2="155" class="arch-element" stroke-width="1"/>
+  <line x1="1600" y1="180" x2="1690" y2="180" class="arch-element" stroke-width="1"/>
+  <line x1="1600" y1="205" x2="1690" y2="205" class="arch-element" stroke-width="1"/>
+  <line x1="1600" y1="230" x2="1690" y2="230" class="arch-element" stroke-width="1"/>
+  <!-- LED dots -->
+  <circle cx="1680" cy="142" r="3" class="arch-element" stroke-width="1"/>
+  <circle cx="1680" cy="167" r="3" class="arch-element" stroke-width="1"/>
+  <circle cx="1680" cy="192" r="3" class="arch-element" stroke-width="1"/>
+  <circle cx="1680" cy="217" r="3" class="arch-element" stroke-width="1"/>
+  <circle cx="1680" cy="242" r="3" class="arch-element" stroke-width="1"/>
+  <!-- Drive bays -->
+  <rect x="1608" y="135" width="60" height="15" rx="2" class="arch-element" stroke-width="0.8" fill="none"/>
+  <rect x="1608" y="160" width="60" height="15" rx="2" class="arch-element" stroke-width="0.8" fill="none"/>
+  <rect x="1608" y="185" width="60" height="15" rx="2" class="arch-element" stroke-width="0.8" fill="none"/>
+  <rect x="1608" y="210" width="60" height="15" rx="2" class="arch-element" stroke-width="0.8" fill="none"/>
+  <text x="1645" y="280" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">EC2</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       S3 BUCKET (bottom-left, ~200,800)
+       ═══════════════════════════════════════════════════ -->
+  <ellipse cx="200" cy="795" rx="48" ry="13" class="arch-element" stroke-width="2" fill="none"/>
+  <line x1="152" y1="795" x2="152" y2="855" class="arch-element" stroke-width="2"/>
+  <line x1="248" y1="795" x2="248" y2="855" class="arch-element" stroke-width="2"/>
+  <ellipse cx="200" cy="855" rx="48" ry="13" class="arch-element" stroke-width="2" fill="none"/>
+  <!-- Lid line -->
+  <path d="M152,820 Q200,835 248,820" class="arch-element" stroke-width="1" fill="none" opacity="0.6"/>
+  <text x="200" y="882" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">S3</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       DYNAMODB CYLINDER STACK (right, ~1720,480)
+       ═══════════════════════════════════════════════════ -->
+  <!-- Table 1 -->
+  <ellipse cx="1720" cy="480" rx="52" ry="14" class="arch-element" stroke-width="2" fill="none"/>
+  <line x1="1668" y1="480" x2="1668" y2="540" class="arch-element" stroke-width="2"/>
+  <line x1="1772" y1="480" x2="1772" y2="540" class="arch-element" stroke-width="2"/>
+  <ellipse cx="1720" cy="540" rx="52" ry="14" class="arch-element" stroke-width="2" fill="none"/>
+  <!-- Table 2 (offset above) -->
+  <ellipse cx="1720" cy="444" rx="52" ry="14" class="arch-element" stroke-width="1.2" fill="none" opacity="0.6"/>
+  <line x1="1668" y1="444" x2="1668" y2="480" class="arch-element" stroke-width="1.2" opacity="0.6"/>
+  <line x1="1772" y1="444" x2="1772" y2="480" class="arch-element" stroke-width="1.2" opacity="0.6"/>
+  <text x="1720" y="575" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">DynamoDB</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       STEP FUNCTIONS FLOW (bottom-right, ~1580,770)
+       ═══════════════════════════════════════════════════ -->
+  <rect x="1545" y="760" width="90" height="28" rx="6" class="arch-element" stroke-width="1.8" fill="none"/>
+  <text x="1590" y="779" class="arch-text" text-anchor="middle" font-family="monospace" font-size="9">Start</text>
+  <!-- Arrow 1 -->
+  <line x1="1590" y1="788" x2="1590" y2="808" class="arch-element" stroke-width="1.5" marker-end="url(#arrow-sm)"/>
+  <rect x="1545" y="808" width="90" height="28" rx="6" class="arch-element" stroke-width="1.8" fill="none"/>
+  <text x="1590" y="827" class="arch-text" text-anchor="middle" font-family="monospace" font-size="9">Process</text>
+  <!-- Arrow 2 -->
+  <line x1="1590" y1="836" x2="1590" y2="856" class="arch-element" stroke-width="1.5" marker-end="url(#arrow-sm)"/>
+  <rect x="1545" y="856" width="90" height="28" rx="6" class="arch-element" stroke-width="1.8" fill="none"/>
+  <text x="1590" y="875" class="arch-text" text-anchor="middle" font-family="monospace" font-size="9">Complete</text>
+  <text x="1590" y="902" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">Step Functions</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       CLOUD SHAPE (mid-left, ~155,510)
+       ═══════════════════════════════════════════════════ -->
+  <circle cx="155" cy="515" r="38" class="arch-element" stroke-width="1.8" fill="none"/>
+  <circle cx="118" cy="530" r="25" class="arch-element" stroke-width="1.8" fill="none"/>
+  <circle cx="192" cy="528" r="28" class="arch-element" stroke-width="1.8" fill="none"/>
+  <circle cx="158" cy="498" r="22" class="arch-element" stroke-width="1.8" fill="none"/>
+  <!-- Flat bottom mask via rect is not SVG-pure; use line to imply baseline -->
+  <line x1="93" y1="552" x2="220" y2="552" class="arch-element" stroke-width="1.8"/>
+  <text x="155" y="578" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">Bedrock</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       NEPTUNE / GRAPH DB PENTAGON (bottom-center, ~960,880)
+       ═══════════════════════════════════════════════════ -->
+  <polygon points="960,830 1012,866 992,926 928,926 908,866" class="arch-element" stroke-width="2" fill="none"/>
+  <!-- Graph vertices inside -->
+  <circle cx="960" cy="858" r="5" class="arch-element" stroke-width="1.2" fill="none"/>
+  <circle cx="940" cy="890" r="4" class="arch-element" stroke-width="1.2" fill="none"/>
+  <circle cx="980" cy="890" r="4" class="arch-element" stroke-width="1.2" fill="none"/>
+  <circle cx="960" cy="912" r="4" class="arch-element" stroke-width="1.2" fill="none"/>
+  <line x1="960" y1="858" x2="940" y2="890" class="arch-element" stroke-width="0.8" opacity="0.6"/>
+  <line x1="960" y1="858" x2="980" y2="890" class="arch-element" stroke-width="0.8" opacity="0.6"/>
+  <line x1="940" y1="890" x2="960" y2="912" class="arch-element" stroke-width="0.8" opacity="0.6"/>
+  <line x1="980" y1="890" x2="960" y2="912" class="arch-element" stroke-width="0.8" opacity="0.6"/>
+  <line x1="940" y1="890" x2="980" y2="890" class="arch-element" stroke-width="0.8" opacity="0.6"/>
+  <text x="960" y="950" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">Neptune</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       MEMGRAPH + POSTGRESQL DOUBLE CYLINDER (mid-right, ~1450,330)
+       ═══════════════════════════════════════════════════ -->
+  <!-- Cylinder 1 (Memgraph) -->
+  <ellipse cx="1430" cy="310" rx="42" ry="11" class="arch-element" stroke-width="1.8" fill="none"/>
+  <line x1="1388" y1="310" x2="1388" y2="370" class="arch-element" stroke-width="1.8"/>
+  <line x1="1472" y1="310" x2="1472" y2="370" class="arch-element" stroke-width="1.8"/>
+  <ellipse cx="1430" cy="370" rx="42" ry="11" class="arch-element" stroke-width="1.8" fill="none"/>
+  <!-- Cylinder 2 (PostgreSQL) behind/offset -->
+  <ellipse cx="1465" cy="330" rx="42" ry="11" class="arch-element" stroke-width="1.2" fill="none" opacity="0.6"/>
+  <line x1="1423" y1="330" x2="1423" y2="390" class="arch-element" stroke-width="1.2" opacity="0.6"/>
+  <line x1="1507" y1="330" x2="1507" y2="390" class="arch-element" stroke-width="1.2" opacity="0.6"/>
+  <ellipse cx="1465" cy="390" rx="42" ry="11" class="arch-element" stroke-width="1.2" fill="none" opacity="0.6"/>
+  <text x="1448" y="415" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">Memgraph / pgvector</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       PLAYWRIGHT BROWSER FRAME (bottom-left-mid, ~375,845)
+       ═══════════════════════════════════════════════════ -->
+  <rect x="330" y="825" width="110" height="80" rx="4" class="arch-element" stroke-width="2" fill="none"/>
+  <!-- Title bar -->
+  <rect x="330" y="825" width="110" height="18" rx="4" class="arch-element" stroke-width="1" fill="none"/>
+  <!-- Window controls dots -->
+  <circle cx="342" cy="834" r="3" class="arch-element" stroke-width="1" fill="none"/>
+  <circle cx="354" cy="834" r="3" class="arch-element" stroke-width="1" fill="none"/>
+  <circle cx="366" cy="834" r="3" class="arch-element" stroke-width="1" fill="none"/>
+  <!-- Address bar -->
+  <rect x="337" y="848" width="96" height="10" rx="2" class="arch-element" stroke-width="0.8" fill="none"/>
+  <!-- Content lines -->
+  <line x1="337" y1="864" x2="433" y2="864" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <line x1="337" y1="874" x2="410" y2="874" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <line x1="337" y1="884" x2="420" y2="884" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <line x1="337" y1="894" x2="395" y2="894" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <text x="385" y="922" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">Playwright</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       SCATTERED TECH TEXT LABELS
+       ═══════════════════════════════════════════════════ -->
+  <text x="500"  y="78"  class="arch-text" font-family="monospace" font-size="32" font-weight="bold" opacity="0.25">AI</text>
+  <text x="1390" y="95"  class="arch-text" font-family="monospace" font-size="22" opacity="0.2">ML</text>
+  <text x="740"  y="960" class="arch-text" font-family="monospace" font-size="18" opacity="0.22">RAG</text>
+  <text x="1130" y="965" class="arch-text" font-family="monospace" font-size="15" opacity="0.2">Vector</text>
+  <text x="85"   y="385" class="arch-text" font-family="monospace" font-size="13" opacity="0.3">Lambda</text>
+  <text x="1090" y="78"  class="arch-text" font-family="monospace" font-size="14" opacity="0.25">Bedrock</text>
+  <text x="335"  y="145" class="arch-text" font-family="monospace" font-size="13" opacity="0.3">Python</text>
+  <text x="585"  y="295" class="arch-text" font-family="monospace" font-size="18" opacity="0.28">API</text>
+  <text x="1265" y="615" class="arch-text" font-family="monospace" font-size="15" opacity="0.25">Agent</text>
+  <text x="65"   y="688" class="arch-text" font-family="monospace" font-size="12" opacity="0.25">GraphRAG</text>
+  <text x="1780" y="360" class="arch-text" font-family="monospace" font-size="14" opacity="0.28">LoRA</text>
+  <text x="1748" y="720" class="arch-text" font-family="monospace" font-size="12" opacity="0.25">Fine-tuning</text>
+  <text x="420"  y="718" class="arch-text" font-family="monospace" font-size="12" opacity="0.25">Embeddings</text>
+  <text x="680"  y="760" class="arch-text" font-family="monospace" font-size="15" opacity="0.28">FastMCP</text>
+  <text x="1185" y="195" class="arch-text" font-family="monospace" font-size="13" opacity="0.25">LangGraph</text>
+  <text x="1580" y="460" class="arch-text" font-family="monospace" font-size="13" opacity="0.25">LangChain</text>
+  <text x="195"  y="355" class="arch-text" font-family="monospace" font-size="15" opacity="0.3">Claude</text>
+  <text x="812"  y="305" class="arch-text" font-family="monospace" font-size="11" opacity="0.2">Java</text>
+  <text x="1048" y="762" class="arch-text" font-family="monospace" font-size="13" opacity="0.25">JSON</text>
+  <text x="540"  y="555" class="arch-text" font-family="monospace" font-size="15" opacity="0.28">REST</text>
+  <text x="1280" y="868" class="arch-text" font-family="monospace" font-size="13" opacity="0.25">GraphQL</text>
+  <text x="738"  y="455" class="arch-text" font-family="monospace" font-size="18" opacity="0.3">MCP</text>
+  <text x="1030" y="148" class="arch-text" font-family="monospace" font-size="13" opacity="0.22">Serverless</text>
+  <text x="1430" y="195" class="arch-text" font-family="monospace" font-size="14" opacity="0.22">Step Functions</text>
+  <text x="620"  y="110" class="arch-text" font-family="monospace" font-size="13" opacity="0.22">Transformer</text>
+  <text x="75"   y="215" class="arch-text" font-family="monospace" font-size="12" opacity="0.25">Orchestration</text>
+  <text x="1750" y="165" class="arch-text" font-family="monospace" font-size="12" opacity="0.22">YAML</text>
+  <text x="490"  y="385" class="arch-text" font-family="monospace" font-size="12" opacity="0.22">Inference</text>
+  <text x="1160" y="655" class="arch-text" font-family="monospace" font-size="14" opacity="0.25">Routing</text>
+  <text x="300"  y="620" class="arch-text" font-family="monospace" font-size="13" opacity="0.22">Context</text>
+  <text x="1350" y="740" class="arch-text" font-family="monospace" font-size="12" opacity="0.22">Telemetry</text>
+  <text x="700"  y="185" class="arch-text" font-family="monospace" font-size="14" opacity="0.28">Gateway</text>
+  <text x="1810" y="550" class="arch-text" font-family="monospace" font-size="12" opacity="0.22">Tokens</text>
+  <text x="825"  y="680" class="arch-text" font-family="monospace" font-size="13" opacity="0.25">Prompt</text>
+  <text x="460"  y="480" class="arch-text" font-family="monospace" font-size="12" opacity="0.2">Weights</text>
+  <text x="1260" y="420" class="arch-text" font-family="monospace" font-size="14" opacity="0.25">Vector DB</text>
+  <text x="80"   y="940" class="arch-text" font-family="monospace" font-size="13" opacity="0.22">Architecture</text>
+  <text x="1520" y="635" class="arch-text" font-family="monospace" font-size="12" opacity="0.2">Checkpoint</text>
+  <text x="640"  y="645" class="arch-text" font-family="monospace" font-size="13" opacity="0.22">Pipeline</text>
+  <text x="1650" y="885" class="arch-text" font-family="monospace" font-size="14" opacity="0.25">Bedrock</text>
+  <text x="1840" y="90"  class="arch-text" font-family="monospace" font-size="13" opacity="0.2">Cloud</text>
+  <text x="30"   y="530" class="arch-text" font-family="monospace" font-size="22" font-weight="bold" opacity="0.18">AWS</text>
+  <text x="1690" y="310" class="arch-text" font-family="monospace" font-size="20" font-weight="bold" opacity="0.2">ML</text>
+
+</svg>
