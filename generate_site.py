@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
-"""Fetch READMEs via GitHub GraphQL API and generate index.html for aiweave.org."""
+"""
+Discovers *Weave repos + pinned projects via GitHub GraphQL, summarizes READMEs
+with Bedrock Claude Haiku 4.5, and generates index.html for aiweave.org.
+"""
 
+import hashlib
 import html
 import json
 import os
@@ -8,10 +12,22 @@ import re
 import requests
 from datetime import datetime, timezone
 
+try:
+    import boto3
+    _HAS_BOTO3 = True
+except ImportError:
+    _HAS_BOTO3 = False
+
 GH_OWNER = "rajatarun"
 GH_GRAPHQL_URL = "https://api.github.com/graphql"
+BEDROCK_REGION = "us-east-1"
+BEDROCK_MODEL_ID = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
 
-REPOS = [
+# Always shown regardless of repo naming convention
+PINNED_REPOS = ["DataDictionary", "mcp-observatory"]
+
+# Display order for known repos; newly discovered *Weave repos append after
+PREFERRED_ORDER = [
     "TrainWeave",
     "TeamWeave",
     "TaskWeave",
@@ -19,7 +35,11 @@ REPOS = [
     "ContextWeave",
     "ScreenWeave",
     "mcp-observatory",
+    "DataDictionary",
 ]
+
+# Icon pool for repos not in REPO_META (deterministic via md5 of name)
+ICON_POOL = ["⬢", "⊛", "⌬", "◐", "⬟", "◑", "⬠", "◒"]
 
 REPO_META = {
     "TrainWeave": {
@@ -64,9 +84,27 @@ REPO_META = {
         "tech": ["FastMCP", "PROPOSE/COMMIT", "Risk Scoring", "PostgreSQL", "Observability"],
         "fallback_desc": "Two-phase execution framework for high-risk MCP tool operations — PROPOSE scores risk, COMMIT verifies signed tokens before side-effects.",
     },
+    "DataDictionary": {
+        "icon": "◫",
+        "tagline": "Schema registry · Data contracts · AWS Glue · Automated documentation",
+        "tech": ["AWS Glue", "S3", "Athena", "Lambda", "Schema Registry"],
+        "fallback_desc": "Centralized schema registry and data dictionary for AWS-native data pipelines with automated documentation and data contract validation.",
+    },
 }
 
-GRAPHQL_QUERY = """
+LIST_REPOS_QUERY = """
+query($owner: String!, $after: String) {
+  user(login: $owner) {
+    repositories(first: 100, after: $after, privacy: PUBLIC,
+                 orderBy: {field: NAME, direction: ASC}) {
+      pageInfo { hasNextPage endCursor }
+      nodes { name isArchived }
+    }
+  }
+}
+"""
+
+REPO_DETAIL_QUERY = """
 query($owner: String!, $name: String!) {
   repository(owner: $owner, name: $name) {
     description
@@ -87,60 +125,123 @@ query($owner: String!, $name: String!) {
 """
 
 
-def fetch_via_graphql(repo_name: str, token: str) -> dict:
+def _gh_post(query: str, variables: dict, token: str) -> dict:
     headers = {"Content-Type": "application/json"}
     if token:
         headers["Authorization"] = f"Bearer {token}"
+    resp = requests.post(
+        GH_GRAPHQL_URL,
+        headers=headers,
+        json={"query": query, "variables": variables},
+        timeout=15,
+    )
+    resp.raise_for_status()
+    return resp.json()
 
-    payload = {
-        "query": GRAPHQL_QUERY,
-        "variables": {"owner": GH_OWNER, "name": repo_name},
+
+def discover_weave_repos(token: str) -> list:
+    """Return names of all public non-archived repos whose name ends with 'weave'."""
+    found = []
+    cursor = None
+    while True:
+        try:
+            data = _gh_post(LIST_REPOS_QUERY, {"owner": GH_OWNER, "after": cursor}, token)
+            page = (data.get("data") or {}).get("user", {}).get("repositories", {})
+            for node in page.get("nodes", []):
+                if not node.get("isArchived") and node["name"].lower().endswith("weave"):
+                    found.append(node["name"])
+            page_info = page.get("pageInfo", {})
+            if not page_info.get("hasNextPage"):
+                break
+            cursor = page_info["endCursor"]
+        except Exception as e:
+            print(f"[WARN] discover_weave_repos error: {e}")
+            break
+    return found
+
+
+def build_repo_list(discovered_weave: list) -> list:
+    """Merge discovered *Weave repos with PINNED_REPOS, respecting PREFERRED_ORDER."""
+    all_repos = set(discovered_weave) | set(PINNED_REPOS)
+    ordered = [r for r in PREFERRED_ORDER if r in all_repos]
+    new_ones = sorted(r for r in all_repos if r not in PREFERRED_ORDER)
+    return ordered + new_ones
+
+
+def _get_meta(repo_name: str) -> dict:
+    """Return REPO_META entry, or generate deterministic defaults for unknown repos."""
+    if repo_name in REPO_META:
+        return REPO_META[repo_name]
+    icon_idx = int(hashlib.md5(repo_name.encode()).hexdigest(), 16) % len(ICON_POOL)
+    return {
+        "icon": ICON_POOL[icon_idx],
+        "tagline": "AWS-native AI tool · Open source",
+        "tech": ["Python", "AWS", "Open Source"],
+        "fallback_desc": "An open-source AWS-native tool from the AIWeave ecosystem.",
     }
 
-    try:
-        resp = requests.post(GH_GRAPHQL_URL, headers=headers, json=payload, timeout=15)
-        resp.raise_for_status()
-        data = resp.json()
 
+def fetch_repo(repo_name: str, token: str) -> dict:
+    meta = _get_meta(repo_name)
+    try:
+        data = _gh_post(REPO_DETAIL_QUERY, {"owner": GH_OWNER, "name": repo_name}, token)
         if "errors" in data:
             print(f"[WARN] GraphQL errors for {repo_name}: {data['errors']}")
-
         repo = (data.get("data") or {}).get("repository") or {}
         readme_obj = repo.get("readme1") or repo.get("readme2") or {}
-        arch_obj = repo.get("arch") or {}
-
         return {
             "name": repo_name,
-            "description": repo.get("description") or REPO_META[repo_name]["fallback_desc"],
+            "description": repo.get("description") or meta["fallback_desc"],
             "readme_text": readme_obj.get("text", ""),
-            "arch_text": arch_obj.get("text", ""),
             "url": repo.get("url") or f"https://github.com/{GH_OWNER}/{repo_name}",
             "stars": repo.get("stargazerCount", 0),
             "language": (repo.get("primaryLanguage") or {}).get("name", "Python"),
         }
+    except Exception as e:
+        print(f"[WARN] Error fetching {repo_name}: {e}, using fallback")
+        return {
+            "name": repo_name,
+            "description": meta["fallback_desc"],
+            "readme_text": "",
+            "url": f"https://github.com/{GH_OWNER}/{repo_name}",
+            "stars": 0,
+            "language": "Python",
+        }
 
-    except requests.exceptions.Timeout:
-        print(f"[WARN] Timeout fetching {repo_name}, using fallback")
-        return _fallback_repo(repo_name)
-    except requests.exceptions.RequestException as e:
-        print(f"[WARN] Request error for {repo_name}: {e}, using fallback")
-        return _fallback_repo(repo_name)
-    except (KeyError, ValueError, json.JSONDecodeError) as e:
-        print(f"[WARN] Parse error for {repo_name}: {e}, using fallback")
-        return _fallback_repo(repo_name)
 
-
-def _fallback_repo(repo_name: str) -> dict:
-    meta = REPO_META[repo_name]
-    return {
-        "name": repo_name,
-        "description": meta["fallback_desc"],
-        "readme_text": "",
-        "arch_text": "",
-        "url": f"https://github.com/{GH_OWNER}/{repo_name}",
-        "stars": 0,
-        "language": "Python",
-    }
+def summarize_with_bedrock(readme_text: str, repo_name: str, client) -> str:
+    """Use Bedrock Claude Haiku 4.5 Converse API to produce a product-card summary."""
+    if not readme_text or client is None:
+        return ""
+    # Strip heavy markup and truncate before sending (cost control)
+    cleaned = re.sub(r"```[\s\S]*?```", "", readme_text)
+    cleaned = re.sub(r"!\[.*?\]\(.*?\)", "", cleaned)
+    cleaned = re.sub(r"\[!\[.*?\]\(.*?\)\]\(.*?\)", "", cleaned)
+    cleaned = re.sub(r"<[^>]+>", "", cleaned)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned).strip()[:3200]
+    if not cleaned:
+        return ""
+    try:
+        response = client.converse(
+            modelId=BEDROCK_MODEL_ID,
+            system=[{"text": (
+                "You write copy for a technical product website. "
+                "Given a GitHub README, produce a 2-3 sentence plain-text summary "
+                "for a project card. Focus on what the tool does, its key capabilities, "
+                "and what makes it distinctive. Present tense, third person. "
+                "No code blocks, no markdown formatting, no list items. Under 380 characters."
+            )}],
+            messages=[{
+                "role": "user",
+                "content": [{"text": f"Project: {repo_name}\n\nREADME:\n{cleaned}"}],
+            }],
+            inferenceConfig={"maxTokens": 180, "temperature": 0.2},
+        )
+        result = response["output"]["message"]["content"][0]["text"].strip()
+        return html.escape(result[:420])
+    except Exception as e:
+        print(f"[WARN] Bedrock summarization failed for {repo_name}: {e}")
+        return ""
 
 
 def extract_summary(readme_text: str, max_sentences: int = 3) -> str:
@@ -166,8 +267,8 @@ def extract_summary(readme_text: str, max_sentences: int = 3) -> str:
 
 def build_project_card(repo_data: dict, index: int) -> str:
     name = repo_data["name"]
-    meta = REPO_META[name]
-    summary = extract_summary(repo_data["readme_text"]) or html.escape(repo_data["description"])
+    meta = repo_data["meta"]      # set in main() via _get_meta()
+    summary = repo_data["summary"]  # set in main() via Bedrock or extract_summary()
     tech_tags = "".join(
         f'<span class="tech-tag">{t}</span>' for t in meta["tech"]
     )
@@ -177,7 +278,7 @@ def build_project_card(repo_data: dict, index: int) -> str:
         if stars
         else ""
     )
-    card_id = f"project-{name.lower().replace('-', '_')}"
+    card_id = f"project-{name.lower().replace('-', '_').replace(' ', '_')}"
     safe_name = html.escape(name)
     safe_url = html.escape(repo_data["url"])
     safe_tagline = html.escape(meta["tagline"])
@@ -888,6 +989,18 @@ def main():
     if not token:
         print("[WARN] GH_TOKEN not set — API calls unauthenticated (60 req/hr limit)")
 
+    # Initialise Bedrock client when boto3 and AWS credentials are available
+    bedrock_client = None
+    if _HAS_BOTO3:
+        try:
+            bedrock_client = boto3.client("bedrock-runtime", region_name=BEDROCK_REGION)
+            print(f"[INFO] Bedrock client ready (model: {BEDROCK_MODEL_ID})")
+        except Exception as e:
+            print(f"[WARN] Bedrock client init failed: {e} — falling back to regex summaries")
+    else:
+        print("[WARN] boto3 not installed — using regex summaries")
+
+    # Load SVG background
     svg_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "background.svg")
     try:
         with open(svg_path, "r", encoding="utf-8") as f:
@@ -897,18 +1010,37 @@ def main():
         print("[WARN] background.svg not found, using empty placeholder")
         svg_content = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080"></svg>'
 
+    # Discover all public *Weave repos, merge with pinned list
+    print("[INFO] Discovering *Weave repos from GitHub...")
+    weave_repos = discover_weave_repos(token)
+    print(f"       Found: {weave_repos}")
+    repo_list = build_repo_list(weave_repos)
+    print(f"[INFO] Build order ({len(repo_list)} projects): {repo_list}")
+
+    # Fetch + summarise each repo
     repos_data = []
-    for repo_name in REPOS:
+    for repo_name in repo_list:
         print(f"[INFO] Fetching {repo_name}...")
-        data = fetch_via_graphql(repo_name, token)
+        data = fetch_repo(repo_name, token)
+        meta = _get_meta(repo_name)
+
+        summary = (
+            summarize_with_bedrock(data["readme_text"], repo_name, bedrock_client)
+            or extract_summary(data["readme_text"])
+            or html.escape(data["description"])
+        )
+
+        data["meta"] = meta
+        data["summary"] = summary
         repos_data.append(data)
-        print(f"       stars={data['stars']}  readme_len={len(data['readme_text'])}")
+        src = "bedrock" if bedrock_client and data["readme_text"] else "regex/fallback"
+        print(f"       stars={data['stars']}  summary_src={src}  summary_len={len(summary)}")
 
     html_content = generate_html(repos_data, svg_content)
     output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html_content)
-    print(f"[OK] Generated index.html ({len(html_content):,} bytes)")
+    print(f"[OK] Generated index.html ({len(html_content):,} bytes) — {len(repos_data)} projects")
 
 
 if __name__ == "__main__":
