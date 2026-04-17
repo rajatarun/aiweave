@@ -139,6 +139,10 @@ def _gh_post(query: str, variables: dict, token: str) -> dict:
     return resp.json()
 
 
+# Repos excluded from auto-discovery even if their name ends with 'weave'
+EXCLUDED_REPOS = {"aiweave"}
+
+
 def discover_weave_repos(token: str) -> list:
     """Return names of all public non-archived repos whose name ends with 'weave'."""
     found = []
@@ -148,8 +152,11 @@ def discover_weave_repos(token: str) -> list:
             data = _gh_post(LIST_REPOS_QUERY, {"owner": GH_OWNER, "after": cursor}, token)
             page = (data.get("data") or {}).get("user", {}).get("repositories", {})
             for node in page.get("nodes", []):
-                if not node.get("isArchived") and node["name"].lower().endswith("weave"):
-                    found.append(node["name"])
+                name = node["name"]
+                if (not node.get("isArchived")
+                        and name.lower().endswith("weave")
+                        and name.lower() not in EXCLUDED_REPOS):
+                    found.append(name)
             page_info = page.get("pageInfo", {})
             if not page_info.get("hasNextPage"):
                 break
