@@ -25,7 +25,16 @@ jobs:
           python-version: "3.12"
 
       - name: Install Python dependencies
-        run: pip install requests
+        run: pip install requests boto3
+
+      # OIDC credentials are configured before generate_site.py so that
+      # the Bedrock client (boto3) can authenticate during README summarization.
+      # Required IAM permissions on the role: bedrock:InvokeModel (us-east-1)
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::239571291755:role/teamweave-github-actions-sam-deployer
+          aws-region: us-east-1
 
       - name: Generate index.html
         env:
@@ -39,12 +48,6 @@ jobs:
             exit 1
           fi
           echo "index.html size: $(wc -c < index.html) bytes"
-
-      - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::239571291755:role/teamweave-github-actions-sam-deployer
-          aws-region: us-east-1
 
       - name: Create S3 bucket if it does not exist
         run: |
