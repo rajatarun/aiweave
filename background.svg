@@ -303,4 +303,163 @@
   <text x="30"   y="530" class="arch-text" font-family="monospace" font-size="22" font-weight="bold" opacity="0.18">AWS</text>
   <text x="1690" y="310" class="arch-text" font-family="monospace" font-size="20" font-weight="bold" opacity="0.2">ML</text>
 
+  <!-- ═══════════════════════════════════════════════════
+       BLOCH SPHERE / QUBIT (top-center, ~570,140)
+       ═══════════════════════════════════════════════════ -->
+  <!-- Outer sphere -->
+  <circle cx="570" cy="138" r="46" class="arch-element" stroke-width="1.8" fill="none"/>
+  <!-- Equatorial ellipse (horizontal plane) -->
+  <ellipse cx="570" cy="138" rx="46" ry="12" class="arch-element" stroke-width="1" fill="none" opacity="0.6"/>
+  <!-- Meridian ellipse (vertical plane, thin) -->
+  <ellipse cx="570" cy="138" rx="12" ry="46" class="arch-element" stroke-width="0.8" fill="none" opacity="0.4"/>
+  <!-- Z axis (dashed) -->
+  <line x1="570" y1="92" x2="570" y2="184" class="arch-element" stroke-width="0.8" stroke-dasharray="3,3" opacity="0.5"/>
+  <!-- X axis (dashed) -->
+  <line x1="524" y1="138" x2="616" y2="138" class="arch-element" stroke-width="0.8" stroke-dasharray="3,3" opacity="0.5"/>
+  <!-- State vector |ψ⟩ arrow from center toward upper-right surface -->
+  <line x1="570" y1="138" x2="601" y2="105" class="arch-element" stroke-width="2.2" marker-end="url(#arrow)"/>
+  <!-- North/south pole dots -->
+  <circle cx="570" cy="92" r="4" class="arch-element" stroke-width="1.5" fill="none"/>
+  <circle cx="570" cy="184" r="4" class="arch-element" stroke-width="1.5" fill="none"/>
+  <!-- Pole labels -->
+  <text x="576" y="87" class="arch-text" font-family="monospace" font-size="11">|0⟩</text>
+  <text x="576" y="200" class="arch-text" font-family="monospace" font-size="11">|1⟩</text>
+  <!-- State vector label -->
+  <text x="607" y="101" class="arch-text" font-family="monospace" font-size="12" font-weight="bold">|ψ⟩</text>
+  <text x="570" y="220" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">Bloch Sphere</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       QUANTUM ENTANGLEMENT PAIR (far right, ~1808,375)
+       ═══════════════════════════════════════════════════ -->
+  <!-- Left particle -->
+  <circle cx="1800" cy="370" r="21" class="arch-element" stroke-width="1.8" fill="none"/>
+  <!-- Left orbital ring (tilted) -->
+  <ellipse cx="1800" cy="370" rx="21" ry="7" class="arch-element" stroke-width="0.8" fill="none" opacity="0.55" transform="rotate(-35,1800,370)"/>
+  <!-- Right particle -->
+  <circle cx="1865" cy="370" r="21" class="arch-element" stroke-width="1.8" fill="none"/>
+  <!-- Right orbital ring (tilted opposite) -->
+  <ellipse cx="1865" cy="370" rx="21" ry="7" class="arch-element" stroke-width="0.8" fill="none" opacity="0.55" transform="rotate(35,1865,370)"/>
+  <!-- Entanglement squiggly link -->
+  <path d="M1821,370 Q1829,357 1837,370 Q1845,383 1853,370" class="arch-element" stroke-width="1.4" fill="none" stroke-dasharray="4,3"/>
+  <!-- Correlation arrows pointing outward -->
+  <line x1="1779" y1="370" x2="1758" y2="370" class="arch-element" stroke-width="1.5" marker-end="url(#arrow-sm)"/>
+  <line x1="1886" y1="370" x2="1907" y2="370" class="arch-element" stroke-width="1.5" marker-end="url(#arrow-sm)"/>
+  <!-- Spin up / down labels -->
+  <text x="1800" y="375" class="arch-text" text-anchor="middle" font-family="monospace" font-size="14">↑</text>
+  <text x="1865" y="375" class="arch-text" text-anchor="middle" font-family="monospace" font-size="14">↓</text>
+  <text x="1833" y="404" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">Entanglement</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       PADLOCK (bottom-center, ~800,938)
+       ═══════════════════════════════════════════════════ -->
+  <!-- Shackle (U-arc) -->
+  <path d="M781,942 L781,924 Q781,904 800,904 Q819,904 819,924 L819,942" class="arch-element" stroke-width="2.2" fill="none"/>
+  <!-- Lock body -->
+  <rect x="770" y="942" width="60" height="46" rx="5" class="arch-element" stroke-width="2.2" fill="none"/>
+  <!-- Keyhole circle -->
+  <circle cx="800" cy="958" r="7" class="arch-element" stroke-width="1.8" fill="none"/>
+  <!-- Keyhole slot -->
+  <line x1="800" y1="965" x2="800" y2="978" class="arch-element" stroke-width="3.5"/>
+  <text x="800" y="1005" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">Encryption</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       KEY SYMBOL (left of padlock, ~660,940)
+       ═══════════════════════════════════════════════════ -->
+  <!-- Bow (double ring = hollow circle) -->
+  <circle cx="652" cy="940" r="19" class="arch-element" stroke-width="2" fill="none"/>
+  <circle cx="652" cy="940" r="10" class="arch-element" stroke-width="1.5" fill="none"/>
+  <!-- Blade shaft -->
+  <line x1="671" y1="940" x2="725" y2="940" class="arch-element" stroke-width="3.5"/>
+  <!-- Teeth (notches down from blade) -->
+  <line x1="695" y1="940" x2="695" y2="953" class="arch-element" stroke-width="2.2"/>
+  <line x1="708" y1="940" x2="708" y2="950" class="arch-element" stroke-width="2.2"/>
+  <line x1="682" y1="940" x2="682" y2="951" class="arch-element" stroke-width="2.2"/>
+  <text x="658" y="972" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">KMS Key</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       QUANTUM CIRCUIT (bottom-right of center, ~1195,930)
+       ═══════════════════════════════════════════════════ -->
+  <!-- Qubit wire 1 -->
+  <line x1="1108" y1="918" x2="1282" y2="918" class="arch-element" stroke-width="1.3"/>
+  <!-- Qubit wire 2 -->
+  <line x1="1108" y1="948" x2="1282" y2="948" class="arch-element" stroke-width="1.3"/>
+  <!-- Wire labels -->
+  <text x="1100" y="922" class="arch-text" text-anchor="end" font-family="monospace" font-size="10">q₀</text>
+  <text x="1100" y="952" class="arch-text" text-anchor="end" font-family="monospace" font-size="10">q₁</text>
+  <!-- Hadamard gate on q₀ -->
+  <rect x="1118" y="908" width="26" height="20" class="arch-element" stroke-width="1.5" fill="none"/>
+  <text x="1131" y="922" class="arch-text" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold">H</text>
+  <!-- CNOT gate: control dot on q₀, target ⊕ on q₁ -->
+  <circle cx="1174" cy="918" r="5" class="arch-element" stroke-width="1.8"/>
+  <line x1="1174" y1="918" x2="1174" y2="948" class="arch-element" stroke-width="1.3"/>
+  <circle cx="1174" cy="948" r="11" class="arch-element" stroke-width="1.5" fill="none"/>
+  <line x1="1163" y1="948" x2="1185" y2="948" class="arch-element" stroke-width="1.3"/>
+  <line x1="1174" y1="937" x2="1174" y2="959" class="arch-element" stroke-width="1.3"/>
+  <!-- Phase gate S on q₀ -->
+  <rect x="1204" y="908" width="26" height="20" class="arch-element" stroke-width="1.5" fill="none"/>
+  <text x="1217" y="922" class="arch-text" text-anchor="middle" font-family="monospace" font-size="11">S</text>
+  <!-- Measurement box on q₁: arc + pointer -->
+  <rect x="1238" y="938" width="28" height="20" class="arch-element" stroke-width="1.5" fill="none"/>
+  <path d="M1242,956 Q1252,942 1262,956" class="arch-element" stroke-width="1.2" fill="none"/>
+  <line x1="1252" y1="950" x2="1261" y2="941" class="arch-element" stroke-width="1.2" marker-end="url(#arrow-sm)"/>
+  <text x="1195" y="978" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">QKD Circuit</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       XOR CIPHER GRID (left side, ~90,645)
+       ═══════════════════════════════════════════════════ -->
+  <!-- 3×3 grid (cell size 22×22) -->
+  <rect x="57"  y="628" width="22" height="22" class="arch-element" stroke-width="1" fill="none"/>
+  <rect x="79"  y="628" width="22" height="22" class="arch-element" stroke-width="1" fill="none"/>
+  <rect x="101" y="628" width="22" height="22" class="arch-element" stroke-width="1" fill="none"/>
+  <rect x="57"  y="650" width="22" height="22" class="arch-element" stroke-width="1" fill="none"/>
+  <rect x="79"  y="650" width="22" height="22" class="arch-element" stroke-width="1.8" fill="none"/>
+  <rect x="101" y="650" width="22" height="22" class="arch-element" stroke-width="1" fill="none"/>
+  <rect x="57"  y="672" width="22" height="22" class="arch-element" stroke-width="1" fill="none"/>
+  <rect x="79"  y="672" width="22" height="22" class="arch-element" stroke-width="1" fill="none"/>
+  <rect x="101" y="672" width="22" height="22" class="arch-element" stroke-width="1" fill="none"/>
+  <!-- Cell values (row 0) -->
+  <text x="68"  y="643" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">1</text>
+  <text x="90"  y="643" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">0</text>
+  <text x="112" y="643" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">1</text>
+  <!-- Cell values (row 1) — center cell has ⊕ -->
+  <text x="68"  y="665" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">0</text>
+  <text x="90"  y="666" class="arch-text" text-anchor="middle" font-family="monospace" font-size="13">⊕</text>
+  <text x="112" y="665" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">0</text>
+  <!-- Cell values (row 2) -->
+  <text x="68"  y="687" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">1</text>
+  <text x="90"  y="687" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">1</text>
+  <text x="112" y="687" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">0</text>
+  <text x="90"  y="710" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">XOR Cipher</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       SUPERPOSITION WAVEFORM (top area, ~470,65)
+       ═══════════════════════════════════════════════════ -->
+  <path d="M430,62 Q444,42 458,62 Q472,82 486,62 Q500,42 514,62 Q528,82 542,62"
+        class="arch-element" stroke-width="1.6" fill="none"/>
+  <text x="416" y="66" class="arch-text" font-family="monospace" font-size="11">|0⟩</text>
+  <text x="547" y="66" class="arch-text" font-family="monospace" font-size="11">|1⟩</text>
+  <text x="486" y="88" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">Superposition</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       SCATTERED CRYPTO / QUANTUM TEXT LABELS
+       ═══════════════════════════════════════════════════ -->
+  <text x="350"  y="45"   class="arch-text" font-family="monospace" font-size="14" opacity="0.28">Lattice Crypto</text>
+  <text x="680"  y="68"   class="arch-text" font-family="monospace" font-size="15" opacity="0.3">Photon</text>
+  <text x="1310" y="55"   class="arch-text" font-family="monospace" font-size="13" opacity="0.25">AES-256</text>
+  <text x="1480" y="85"   class="arch-text" font-family="monospace" font-size="12" opacity="0.22">Post-Quantum</text>
+  <text x="1840" y="195"  class="arch-text" font-family="monospace" font-size="13" opacity="0.25">Zero-Trust</text>
+  <text x="1840" y="250"  class="arch-text" font-family="monospace" font-size="12" opacity="0.22">Entropy</text>
+  <text x="1840" y="300"  class="arch-text" font-family="monospace" font-size="13" opacity="0.25">ECDH</text>
+  <text x="1840" y="480"  class="arch-text" font-family="monospace" font-size="12" opacity="0.2">Nonce</text>
+  <text x="1840" y="530"  class="arch-text" font-family="monospace" font-size="13" opacity="0.25">HSM</text>
+  <text x="700"  y="228"  class="arch-text" font-family="monospace" font-size="13" opacity="0.28">Qubit</text>
+  <text x="400"  y="260"  class="arch-text" font-family="monospace" font-size="12" opacity="0.22">Quantum Key</text>
+  <text x="175"  y="130"  class="arch-text" font-family="monospace" font-size="12" opacity="0.25">SHA-256</text>
+  <text x="1355" y="120"  class="arch-text" font-family="monospace" font-size="13" opacity="0.25">PKI</text>
+  <text x="310"  y="760"  class="arch-text" font-family="monospace" font-size="13" opacity="0.25">TLS 1.3</text>
+  <text x="1090" y="855"  class="arch-text" font-family="monospace" font-size="12" opacity="0.22">Homomorphic</text>
+  <text x="495"  y="1005" class="arch-text" font-family="monospace" font-size="13" opacity="0.28">QKD</text>
+  <text x="1620" y="985"  class="arch-text" font-family="monospace" font-size="13" opacity="0.25">Key Rotation</text>
+  <text x="1840" y="950"  class="arch-text" font-family="monospace" font-size="14" font-weight="bold" opacity="0.2">⚿</text>
+
 </svg>
