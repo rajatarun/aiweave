@@ -34,6 +34,8 @@ PREFERRED_ORDER = [
     "ToolWeave",
     "ContextWeave",
     "ScreenWeave",
+    "DeployWeave",
+    "CipherWeave",
     "mcp-observatory",
     "DataDictionary",
 ]
@@ -83,6 +85,18 @@ REPO_META = {
         "tagline": "Two-phase PROPOSE/COMMIT · Risk scoring · Safe MCP execution · Observability",
         "tech": ["FastMCP", "PROPOSE/COMMIT", "Risk Scoring", "PostgreSQL", "Observability"],
         "fallback_desc": "Two-phase execution framework for high-risk MCP tool operations — PROPOSE scores risk, COMMIT verifies signed tokens before side-effects.",
+    },
+    "DeployWeave": {
+        "icon": "⬟",
+        "tagline": "AI/ML deployment automation · AWS CDK · CodePipeline · Blue-green & canary",
+        "tech": ["CDK", "CodePipeline", "CodeDeploy", "Lambda", "SAM"],
+        "fallback_desc": "Infrastructure-as-code deployment automation for AI/ML workloads on AWS, supporting blue-green and canary release strategies via CDK and CodePipeline.",
+    },
+    "CipherWeave": {
+        "icon": "⊛",
+        "tagline": "Secrets & encryption layer · AWS KMS · SSM · Zero-trust data pipelines",
+        "tech": ["KMS", "SSM Parameter Store", "Secrets Manager", "Lambda", "IAM"],
+        "fallback_desc": "AWS-native encryption and secrets management layer for AI data pipelines, enforcing zero-trust access patterns with KMS, SSM, and Secrets Manager.",
     },
     "DataDictionary": {
         "icon": "◫",
@@ -216,6 +230,22 @@ def fetch_repo(repo_name: str, token: str) -> dict:
         }
 
 
+def _trim_at_sentence(text: str, max_chars: int = 700) -> str:
+    """Return text trimmed to the last complete sentence within max_chars."""
+    if len(text) <= max_chars:
+        return text
+    window = text[:max_chars]
+    # Find the last sentence-ending punctuation followed by a space or end-of-string
+    match = None
+    for m in re.finditer(r"[.!?](?=\s|$)", window):
+        match = m
+    if match:
+        return text[:match.end()].strip()
+    # No sentence boundary found — fall back to last whitespace to avoid mid-word cut
+    last_space = window.rfind(" ")
+    return (text[:last_space].rstrip() + "…") if last_space > 0 else window
+
+
 def summarize_with_bedrock(readme_text: str, repo_name: str, client) -> str:
     """Use Bedrock Claude Haiku 4.5 Converse API to produce a product-card summary."""
     if not readme_text or client is None:
@@ -233,19 +263,20 @@ def summarize_with_bedrock(readme_text: str, repo_name: str, client) -> str:
             modelId=BEDROCK_MODEL_ID,
             system=[{"text": (
                 "You write copy for a technical product website. "
-                "Given a GitHub README, produce a 2-3 sentence plain-text summary "
-                "for a project card. Focus on what the tool does, its key capabilities, "
-                "and what makes it distinctive. Present tense, third person. "
-                "No code blocks, no markdown formatting, no list items. Under 380 characters."
+                "Given a GitHub README, produce 2-3 complete sentences as a plain-text "
+                "summary for a project card. Focus on what the tool does, its key "
+                "capabilities, and what makes it distinctive. Always finish the last "
+                "sentence fully — never stop mid-sentence. "
+                "Present tense, third person. No code blocks, no markdown, no bullet points."
             )}],
             messages=[{
                 "role": "user",
                 "content": [{"text": f"Project: {repo_name}\n\nREADME:\n{cleaned}"}],
             }],
-            inferenceConfig={"maxTokens": 180, "temperature": 0.2},
+            inferenceConfig={"maxTokens": 300, "temperature": 0.2},
         )
         result = response["output"]["message"]["content"][0]["text"].strip()
-        return html.escape(result[:420])
+        return html.escape(_trim_at_sentence(result, max_chars=700))
     except Exception as e:
         print(f"[WARN] Bedrock summarization failed for {repo_name}: {e}")
         return ""
@@ -269,7 +300,7 @@ def extract_summary(readme_text: str, max_sentences: int = 3) -> str:
     sentences = re.split(r"(?<=[.!?])\s+", text)
     sentences = [s.strip() for s in sentences if len(s.strip()) > 25]
     summary = " ".join(sentences[:max_sentences])
-    return html.escape(summary[:420])
+    return html.escape(_trim_at_sentence(summary, max_chars=700))
 
 
 def build_project_card(repo_data: dict, index: int) -> str:
