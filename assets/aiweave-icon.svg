@@ -7,7 +7,13 @@
       <stop offset="100%" stop-color="#00a9ff"/>
     </linearGradient>
   </defs>
-  <rect width="128" height="128" rx="24" fill="#0f1114"/>
+  <style>
+    .icon-bg { fill: #0f1114; }
+    @media (prefers-color-scheme: light) {
+      .icon-bg { fill: #edf3fb; }
+    }
+  </style>
+  <rect class="icon-bg" width="128" height="128" rx="24"/>
   <g fill="none" stroke="url(#g)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
     <path d="M34 22 L54 42 L34 62 L14 42 Z"/>
     <path d="M74 22 L94 42 L74 62 L54 42 Z"/>

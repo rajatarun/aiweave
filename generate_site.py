@@ -527,6 +527,9 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str, logo_svg: s
       display: inline-block;
     }}
     .nav-logo .brand-icon svg {{ width: 100%; height: 100%; display: block; }}
+    .nav-logo .brand-icon .icon-bg {{ fill: var(--surface-2); }}
+    [data-theme="light"] .nav-logo .brand-icon .icon-bg {{ fill: #edf3fb; }}
+    [data-theme="dark"] .nav-logo .brand-icon .icon-bg {{ fill: #0f1114; }}
     .nav-logo span {{ color: var(--accent); }}
     .nav-links {{
       display: flex;
@@ -613,6 +616,8 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str, logo_svg: s
       margin-bottom: 18px;
       filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.18));
     }}
+    .hero-brand svg {{ color: var(--text); }}
+    .hero-brand svg .tagline {{ opacity: 0.7; }}
     .hero-title {{
       font-family: 'Orbitron', sans-serif;
       font-size: clamp(3.2rem, 9vw, 7.5rem);

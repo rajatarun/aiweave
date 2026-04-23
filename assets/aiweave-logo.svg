@@ -2,17 +2,22 @@
   <title id="title">AIWeave Logo</title>
   <desc id="desc">AIWeave wordmark with cyan interwoven icon and adaptive tagline.</desc>
   <style>
+    svg { color: #f3f5f7; }
     .wordmark {
       font-family: Inter, Avenir, Segoe UI, sans-serif;
       font-size: 88px;
       font-weight: 700;
-      fill: #f3f5f7;
+      fill: currentColor;
     }
     .tagline {
       font-family: Inter, Avenir, Segoe UI, sans-serif;
       font-size: 34px;
       font-weight: 400;
-      fill: #b8bec6;
+      fill: currentColor;
+      opacity: 0.74;
+    }
+    @media (prefers-color-scheme: light) {
+      svg { color: #0f1e2e; }
     }
     @media (max-width: 520px) {
       .wordmark { font-size: 74px; }
