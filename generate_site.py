@@ -357,6 +357,8 @@ def generate_html(repos_data: list, svg_content: str) -> str:
   <title>AIWeave &#8212; AWS AI Infrastructure Tools Ecosystem</title>
   <meta name="description" content="AIWeave is a suite of open-source AWS-native AI infrastructure tools covering model fine-tuning, multi-agent orchestration, GraphRAG, MCP servers, visual QA, and more.">
   <link rel="canonical" href="https://aiweave.org">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="apple-touch-icon" href="assets/aiweave-icon.svg">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
@@ -503,16 +505,25 @@ def generate_html(repos_data: list, svg_content: str) -> str:
       gap: 8px;
     }}
     .nav-logo {{
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      margin-right: auto;
+      white-space: nowrap;
+      color: var(--text);
       font-family: 'Orbitron', sans-serif;
       font-size: 1.35rem;
       font-weight: 900;
-      text-decoration: none;
-      letter-spacing: 0.04em;
-      color: var(--accent);
-      margin-right: auto;
-      white-space: nowrap;
+      letter-spacing: 0.03em;
     }}
-    .nav-logo span {{ color: var(--secondary); }}
+    .nav-logo img {{
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      box-shadow: var(--glow);
+    }}
+    .nav-logo span {{ color: var(--accent); }}
     .nav-links {{
       display: flex;
       align-items: center;
@@ -592,6 +603,11 @@ def generate_html(repos_data: list, svg_content: str) -> str:
       color: var(--accent);
       margin-bottom: 18px;
       font-weight: 600;
+    }}
+    .hero-brand {{
+      width: min(540px, 92vw);
+      margin-bottom: 18px;
+      filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.18));
     }}
     .hero-title {{
       font-family: 'Orbitron', sans-serif;
@@ -867,7 +883,10 @@ def generate_html(repos_data: list, svg_content: str) -> str:
   <a href="#main" class="skip-link">Skip to main content</a>
 
   <nav aria-label="Main navigation">
-    <a href="/" class="nav-logo" aria-label="AIWeave home">AI<span>Weave</span></a>
+    <a href="/" class="nav-logo" aria-label="AIWeave home">
+      <img src="assets/aiweave-icon.svg" alt="AIWeave logo icon">
+      AI<span>Weave</span>
+    </a>
     <ul class="nav-links" role="list">
       <li><a href="#home" class="nav-home" aria-label="Go to Home section">Home</a></li>
       <li><a href="#projects" aria-label="Go to Projects section">Projects</a></li>
@@ -901,6 +920,7 @@ def generate_html(repos_data: list, svg_content: str) -> str:
     <!-- ═══════ HERO ═══════ -->
     <section id="home" aria-labelledby="hero-title">
       <p class="hero-eyebrow">Open-Source AWS AI Infrastructure</p>
+      <img src="assets/aiweave-logo.svg" class="hero-brand" alt="AIWeave logo">
       <h1 id="hero-title" class="hero-title">AIWeave</h1>
       <p class="hero-subtitle">Build &middot; Fine-tune &middot; Orchestrate &middot; Deploy</p>
       <p class="hero-description">
