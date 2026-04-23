@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 200" role="img" aria-labelledby="title desc">
+  <title id="title">AIWeave Logo</title>
+  <desc id="desc">AIWeave wordmark with cyan interwoven icon and adaptive tagline.</desc>
+  <style>
+    svg { color: #f3f5f7; }
+    .wordmark {
+      font-family: Inter, Avenir, Segoe UI, sans-serif;
+      font-size: 88px;
+      font-weight: 700;
+      fill: currentColor;
+    }
+    .tagline {
+      font-family: Inter, Avenir, Segoe UI, sans-serif;
+      font-size: 34px;
+      font-weight: 400;
+      fill: currentColor;
+      opacity: 0.74;
+    }
+    @media (prefers-color-scheme: light) {
+      svg { color: #0f1e2e; }
+    }
+    @media (max-width: 520px) {
+      .wordmark { font-size: 74px; }
+      .tagline { font-size: 28px; }
+    }
+    @media (max-width: 420px) {
+      .wordmark { font-size: 66px; }
+      .tagline { display: none; }
+    }
+  </style>
+  <defs>
+    <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2de5ff"/>
+      <stop offset="100%" stop-color="#00a9ff"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(18,38)" fill="none" stroke="url(#cyan)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M34 12 L54 32 L34 52 L14 32 Z"/>
+    <path d="M74 12 L94 32 L74 52 L54 32 Z"/>
+    <path d="M54 32 L74 52 L54 72 L34 52 Z"/>
+    <path d="M34 52 L54 72 L34 92 L14 72 Z"/>
+    <path d="M74 52 L94 72 L74 92 L54 72 Z"/>
+  </g>
+
+  <text x="150" y="108" class="wordmark">AIWeave</text>
+  <text x="150" y="158" class="tagline">Build · Fine-tune · Orchestrate · Deploy</text>
+</svg>
