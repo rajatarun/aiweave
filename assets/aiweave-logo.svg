@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 180" role="img" aria-labelledby="title desc">
+  <title id="title">AIWeave Logo</title>
+  <desc id="desc">AIWeave wordmark with cyan interwoven icon and tagline.</desc>
+  <defs>
+    <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2de5ff"/>
+      <stop offset="100%" stop-color="#00a9ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="680" height="180" rx="16" fill="#111316"/>
+  <g transform="translate(28,30)" fill="none" stroke="url(#cyan)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M34 12 L54 32 L34 52 L14 32 Z"/>
+    <path d="M74 12 L94 32 L74 52 L54 32 Z"/>
+    <path d="M54 32 L74 52 L54 72 L34 52 Z"/>
+    <path d="M34 52 L54 72 L34 92 L14 72 Z"/>
+    <path d="M74 52 L94 72 L74 92 L54 72 Z"/>
+  </g>
+  <text x="160" y="85" fill="#f3f5f7" font-family="Inter, Avenir, Segoe UI, sans-serif" font-size="64" font-weight="700">AIWeave</text>
+  <text x="160" y="128" fill="#b8bec6" font-family="Inter, Avenir, Segoe UI, sans-serif" font-size="32" font-weight="400">Build · Fine-tune · Orchestrate · Deploy</text>
+</svg>
