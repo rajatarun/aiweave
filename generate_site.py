@@ -10,6 +10,7 @@ import json
 import os
 import re
 import requests
+from urllib.parse import quote
 from datetime import datetime, timezone
 
 try:
@@ -343,10 +344,11 @@ def build_project_card(repo_data: dict, index: int) -> str:
         </article>"""
 
 
-def generate_html(repos_data: list, svg_content: str) -> str:
+def generate_html(repos_data: list, svg_content: str, icon_svg: str, logo_svg: str) -> str:
     cards_html = "\n".join(build_project_card(r, i) for i, r in enumerate(repos_data))
     build_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     build_year = datetime.now(timezone.utc).year
+    icon_data_uri = f"data:image/svg+xml;utf8,{quote(icon_svg)}"
 
     return f"""<!DOCTYPE html>
 <html lang="en" data-theme="dark">
@@ -357,8 +359,8 @@ def generate_html(repos_data: list, svg_content: str) -> str:
   <title>AIWeave &#8212; AWS AI Infrastructure Tools Ecosystem</title>
   <meta name="description" content="AIWeave is a suite of open-source AWS-native AI infrastructure tools covering model fine-tuning, multi-agent orchestration, GraphRAG, MCP servers, visual QA, and more.">
   <link rel="canonical" href="https://aiweave.org">
-  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-  <link rel="apple-touch-icon" href="assets/aiweave-icon.svg">
+  <link rel="icon" type="image/svg+xml" href="{icon_data_uri}">
+  <link rel="apple-touch-icon" href="{icon_data_uri}">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
@@ -517,12 +519,14 @@ def generate_html(repos_data: list, svg_content: str) -> str:
       font-weight: 900;
       letter-spacing: 0.03em;
     }}
-    .nav-logo img {{
+    .nav-logo .brand-icon {{
       width: 34px;
       height: 34px;
       border-radius: 8px;
       box-shadow: var(--glow);
+      display: inline-block;
     }}
+    .nav-logo .brand-icon svg {{ width: 100%; height: 100%; display: block; }}
     .nav-logo span {{ color: var(--accent); }}
     .nav-links {{
       display: flex;
@@ -884,7 +888,7 @@ def generate_html(repos_data: list, svg_content: str) -> str:
 
   <nav aria-label="Main navigation">
     <a href="/" class="nav-logo" aria-label="AIWeave home">
-      <img src="assets/aiweave-icon.svg" alt="AIWeave logo icon">
+      <span class="brand-icon" aria-hidden="true">{icon_svg}</span>
       AI<span>Weave</span>
     </a>
     <ul class="nav-links" role="list">
@@ -920,7 +924,7 @@ def generate_html(repos_data: list, svg_content: str) -> str:
     <!-- ═══════ HERO ═══════ -->
     <section id="home" aria-labelledby="hero-title">
       <p class="hero-eyebrow">Open-Source AWS AI Infrastructure</p>
-      <img src="assets/aiweave-logo.svg" class="hero-brand" alt="AIWeave logo">
+      <div class="hero-brand" aria-hidden="true">{logo_svg}</div>
       <h1 id="hero-title" class="hero-title">AIWeave</h1>
       <p class="hero-subtitle">Build &middot; Fine-tune &middot; Orchestrate &middot; Deploy</p>
       <p class="hero-description">
@@ -1042,6 +1046,19 @@ def generate_html(repos_data: list, svg_content: str) -> str:
 </html>"""
 
 
+
+
+def load_svg_asset(filename: str, fallback: str) -> str:
+    """Load an SVG file and strip any XML declaration; return fallback if missing."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        return re.sub(r"<\?xml[^?]*\?>", "", content).strip()
+    except FileNotFoundError:
+        print(f"[WARN] {filename} not found, using fallback")
+        return fallback
+
 def main():
     token = os.environ.get("GH_TOKEN", "")
     if not token:
@@ -1058,15 +1075,19 @@ def main():
     else:
         print("[WARN] boto3 not installed — using regex summaries")
 
-    # Load SVG background
-    svg_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "background.svg")
-    try:
-        with open(svg_path, "r", encoding="utf-8") as f:
-            svg_content = f.read()
-        svg_content = re.sub(r"<\?xml[^?]*\?>", "", svg_content).strip()
-    except FileNotFoundError:
-        print("[WARN] background.svg not found, using empty placeholder")
-        svg_content = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080"></svg>'
+    # Load SVG assets (inlined in generated HTML so deployments only need index.html)
+    svg_content = load_svg_asset(
+        "background.svg",
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080"></svg>',
+    )
+    icon_svg = load_svg_asset(
+        "assets/aiweave-icon.svg",
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#00d9ff"/></svg>',
+    )
+    logo_svg = load_svg_asset(
+        "assets/aiweave-logo.svg",
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 64"><text x="0" y="44" fill="#ffffff" font-family="sans-serif" font-size="42">AIWeave</text></svg>',
+    )
 
     # Discover all public *Weave repos, merge with pinned list
     print("[INFO] Discovering *Weave repos from GitHub...")
@@ -1094,7 +1115,7 @@ def main():
         src = "bedrock" if bedrock_client and data["readme_text"] else "regex/fallback"
         print(f"       stars={data['stars']}  summary_src={src}  summary_len={len(summary)}")
 
-    html_content = generate_html(repos_data, svg_content)
+    html_content = generate_html(repos_data, svg_content, icon_svg, logo_svg)
     output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html_content)
