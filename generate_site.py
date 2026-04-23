@@ -344,7 +344,7 @@ def build_project_card(repo_data: dict, index: int) -> str:
         </article>"""
 
 
-def generate_html(repos_data: list, svg_content: str, icon_svg: str, logo_svg: str) -> str:
+def generate_html(repos_data: list, svg_content: str, icon_svg: str) -> str:
     cards_html = "\n".join(build_project_card(r, i) for i, r in enumerate(repos_data))
     build_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     build_year = datetime.now(timezone.utc).year
@@ -611,20 +611,33 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str, logo_svg: s
       margin-bottom: 18px;
       font-weight: 600;
     }}
-    .hero-brand {{
-      width: min(540px, 92vw);
-      margin-bottom: 18px;
+    .hero-heading {{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(12px, 2.3vw, 20px);
+      margin-bottom: 10px;
       filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.18));
     }}
-    .hero-brand svg {{ color: var(--text); }}
-    .hero-brand svg .tagline {{ opacity: 0.7; }}
+    .hero-heading .brand-icon {{
+      width: clamp(48px, 7vw, 86px);
+      height: clamp(48px, 7vw, 86px);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }}
+    .hero-heading .brand-icon svg {{ width: 100%; height: 100%; display: block; }}
+    .hero-heading .brand-icon .icon-bg {{ fill: var(--surface-2); }}
+    [data-theme="light"] .hero-heading .brand-icon .icon-bg {{ fill: #edf3fb; }}
+    [data-theme="dark"] .hero-heading .brand-icon .icon-bg {{ fill: #0f1114; }}
     .hero-title {{
       font-family: 'Orbitron', sans-serif;
       font-size: clamp(3.2rem, 9vw, 7.5rem);
       font-weight: 900;
       line-height: 1;
       letter-spacing: -0.01em;
-      margin-bottom: 10px;
+      margin: 0;
       background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -929,8 +942,10 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str, logo_svg: s
     <!-- ═══════ HERO ═══════ -->
     <section id="home" aria-labelledby="hero-title">
       <p class="hero-eyebrow">Open-Source AWS AI Infrastructure</p>
-      <div class="hero-brand" aria-hidden="true">{logo_svg}</div>
-      <h1 id="hero-title" class="hero-title">AIWeave</h1>
+      <div class="hero-heading">
+        <span class="brand-icon" aria-hidden="true">{icon_svg}</span>
+        <h1 id="hero-title" class="hero-title">AIWeave</h1>
+      </div>
       <p class="hero-subtitle">Build &middot; Fine-tune &middot; Orchestrate &middot; Deploy</p>
       <p class="hero-description">
         A suite of production-ready, AWS-native AI infrastructure tools spanning
@@ -1089,10 +1104,6 @@ def main():
         "assets/aiweave-icon.svg",
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#00d9ff"/></svg>',
     )
-    logo_svg = load_svg_asset(
-        "assets/aiweave-logo.svg",
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 64"><text x="0" y="44" fill="#ffffff" font-family="sans-serif" font-size="42">AIWeave</text></svg>',
-    )
 
     # Discover all public *Weave repos, merge with pinned list
     print("[INFO] Discovering *Weave repos from GitHub...")
@@ -1120,7 +1131,7 @@ def main():
         src = "bedrock" if bedrock_client and data["readme_text"] else "regex/fallback"
         print(f"       stars={data['stars']}  summary_src={src}  summary_len={len(summary)}")
 
-    html_content = generate_html(repos_data, svg_content, icon_svg, logo_svg)
+    html_content = generate_html(repos_data, svg_content, icon_svg)
     output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html_content)
