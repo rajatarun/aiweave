@@ -36,6 +36,11 @@ jobs:
           role-to-assume: arn:aws:iam::239571291755:role/teamweave-github-actions-sam-deployer
           aws-region: us-east-1
 
+      - name: Fetch all .md files and upload to RAG S3 bucket
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: python fetch_md_upload_s3.py
+
       - name: Generate index.html
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
