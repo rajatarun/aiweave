@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 120" width="320" height="120" role="img" aria-label="AIWeave logo">
+  <title>AIWeave</title>
+  <rect width="320" height="120" rx="16" fill="#050a14"/>
+
+  <!-- 4-ring chain-weave icon (88×88 canvas, centred at 16,16) -->
+  <g transform="translate(16,16)" color="#00d9ff">
+    <!-- Back rings (TR, BL) -->
+    <rect x="36" y="3"  width="49" height="49" rx="12" fill="none" stroke="#00d9ff" stroke-width="10"/>
+    <rect x="3"  y="36" width="49" height="49" rx="12" fill="none" stroke="#00d9ff" stroke-width="10"/>
+    <!-- Front rings (TL, BR) -->
+    <rect x="3"  y="3"  width="49" height="49" rx="12" fill="none" stroke="#00d9ff" stroke-width="10"/>
+    <rect x="36" y="36" width="49" height="49" rx="12" fill="none" stroke="#00d9ff" stroke-width="10"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="126" y="52"
+        font-family="'Orbitron', 'Arial Black', sans-serif"
+        font-size="36" font-weight="900"
+        letter-spacing="1"
+        fill="#00d9ff">AI</text>
+  <text x="172" y="52"
+        font-family="'Orbitron', 'Arial Black', sans-serif"
+        font-size="36" font-weight="900"
+        letter-spacing="1"
+        fill="#7b2fff">Weave</text>
+
+  <!-- Tagline -->
+  <text x="126" y="78"
+        font-family="'Exo 2', Arial, sans-serif"
+        font-size="13" font-weight="400"
+        letter-spacing="3"
+        fill="rgba(255,255,255,0.55)">AWS AI INFRASTRUCTURE</text>
+</svg>

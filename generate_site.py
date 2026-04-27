@@ -343,6 +343,42 @@ def build_project_card(repo_data: dict, index: int) -> str:
         </article>"""
 
 
+# ── Logo assets ──────────────────────────────────────────────────────────────
+# 4 interlocked rounded-square rings: TR+BL drawn first (under),
+# TL+BR drawn second (over) — creates the diagonal chain-weave effect.
+# Uses currentColor so the icon inherits its parent element's CSS color.
+_RINGS = (
+    '<rect x="36" y="3"  width="49" height="49" rx="12" fill="none"'
+    ' stroke="currentColor" stroke-width="10"/>'
+    '<rect x="3"  y="36" width="49" height="49" rx="12" fill="none"'
+    ' stroke="currentColor" stroke-width="10"/>'
+    '<rect x="3"  y="3"  width="49" height="49" rx="12" fill="none"'
+    ' stroke="currentColor" stroke-width="10"/>'
+    '<rect x="36" y="36" width="49" height="49" rx="12" fill="none"'
+    ' stroke="currentColor" stroke-width="10"/>'
+)
+
+def _icon_svg(w: int, h: int, extra_attrs: str = "") -> str:
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 88"'
+        f' width="{w}" height="{h}" aria-hidden="true" focusable="false"'
+        f'{" " + extra_attrs if extra_attrs else ""}>'
+        f'{_RINGS}</svg>'
+    )
+
+# URL-encoded SVG favicon — explicit colours, no CSS inheritance needed.
+FAVICON_SVG_URI = (
+    "data:image/svg+xml,"
+    "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 88 88'>"
+    "<rect width='88' height='88' rx='14' fill='%231a1a1a'/>"
+    "<rect x='36' y='3'  width='49' height='49' rx='12' fill='none' stroke='%2300d9ff' stroke-width='10'/>"
+    "<rect x='3'  y='36' width='49' height='49' rx='12' fill='none' stroke='%2300d9ff' stroke-width='10'/>"
+    "<rect x='3'  y='3'  width='49' height='49' rx='12' fill='none' stroke='%2300d9ff' stroke-width='10'/>"
+    "<rect x='36' y='36' width='49' height='49' rx='12' fill='none' stroke='%2300d9ff' stroke-width='10'/>"
+    "</svg>"
+)
+
+
 def generate_html(repos_data: list, svg_content: str) -> str:
     cards_html = "\n".join(build_project_card(r, i) for i, r in enumerate(repos_data))
     build_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -357,6 +393,7 @@ def generate_html(repos_data: list, svg_content: str) -> str:
   <title>AIWeave &#8212; AWS AI Infrastructure Tools Ecosystem</title>
   <meta name="description" content="AIWeave is a suite of open-source AWS-native AI infrastructure tools covering model fine-tuning, multi-agent orchestration, GraphRAG, MCP servers, visual QA, and more.">
   <link rel="canonical" href="https://aiweave.org">
+  <link rel="icon" href="{FAVICON_SVG_URI}" type="image/svg+xml">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
@@ -511,7 +548,11 @@ def generate_html(repos_data: list, svg_content: str) -> str:
       color: var(--accent);
       margin-right: auto;
       white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 9px;
     }}
+    .nav-logo svg {{ flex-shrink: 0; }}
     .nav-logo span {{ color: var(--secondary); }}
     .nav-links {{
       display: flex;
@@ -584,6 +625,22 @@ def generate_html(repos_data: list, svg_content: str) -> str:
       text-align: center;
       padding: clamp(48px,8vw,120px) clamp(16px,4vw,48px) 80px;
       position: relative;
+    }}
+    .hero-logo-mark {{
+      display: flex;
+      justify-content: center;
+      margin-bottom: 28px;
+      color: var(--accent);
+    }}
+    @keyframes logo-pulse {{
+      0%, 100% {{ opacity: 1; transform: scale(1); }}
+      50%       {{ opacity: 0.75; transform: scale(0.96); }}
+    }}
+    .hero-logo-mark svg {{
+      animation: logo-pulse 3.6s ease-in-out infinite;
+    }}
+    @media (prefers-reduced-motion: reduce) {{
+      .hero-logo-mark svg {{ animation: none; }}
     }}
     .hero-eyebrow {{
       font-size: 0.78rem;
@@ -867,7 +924,7 @@ def generate_html(repos_data: list, svg_content: str) -> str:
   <a href="#main" class="skip-link">Skip to main content</a>
 
   <nav aria-label="Main navigation">
-    <a href="/" class="nav-logo" aria-label="AIWeave home">AI<span>Weave</span></a>
+    <a href="/" class="nav-logo" aria-label="AIWeave home">{_icon_svg(30, 30)}AI<span>Weave</span></a>
     <ul class="nav-links" role="list">
       <li><a href="#home" class="nav-home" aria-label="Go to Home section">Home</a></li>
       <li><a href="#projects" aria-label="Go to Projects section">Projects</a></li>
@@ -900,6 +957,7 @@ def generate_html(repos_data: list, svg_content: str) -> str:
 
     <!-- ═══════ HERO ═══════ -->
     <section id="home" aria-labelledby="hero-title">
+      <div class="hero-logo-mark">{_icon_svg(80, 80)}</div>
       <p class="hero-eyebrow">Open-Source AWS AI Infrastructure</p>
       <h1 id="hero-title" class="hero-title">AIWeave</h1>
       <p class="hero-subtitle">Build &middot; Fine-tune &middot; Orchestrate &middot; Deploy</p>
@@ -967,6 +1025,7 @@ def generate_html(repos_data: list, svg_content: str) -> str:
 
   <footer>
     <p>
+      {_icon_svg(16, 16, 'style="vertical-align:middle;color:var(--accent)"')}
       &copy; {build_year} AIWeave &middot;
       <a href="https://github.com/{GH_OWNER}"
          target="_blank"
