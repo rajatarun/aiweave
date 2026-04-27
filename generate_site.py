@@ -10,6 +10,7 @@ import json
 import os
 import re
 import requests
+from urllib.parse import quote
 from datetime import datetime, timezone
 
 try:
@@ -346,7 +347,6 @@ def build_project_card(repo_data: dict, index: int) -> str:
 # ── Logo assets ──────────────────────────────────────────────────────────────
 # 4 interlocked rounded-square rings: TR+BL drawn first (under),
 # TL+BR drawn second (over) — creates the diagonal chain-weave effect.
-# Uses currentColor so the icon inherits its parent element's CSS color.
 _RINGS = (
     '<rect x="36" y="3"  width="49" height="49" rx="12" fill="none"'
     ' stroke="currentColor" stroke-width="10"/>'
@@ -379,10 +379,14 @@ FAVICON_SVG_URI = (
 )
 
 
-def generate_html(repos_data: list, svg_content: str) -> str:
+def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str:
     cards_html = "\n".join(build_project_card(r, i) for i, r in enumerate(repos_data))
     build_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     build_year = datetime.now(timezone.utc).year
+    icon_data_uri = (
+        FAVICON_SVG_URI if not icon_svg
+        else f"data:image/svg+xml;utf8,{quote(icon_svg)}"
+    )
 
     return f"""<!DOCTYPE html>
 <html lang="en" data-theme="dark">
@@ -393,7 +397,8 @@ def generate_html(repos_data: list, svg_content: str) -> str:
   <title>AIWeave &#8212; AWS AI Infrastructure Tools Ecosystem</title>
   <meta name="description" content="AIWeave is a suite of open-source AWS-native AI infrastructure tools covering model fine-tuning, multi-agent orchestration, GraphRAG, MCP servers, visual QA, and more.">
   <link rel="canonical" href="https://aiweave.org">
-  <link rel="icon" href="{FAVICON_SVG_URI}" type="image/svg+xml">
+  <link rel="icon" type="image/svg+xml" href="{icon_data_uri}">
+  <link rel="apple-touch-icon" href="{icon_data_uri}">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
@@ -540,19 +545,28 @@ def generate_html(repos_data: list, svg_content: str) -> str:
       gap: 8px;
     }}
     .nav-logo {{
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      margin-right: auto;
+      white-space: nowrap;
+      color: var(--text);
       font-family: 'Orbitron', sans-serif;
       font-size: 1.35rem;
       font-weight: 900;
-      text-decoration: none;
       letter-spacing: 0.04em;
       color: var(--accent);
-      margin-right: auto;
-      white-space: nowrap;
-      display: flex;
-      align-items: center;
-      gap: 9px;
     }}
     .nav-logo svg {{ flex-shrink: 0; }}
+    .nav-logo .brand-icon {{
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+    }}
+    .nav-logo .brand-icon svg {{ width: 100%; height: 100%; display: block; }}
     .nav-logo span {{ color: var(--secondary); }}
     .nav-links {{
       display: flex;
@@ -626,22 +640,6 @@ def generate_html(repos_data: list, svg_content: str) -> str:
       padding: clamp(48px,8vw,120px) clamp(16px,4vw,48px) 80px;
       position: relative;
     }}
-    .hero-logo-mark {{
-      display: flex;
-      justify-content: center;
-      margin-bottom: 28px;
-      color: var(--accent);
-    }}
-    @keyframes logo-pulse {{
-      0%, 100% {{ opacity: 1; transform: scale(1); }}
-      50%       {{ opacity: 0.75; transform: scale(0.96); }}
-    }}
-    .hero-logo-mark svg {{
-      animation: logo-pulse 3.6s ease-in-out infinite;
-    }}
-    @media (prefers-reduced-motion: reduce) {{
-      .hero-logo-mark svg {{ animation: none; }}
-    }}
     .hero-eyebrow {{
       font-size: 0.78rem;
       letter-spacing: 0.22em;
@@ -650,13 +648,33 @@ def generate_html(repos_data: list, svg_content: str) -> str:
       margin-bottom: 18px;
       font-weight: 600;
     }}
+    .hero-heading {{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(12px, 2.3vw, 20px);
+      margin-bottom: 10px;
+      filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.18));
+    }}
+    .hero-heading .brand-icon {{
+      width: clamp(48px, 7vw, 86px);
+      height: clamp(48px, 7vw, 86px);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }}
+    .hero-heading .brand-icon svg {{ width: 100%; height: 100%; display: block; }}
+    .hero-heading .brand-icon .icon-bg {{ fill: var(--surface-2); }}
+    [data-theme="light"] .hero-heading .brand-icon .icon-bg {{ fill: #edf3fb; }}
+    [data-theme="dark"] .hero-heading .brand-icon .icon-bg {{ fill: #0f1114; }}
     .hero-title {{
       font-family: 'Orbitron', sans-serif;
       font-size: clamp(3.2rem, 9vw, 7.5rem);
       font-weight: 900;
       line-height: 1;
       letter-spacing: -0.01em;
-      margin-bottom: 10px;
+      margin: 0;
       background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -957,9 +975,11 @@ def generate_html(repos_data: list, svg_content: str) -> str:
 
     <!-- ═══════ HERO ═══════ -->
     <section id="home" aria-labelledby="hero-title">
-      <div class="hero-logo-mark">{_icon_svg(80, 80)}</div>
       <p class="hero-eyebrow">Open-Source AWS AI Infrastructure</p>
-      <h1 id="hero-title" class="hero-title">AIWeave</h1>
+      <div class="hero-heading">
+        <span class="brand-icon" aria-hidden="true">{_icon_svg(48, 48)}</span>
+        <h1 id="hero-title" class="hero-title">AIWeave</h1>
+      </div>
       <p class="hero-subtitle">Build &middot; Fine-tune &middot; Orchestrate &middot; Deploy</p>
       <p class="hero-description">
         A suite of production-ready, AWS-native AI infrastructure tools spanning
@@ -1081,6 +1101,19 @@ def generate_html(repos_data: list, svg_content: str) -> str:
 </html>"""
 
 
+
+
+def load_svg_asset(filename: str, fallback: str) -> str:
+    """Load an SVG file and strip any XML declaration; return fallback if missing."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+        return re.sub(r"<\?xml[^?]*\?>", "", content).strip()
+    except FileNotFoundError:
+        print(f"[WARN] {filename} not found, using fallback")
+        return fallback
+
 def main():
     token = os.environ.get("GH_TOKEN", "")
     if not token:
@@ -1097,15 +1130,15 @@ def main():
     else:
         print("[WARN] boto3 not installed — using regex summaries")
 
-    # Load SVG background
-    svg_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "background.svg")
-    try:
-        with open(svg_path, "r", encoding="utf-8") as f:
-            svg_content = f.read()
-        svg_content = re.sub(r"<\?xml[^?]*\?>", "", svg_content).strip()
-    except FileNotFoundError:
-        print("[WARN] background.svg not found, using empty placeholder")
-        svg_content = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080"></svg>'
+    # Load SVG assets (inlined in generated HTML so deployments only need index.html)
+    svg_content = load_svg_asset(
+        "background.svg",
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080"></svg>',
+    )
+    icon_svg = load_svg_asset(
+        "assets/aiweave-icon.svg",
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#00d9ff"/></svg>',
+    )
 
     # Discover all public *Weave repos, merge with pinned list
     print("[INFO] Discovering *Weave repos from GitHub...")
@@ -1133,7 +1166,7 @@ def main():
         src = "bedrock" if bedrock_client and data["readme_text"] else "regex/fallback"
         print(f"       stars={data['stars']}  summary_src={src}  summary_len={len(summary)}")
 
-    html_content = generate_html(repos_data, svg_content)
+    html_content = generate_html(repos_data, svg_content, icon_svg)
     output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html_content)

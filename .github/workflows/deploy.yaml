@@ -102,7 +102,11 @@ jobs:
           aws s3 cp background.svg "s3://${BUCKET}/background.svg" \
             --content-type "image/svg+xml" \
             --cache-control "public, max-age=86400"
-
+      - name: Upload assets
+        run: |
+          aws s3 cp assets/ "s3://${BUCKET}/assets/" \
+            --recursive \
+            --cache-control "public, max-age=86400"
       - name: Output website URL
         run: |
           echo "Website: http://${BUCKET}.s3-website-us-east-1.amazonaws.com"
