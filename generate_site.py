@@ -371,10 +371,10 @@ FAVICON_SVG_URI = (
     "data:image/svg+xml,"
     "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 88 88'>"
     "<rect width='88' height='88' rx='14' fill='%231a1a1a'/>"
-    "<rect x='36' y='3'  width='49' height='49' rx='12' fill='none' stroke='%2300d9ff' stroke-width='10'/>"
-    "<rect x='3'  y='36' width='49' height='49' rx='12' fill='none' stroke='%2300d9ff' stroke-width='10'/>"
-    "<rect x='3'  y='3'  width='49' height='49' rx='12' fill='none' stroke='%2300d9ff' stroke-width='10'/>"
-    "<rect x='36' y='36' width='49' height='49' rx='12' fill='none' stroke='%2300d9ff' stroke-width='10'/>"
+    "<rect x='36' y='3'  width='49' height='49' rx='12' fill='none' stroke='%2345E0D0' stroke-width='10'/>"
+    "<rect x='3'  y='36' width='49' height='49' rx='12' fill='none' stroke='%2345E0D0' stroke-width='10'/>"
+    "<rect x='3'  y='3'  width='49' height='49' rx='12' fill='none' stroke='%2345E0D0' stroke-width='10'/>"
+    "<rect x='36' y='36' width='49' height='49' rx='12' fill='none' stroke='%2345E0D0' stroke-width='10'/>"
     "</svg>"
 )
 
@@ -440,24 +440,39 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 
   <style>
+    /* ── Type system ─────────────────────────────────────── */
+    :root {{
+      --font-display: 'Space Grotesk', system-ui, sans-serif;
+      --font-body:    'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+      --text-xs:      .75rem;
+      --text-sm:      .875rem;
+      --text-base:    1rem;
+      --text-lg:      1.125rem;
+      --text-xl:      1.5rem;
+      --text-2xl:     clamp(1.75rem, 3vw, 2.25rem);
+      --text-3xl:     clamp(2.25rem, 5vw, 3.5rem);
+      --text-display: clamp(3rem, 8vw, 6rem);
+    }}
+
     /* ── Theme variables ─────────────────────────────────── */
     :root, [data-theme="dark"] {{
-      --bg:           #050a14;
+      --bg:           #08090C;
       --surface:      #0d1a2e;
       --surface-2:    #162238;
       --surface-3:    #1c2d47;
-      --accent:       #00d4ff;
-      --accent-dim:   rgba(0,212,255,0.12);
-      --secondary:    #7b2fff;
-      --text:         #e2e8f0;
+      --accent:       #45E0D0;
+      --accent-dim:   rgba(69,224,208,0.12);
+      --secondary:    #E6B763;
+      --text:         #ECEEF3;
       --text-muted:   #8899aa;
-      --border:       rgba(0,212,255,0.18);
+      --border:       rgba(69,224,208,0.18);
       --card-shadow:  0 4px 28px rgba(0,0,0,0.5);
-      --nav-bg:       rgba(5,10,20,0.88);
-      --glow:         0 0 28px rgba(0,212,255,0.18);
+      --nav-bg:       rgba(8,9,12,0.88);
+      --glow:         0 0 28px rgba(69,224,208,0.18);
     }}
     [data-theme="light"] {{
       --bg:           #eef2f7;
@@ -485,14 +500,22 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
     *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
     html {{ scroll-behavior: smooth; font-size: 16px; }}
     body {{
-      font-family: 'Exo 2', system-ui, sans-serif;
+      font-family: var(--font-body);
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
       transition: background 0.35s, color 0.35s;
       overflow-x: hidden;
     }}
+    h1, h2, h3 {{
+      font-family: var(--font-display);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -.02em;
+    }}
+    code, pre, kbd {{ font-family: var(--font-mono); font-size: .9em; }}
 
     /* ── Accessibility ───────────────────────────────────── */
     .skip-link {{
@@ -507,7 +530,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
       font-weight: 700;
       text-decoration: none;
       transition: top 0.2s;
-      font-family: 'Exo 2', sans-serif;
+      font-family: var(--font-body);
     }}
     .skip-link:focus {{ top: 16px; outline: 3px solid var(--secondary); outline-offset: 2px; }}
     :focus-visible {{
@@ -552,7 +575,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
       margin-right: auto;
       white-space: nowrap;
       color: var(--text);
-      font-family: 'Orbitron', sans-serif;
+      font-family: var(--font-display);
       font-size: 1.35rem;
       font-weight: 900;
       letter-spacing: 0.04em;
@@ -594,7 +617,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
       border-radius: 20px;
       cursor: pointer;
       font-size: 0.82rem;
-      font-family: 'Exo 2', sans-serif;
+      font-family: var(--font-body);
       transition: border-color 0.2s, color 0.2s;
       display: inline-flex;
       align-items: center;
@@ -606,7 +629,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
       background: var(--accent);
       color: #000;
       font-weight: 700;
-      font-family: 'Exo 2', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.85rem;
       padding: 8px 16px;
       border-radius: 8px;
@@ -641,12 +664,13 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
       position: relative;
     }}
     .hero-eyebrow {{
-      font-size: 0.78rem;
-      letter-spacing: 0.22em;
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: .2em;
       text-transform: uppercase;
       color: var(--accent);
       margin-bottom: 18px;
-      font-weight: 600;
+      font-weight: 400;
     }}
     .hero-heading {{
       display: inline-flex;
@@ -654,7 +678,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
       justify-content: center;
       gap: clamp(12px, 2.3vw, 20px);
       margin-bottom: 10px;
-      filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.18));
+      filter: drop-shadow(0 0 20px rgba(69, 224, 208, 0.18));
     }}
     .hero-heading .brand-icon {{
       width: clamp(48px, 7vw, 86px);
@@ -669,7 +693,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
     [data-theme="light"] .hero-heading .brand-icon .icon-bg {{ fill: #edf3fb; }}
     [data-theme="dark"] .hero-heading .brand-icon .icon-bg {{ fill: #0f1114; }}
     .hero-title {{
-      font-family: 'Orbitron', sans-serif;
+      font-family: var(--font-display);
       font-size: clamp(3.2rem, 9vw, 7.5rem);
       font-weight: 900;
       line-height: 1;
@@ -682,7 +706,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
       color: transparent;
     }}
     .hero-subtitle {{
-      font-family: 'Orbitron', sans-serif;
+      font-family: var(--font-display);
       font-size: clamp(0.95rem, 2.2vw, 1.35rem);
       font-weight: 400;
       color: var(--text-muted);
@@ -709,7 +733,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
       border: none;
       padding: 14px 34px;
       border-radius: 10px;
-      font-family: 'Exo 2', sans-serif;
+      font-family: var(--font-body);
       font-size: 1rem;
       font-weight: 600;
       text-decoration: none;
@@ -724,7 +748,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
       border: 2px solid var(--accent);
       padding: 12px 32px;
       border-radius: 10px;
-      font-family: 'Exo 2', sans-serif;
+      font-family: var(--font-body);
       font-size: 1rem;
       font-weight: 600;
       text-decoration: none;
@@ -767,15 +791,16 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
       margin-bottom: clamp(36px,5vw,72px);
     }}
     .section-eyebrow {{
-      font-size: 0.75rem;
-      letter-spacing: 0.22em;
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: .2em;
       text-transform: uppercase;
       color: var(--accent);
       margin-bottom: 12px;
-      font-weight: 600;
+      font-weight: 400;
     }}
     .section-title {{
-      font-family: 'Orbitron', sans-serif;
+      font-family: var(--font-display);
       font-size: clamp(1.8rem, 4vw, 3rem);
       font-weight: 700;
       color: var(--text);
@@ -804,7 +829,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
     }}
     .project-card:hover {{
       transform: translateY(-5px);
-      box-shadow: 0 12px 44px rgba(0,212,255,0.14), var(--card-shadow);
+      box-shadow: 0 12px 44px rgba(69,224,208,0.14), var(--card-shadow);
       border-color: var(--accent);
     }}
     [data-theme="light"] .project-card:hover {{
@@ -823,7 +848,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
     }}
     .card-title-group {{ flex: 1; min-width: 0; }}
     .card-title {{
-      font-family: 'Orbitron', sans-serif;
+      font-family: var(--font-display);
       font-size: 1rem;
       font-weight: 700;
       color: var(--accent);
