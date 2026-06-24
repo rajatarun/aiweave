@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="index, follow">
+  <title>AIWeave &#8212; AWS AI Infrastructure Tools Ecosystem</title>
+  <meta name="description" content="AIWeave is a suite of open-source AWS-native AI infrastructure tools covering model fine-tuning, multi-agent orchestration, GraphRAG, MCP servers, visual QA, and more.">
+  <link rel="canonical" href="https://aiweave.org">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20128%20128%22%20role%3D%22img%22%20aria-labelledby%3D%22title%20desc%22%3E%0A%20%20%3Ctitle%20id%3D%22title%22%3EAIWeave%20Icon%3C/title%3E%0A%20%20%3Cdesc%20id%3D%22desc%22%3EInterwoven%20cyan%20geometric%20mark%20representing%20AIWeave.%3C/desc%3E%0A%20%20%3Cdefs%3E%0A%20%20%20%20%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%0A%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%232de5ff%22/%3E%0A%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%2300a9ff%22/%3E%0A%20%20%20%20%3C/linearGradient%3E%0A%20%20%3C/defs%3E%0A%20%20%3Cstyle%3E%0A%20%20%20%20.icon-bg%20%7B%20fill%3A%20%230f1114%3B%20%7D%0A%20%20%20%20%40media%20%28prefers-color-scheme%3A%20light%29%20%7B%0A%20%20%20%20%20%20.icon-bg%20%7B%20fill%3A%20%23edf3fb%3B%20%7D%0A%20%20%20%20%7D%0A%20%20%3C/style%3E%0A%20%20%3Crect%20class%3D%22icon-bg%22%20width%3D%22128%22%20height%3D%22128%22%20rx%3D%2224%22/%3E%0A%20%20%3Cg%20fill%3D%22none%22%20stroke%3D%22url%28%23g%29%22%20stroke-width%3D%229%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M34%2022%20L54%2042%20L34%2062%20L14%2042%20Z%22/%3E%0A%20%20%20%20%3Cpath%20d%3D%22M74%2022%20L94%2042%20L74%2062%20L54%2042%20Z%22/%3E%0A%20%20%20%20%3Cpath%20d%3D%22M54%2042%20L74%2062%20L54%2082%20L34%2062%20Z%22/%3E%0A%20%20%20%20%3Cpath%20d%3D%22M34%2062%20L54%2082%20L34%20102%20L14%2082%20Z%22/%3E%0A%20%20%20%20%3Cpath%20d%3D%22M74%2062%20L94%2082%20L74%20102%20L54%2082%20Z%22/%3E%0A%20%20%3C/g%3E%0A%3C/svg%3E">
+  <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20128%20128%22%20role%3D%22img%22%20aria-labelledby%3D%22title%20desc%22%3E%0A%20%20%3Ctitle%20id%3D%22title%22%3EAIWeave%20Icon%3C/title%3E%0A%20%20%3Cdesc%20id%3D%22desc%22%3EInterwoven%20cyan%20geometric%20mark%20representing%20AIWeave.%3C/desc%3E%0A%20%20%3Cdefs%3E%0A%20%20%20%20%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%0A%20%20%20%20%20%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%232de5ff%22/%3E%0A%20%20%20%20%20%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%2300a9ff%22/%3E%0A%20%20%20%20%3C/linearGradient%3E%0A%20%20%3C/defs%3E%0A%20%20%3Cstyle%3E%0A%20%20%20%20.icon-bg%20%7B%20fill%3A%20%230f1114%3B%20%7D%0A%20%20%20%20%40media%20%28prefers-color-scheme%3A%20light%29%20%7B%0A%20%20%20%20%20%20.icon-bg%20%7B%20fill%3A%20%23edf3fb%3B%20%7D%0A%20%20%20%20%7D%0A%20%20%3C/style%3E%0A%20%20%3Crect%20class%3D%22icon-bg%22%20width%3D%22128%22%20height%3D%22128%22%20rx%3D%2224%22/%3E%0A%20%20%3Cg%20fill%3D%22none%22%20stroke%3D%22url%28%23g%29%22%20stroke-width%3D%229%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M34%2022%20L54%2042%20L34%2062%20L14%2042%20Z%22/%3E%0A%20%20%20%20%3Cpath%20d%3D%22M74%2022%20L94%2042%20L74%2062%20L54%2042%20Z%22/%3E%0A%20%20%20%20%3Cpath%20d%3D%22M54%2042%20L74%2062%20L54%2082%20L34%2062%20Z%22/%3E%0A%20%20%20%20%3Cpath%20d%3D%22M34%2062%20L54%2082%20L34%20102%20L14%2082%20Z%22/%3E%0A%20%20%20%20%3Cpath%20d%3D%22M74%2062%20L94%2082%20L74%20102%20L54%2082%20Z%22/%3E%0A%20%20%3C/g%3E%0A%3C/svg%3E">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="AIWeave &#8212; AWS AI Infrastructure Tools Ecosystem">
+  <meta property="og:description" content="Open-source AWS-native AI infrastructure tools: fine-tuning, multi-agent orchestration, GraphRAG, MCP servers, and visual QA.">
+  <meta property="og:url" content="https://aiweave.org">
+  <meta property="og:image" content="https://aiweave.org/og-image.png">
+  <meta property="og:site_name" content="AIWeave">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="AIWeave &#8212; AWS AI Infrastructure Tools Ecosystem">
+  <meta name="twitter:description" content="Open-source AWS-native AI infrastructure tools: fine-tuning, multi-agent orchestration, GraphRAG, MCP servers, and visual QA.">
+  <meta name="twitter:image" content="https://aiweave.org/og-image.png">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://aiweave.org/#website",
+        "url": "https://aiweave.org",
+        "name": "AIWeave",
+        "description": "AWS AI Infrastructure Tools Ecosystem"
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://aiweave.org/#organization",
+        "name": "AIWeave",
+        "url": "https://aiweave.org",
+        "sameAs": ["https://github.com/rajatarun"]
+      }
+    ]
+  }
+  </script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* Tokens */
+    :root {
+      --font-display: 'Space Grotesk', system-ui, sans-serif;
+      --font-body:    'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+      --text-xs:   0.625rem;
+      --text-sm:   0.75rem;
+      --text-base: 1rem;
+      --text-lg:   1.125rem;
+      --text-xl:   1.375rem;
+      --text-2xl:  clamp(1.5rem, 2.5vw, 2rem);
+      --text-3xl:  clamp(2rem, 4vw, 3rem);
+      --text-hero: clamp(3rem, 8vw, 6rem);
+    }
+    :root, [data-theme="dark"] {
+      --bg-void:       #080B10;
+      --bg-surface:    #0E1219;
+      --bg-elevated:   #141A24;
+      --border-subtle: #1E2A3A;
+      --border-glow:   rgba(0,255,209,0.35);
+      --accent-cyan:   #00FFD1;
+      --accent-gold:   #F5C518;
+      --accent-dim:    rgba(0,255,209,0.08);
+      --text-primary:  #E8EDF5;
+      --text-secondary:#8A9BB8;
+      --text-muted:    #4A5568;
+      --text-code:     #00FFD1;
+      --nav-bg:        rgba(8,11,16,0.88);
+      --card-shadow:   0 4px 32px rgba(0,0,0,0.55);
+      --glow-cyan:     0 0 32px rgba(0,255,209,0.18);
+    }
+    [data-theme="light"] {
+      --bg-void:       #F5F7FA;
+      --bg-surface:    #FFFFFF;
+      --bg-elevated:   #EEF2F8;
+      --border-subtle: #D1DCF0;
+      --border-glow:   rgba(0,119,204,0.4);
+      --accent-cyan:   #0077CC;
+      --accent-gold:   #B8860B;
+      --accent-dim:    rgba(0,119,204,0.08);
+      --text-primary:  #0E1219;
+      --text-secondary:#4A5568;
+      --text-muted:    #9AA3B0;
+      --text-code:     #0077CC;
+      --nav-bg:        rgba(245,247,250,0.9);
+      --card-shadow:   0 4px 24px rgba(0,0,0,0.08);
+      --glow-cyan:     0 0 24px rgba(0,119,204,0.12);
+    }
+
+    /* Background SVG */
+    .bg-container { opacity: 0.45; }
+    [data-theme="light"] .bg-container { opacity: 0.25; }
+    [data-theme="dark"]  .arch-element { stroke: rgba(255,255,255,0.12); fill: none; stroke-linecap: round; }
+    [data-theme="dark"]  .arch-text    { fill: rgba(255,255,255,0.12); }
+    [data-theme="light"] .arch-element { stroke: rgba(40,60,120,0.14); fill: none; stroke-linecap: round; }
+    [data-theme="light"] .arch-text    { fill: rgba(40,60,120,0.14); }
+
+    /* Reset */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-void);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      transition: background 0.3s, color 0.3s;
+    }
+    h1,h2,h3,h4 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -.02em;
+    }
+    code,pre,kbd { font-family: var(--font-mono); font-size: .9em; }
+
+    /* Accessibility */
+    .sr-only {
+      position:absolute; width:1px; height:1px;
+      padding:0; margin:-1px; overflow:hidden;
+      clip:rect(0,0,0,0); white-space:nowrap; border:0;
+    }
+    .skip-link {
+      position:absolute; top:-120px; left:16px; z-index:9999;
+      background:var(--accent-cyan); color:#000; padding:10px 20px;
+      border-radius:6px; font-weight:700; text-decoration:none;
+      transition:top 0.2s; font-family:var(--font-body);
+    }
+    .skip-link:focus { top:16px; outline:3px solid var(--accent-gold); outline-offset:2px; }
+    :focus-visible { outline:3px solid var(--accent-cyan); outline-offset:3px; border-radius:4px; }
+
+    /* Fixed BG */
+    .bg-container {
+      position:fixed; inset:0; z-index:0;
+      pointer-events:none; overflow:hidden;
+    }
+    .bg-container svg { width:100%; height:100%; }
+
+    /* Nav */
+    nav {
+      position:fixed; top:0; left:0; right:0; z-index:200;
+      background:transparent;
+      border-bottom:1px solid transparent;
+      height:64px;
+      display:flex; align-items:center;
+      padding:0 clamp(16px,4vw,56px); gap:8px;
+      transition:background 0.3s, border-color 0.3s;
+    }
+    nav.scrolled {
+      background:var(--nav-bg);
+      border-color:var(--border-subtle);
+      backdrop-filter:blur(16px);
+      -webkit-backdrop-filter:blur(16px);
+    }
+    .nav-logo {
+      display:inline-flex; align-items:center; gap:12px;
+      text-decoration:none; margin-right:auto;
+      white-space:nowrap; flex-shrink:0;
+    }
+    .nav-logo > svg { flex-shrink:0; color:var(--accent-cyan); }
+    .nav-wm { display:inline-flex; align-items:center; }
+    .nav-wm .geo-wm { height:22px; width:auto; display:block; }
+    .nav-links {
+      display:flex; align-items:center; gap:4px; list-style:none;
+    }
+    .nav-links a {
+      color:var(--text-secondary); text-decoration:none;
+      padding:7px 13px; border-radius:7px;
+      font-size:0.875rem; font-weight:500; letter-spacing:0.02em;
+      transition:color 0.2s, background 0.2s; white-space:nowrap;
+    }
+    .nav-links a:hover { color:var(--accent-cyan); background:var(--accent-dim); }
+    .theme-toggle {
+      background:transparent; border:1px solid var(--border-subtle);
+      color:var(--text-secondary); padding:6px 13px; border-radius:20px;
+      cursor:pointer; font-size:0.8rem; font-family:var(--font-body);
+      transition:border-color 0.2s, color 0.2s;
+      display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
+    }
+    .theme-toggle:hover { border-color:var(--accent-cyan); color:var(--accent-cyan); }
+    .github-btn {
+      background:var(--accent-cyan); color:#000; font-weight:700;
+      font-family:var(--font-body); font-size:0.82rem;
+      padding:8px 16px; border-radius:8px; text-decoration:none;
+      display:inline-flex; align-items:center; gap:6px;
+      transition:opacity 0.2s, transform 0.15s; white-space:nowrap;
+    }
+    .github-btn:hover { opacity:0.85; transform:translateY(-1px); }
+    @media (max-width:640px) { .nav-home,.nav-about { display:none; } }
+
+    /* Main */
+    main { position:relative; z-index:10; padding-top:64px; }
+
+    /* HERO */
+    #home {
+      min-height:100vh;
+      display:flex; flex-direction:column;
+      justify-content:center; align-items:center;
+      text-align:center;
+      padding:clamp(60px,10vw,140px) clamp(16px,4vw,48px) 80px;
+      position:relative; overflow:hidden;
+    }
+    #hero-canvas {
+      position:absolute; inset:0; width:100%; height:100%;
+      pointer-events:none; z-index:0;
+    }
+    .hero-inner { position:relative; z-index:1; width:100%; max-width:1100px; margin:0 auto; }
+    .hero-eyebrow {
+      font-family:var(--font-mono); font-size:var(--text-xs);
+      letter-spacing:.22em; text-transform:uppercase;
+      color:var(--accent-cyan); margin-bottom:20px; font-weight:400;
+    }
+    .hero-heading {
+      display:flex; flex-direction:column; align-items:center;
+      gap:0; margin-bottom:16px;
+      filter:drop-shadow(0 0 36px rgba(0,255,209,0.18));
+      position:relative;
+    }
+    .hero-wm { display:flex; justify-content:center; }
+    .hero-wm .geo-wm { width:min(840px,92vw); height:auto; display:block; }
+    .hero-scan {
+      position:absolute; left:0; right:0; top:0;
+      height:1px; background:linear-gradient(90deg,transparent,var(--accent-cyan),transparent);
+      opacity:0.45; pointer-events:none;
+    }
+    .hero-subtitle {
+      font-family:var(--font-mono); font-size:clamp(0.68rem,1.3vw,0.82rem);
+      font-weight:400; color:var(--text-secondary);
+      letter-spacing:0.2em; text-transform:uppercase; margin-bottom:24px;
+    }
+    .hero-description {
+      max-width:600px; font-size:clamp(0.93rem,1.5vw,1.04rem);
+      color:var(--text-secondary); margin:0 auto 44px; line-height:1.9;
+    }
+    .hero-ctas {
+      display:flex; gap:14px; flex-wrap:wrap; justify-content:center;
+    }
+    .btn-primary {
+      background:var(--accent-cyan); color:#000; border:none;
+      padding:14px 34px; border-radius:8px;
+      font-family:var(--font-body); font-size:0.95rem; font-weight:700;
+      text-decoration:none; cursor:pointer;
+      transition:transform 0.15s, box-shadow 0.2s;
+      box-shadow:var(--glow-cyan);
+    }
+    .btn-primary:hover { transform:translateY(-2px); box-shadow:0 0 48px rgba(0,255,209,0.35); }
+    .btn-outline {
+      background:transparent; color:var(--accent-cyan);
+      border:1px solid var(--accent-cyan);
+      padding:13px 32px; border-radius:8px;
+      font-family:var(--font-body); font-size:0.95rem; font-weight:600;
+      text-decoration:none; transition:background 0.2s, color 0.2s;
+    }
+    .btn-outline:hover { background:var(--accent-cyan); color:#000; }
+    .scroll-indicator {
+      position:absolute; bottom:28px; left:50%; transform:translateX(-50%);
+      display:flex; flex-direction:column; align-items:center; gap:6px;
+    }
+    .scroll-line {
+      width:1px; height:44px;
+      background:linear-gradient(to bottom,var(--accent-cyan),transparent);
+      animation:pulse-line 2.4s ease-in-out infinite;
+    }
+    .scroll-label {
+      font-size:0.62rem; letter-spacing:0.22em;
+      text-transform:uppercase; color:var(--text-muted);
+    }
+    @keyframes pulse-line {
+      0%,100% { opacity:0.2; }
+      50%      { opacity:0.9; }
+    }
+
+    /* SIGNAL BAR */
+    .signal-bar {
+      position:relative; z-index:10;
+      background:var(--bg-surface);
+      border-top:1px solid var(--border-subtle);
+      border-bottom:1px solid var(--border-subtle);
+      padding:28px clamp(16px,4vw,56px);
+      display:grid; grid-template-columns:repeat(3,1fr); gap:0;
+    }
+    .signal-stat {
+      text-align:center; padding:12px;
+      border-right:1px solid var(--border-subtle);
+    }
+    .signal-stat:last-child { border-right:none; }
+    .signal-stat-num {
+      font-family:var(--font-display); font-size:var(--text-3xl);
+      font-weight:700; color:var(--accent-cyan); line-height:1;
+      display:block; margin-bottom:6px;
+    }
+    .signal-stat-label {
+      font-size:var(--text-xs); text-transform:uppercase;
+      letter-spacing:.18em; color:var(--text-muted); font-weight:500;
+    }
+
+    /* SECTION SHARED */
+    .section-wrap {
+      padding:clamp(72px,9vw,128px) clamp(16px,4vw,56px);
+    }
+    .section-header { text-align:center; margin-bottom:clamp(40px,6vw,80px); }
+    .section-eyebrow {
+      font-family:var(--font-mono); font-size:var(--text-xs);
+      letter-spacing:.3em; text-transform:uppercase;
+      color:var(--text-muted); margin-bottom:12px; font-weight:500;
+      display:inline-flex; align-items:center; gap:12px;
+    }
+    .section-eyebrow::before {
+      content:""; width:24px; height:1px;
+      background:var(--accent-cyan); opacity:.7; flex-shrink:0;
+    }
+    .section-title {
+      font-family:var(--font-display);
+      font-size:clamp(1.8rem,4vw,2.8rem);
+      font-weight:700; color:var(--text-primary); line-height:1.15;
+    }
+    .section-title span { color:var(--accent-cyan); }
+
+    /* PROJECTS BENTO */
+    .projects-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));
+      gap:clamp(14px,2vw,24px);
+      max-width:1320px; margin:0 auto;
+    }
+    .project-card {
+      background:var(--bg-surface);
+      border:1px solid var(--border-subtle);
+      border-radius:14px;
+      padding:clamp(20px,2.8vw,30px);
+      box-shadow:var(--card-shadow);
+      display:flex; flex-direction:column; gap:14px;
+      opacity:0; transform:translateY(18px);
+      transition:transform 0.22s ease, box-shadow 0.22s ease,
+                 border-color 0.22s ease, opacity 0.55s ease;
+    }
+    .project-card.in-view { opacity:1; transform:translateY(0); }
+    .project-card:hover {
+      transform:translateY(-4px);
+      box-shadow:0 12px 44px rgba(0,255,209,0.12),var(--card-shadow);
+      border-color:var(--border-glow);
+    }
+    .project-card.in-view:hover { transform:translateY(-4px); }
+    @media (min-width:900px) {
+      .card-wide { grid-column:span 2; }
+      .card-tall { grid-row:span 2; }
+    }
+    .card-header { display:flex; align-items:flex-start; gap:12px; }
+    .card-icon { font-size:1.75rem; line-height:1; flex-shrink:0; margin-top:2px; }
+    .card-title-group { flex:1; min-width:0; }
+    .card-title {
+      font-family:var(--font-display); font-size:1rem; font-weight:700;
+      color:var(--accent-cyan); margin:0 0 3px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .card-tagline { font-size:0.72rem; color:var(--text-muted); line-height:1.5; }
+    .star-count {
+      flex-shrink:0; font-size:0.75rem; color:var(--text-muted);
+      margin-left:auto; padding-left:8px; white-space:nowrap;
+    }
+    .card-summary {
+      font-size:0.875rem; color:var(--text-secondary);
+      line-height:1.8; flex:1; font-weight:400;
+    }
+    .tech-tags { display:flex; flex-wrap:wrap; gap:5px; }
+    .tech-tag {
+      background:var(--accent-dim); color:var(--accent-cyan);
+      border:1px solid var(--border-subtle);
+      padding:3px 8px; border-radius:20px;
+      font-size:0.67rem; font-weight:600; letter-spacing:0.04em; white-space:nowrap;
+    }
+    .card-link {
+      align-self:flex-start; color:var(--accent-cyan); text-decoration:none;
+      font-size:0.82rem; font-weight:600; padding:8px 14px;
+      border:1px solid var(--border-subtle); border-radius:7px;
+      transition:background 0.2s, border-color 0.2s;
+      display:inline-flex; align-items:center; gap:4px;
+    }
+    .card-link:hover { background:var(--accent-dim); border-color:var(--border-glow); }
+
+    /* ARCHITECTURE */
+    .arch-diagram {
+      max-width:960px; margin:0 auto;
+      display:flex; flex-direction:column; gap:10px;
+    }
+    .arch-row {
+      display:flex; align-items:center; gap:16px;
+      background:var(--bg-elevated); border:1px solid var(--border-subtle);
+      border-radius:10px; padding:14px 20px;
+      opacity:0; transform:translateX(-20px);
+      transition:transform 0.4s ease, opacity 0.4s ease, border-color 0.3s;
+    }
+    .arch-row.in-view { opacity:1; transform:translateX(0); }
+    .arch-row:hover { border-color:var(--border-glow); }
+    .arch-icon {
+      font-size:1.1rem; color:var(--accent-cyan);
+      flex-shrink:0; width:28px; text-align:center;
+    }
+    .arch-label {
+      font-family:var(--font-mono); font-size:var(--text-xs);
+      font-weight:500; color:var(--text-secondary);
+      letter-spacing:.16em; text-transform:uppercase;
+      flex-shrink:0; min-width:200px;
+    }
+    .arch-chips { display:flex; flex-wrap:wrap; gap:6px; }
+    .arch-chip {
+      background:var(--bg-surface); color:var(--text-secondary);
+      border:1px solid var(--border-subtle);
+      padding:3px 10px; border-radius:20px;
+      font-size:var(--text-xs); font-weight:500; white-space:nowrap;
+    }
+    @media (max-width:600px) {
+      .arch-label { min-width:110px; font-size:0.55rem; }
+      .arch-chip { font-size:0.6rem; }
+    }
+
+    /* SCROLLYTELLING */
+    .story-outer {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:0 clamp(24px,4vw,64px);
+      max-width:1060px; margin:0 auto;
+    }
+    @media (max-width:768px) {
+      .story-outer { grid-template-columns:1fr; }
+      .story-terminal-col { display:none; }
+    }
+    .story-panels-col { display:flex; flex-direction:column; }
+    .story-panel {
+      padding:clamp(28px,4vw,52px) 0;
+      border-bottom:1px solid var(--border-subtle);
+      opacity:0.38; transition:opacity 0.35s;
+    }
+    .story-panel:last-child { border-bottom:none; }
+    .story-panel.active { opacity:1; }
+    .story-step-num {
+      font-family:var(--font-mono); font-size:var(--text-xs);
+      color:var(--accent-cyan); font-weight:700;
+      letter-spacing:.2em; margin-bottom:10px;
+    }
+    .story-step-title {
+      font-family:var(--font-display); font-size:var(--text-2xl);
+      font-weight:700; color:var(--text-primary); margin-bottom:14px;
+    }
+    .story-step-body { font-size:0.92rem; color:var(--text-secondary); line-height:1.85; }
+    .story-terminal-col {
+      position:sticky; top:calc(50vh - 160px);
+      height:320px; align-self:start;
+    }
+    .story-terminal {
+      background:rgba(14,18,25,0.88);
+      border:1px solid var(--border-subtle);
+      border-radius:12px; padding:22px;
+      font-family:var(--font-mono); font-size:0.78rem;
+      backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+      height:100%; overflow:hidden;
+    }
+    [data-theme="light"] .story-terminal {
+      background:rgba(255,255,255,0.9);
+      border-color:var(--border-subtle);
+    }
+    .term-bar {
+      display:flex; gap:6px; margin-bottom:16px; align-items:center;
+    }
+    .term-dot { width:10px; height:10px; border-radius:50%; }
+    .term-dot:nth-child(1) { background:#FF5F57; }
+    .term-dot:nth-child(2) { background:#FEBC2E; }
+    .term-dot:nth-child(3) { background:#28C840; }
+    .term-prompt {
+      color:var(--accent-cyan); margin-bottom:10px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .term-title {
+      color:var(--accent-gold); margin-bottom:8px;
+      font-weight:700; font-size:var(--text-xs); letter-spacing:.1em;
+    }
+    .term-body {
+      color:var(--text-secondary); line-height:1.75;
+      font-size:0.75rem; margin-bottom:12px;
+    }
+    .term-output {
+      color:var(--accent-cyan); font-size:var(--text-xs);
+      opacity:0; transition:opacity 0.4s;
+    }
+    .term-output:not(:empty) { opacity:1; }
+
+    /* ABOUT */
+    #about .section-wrap { max-width:860px; margin:0 auto; }
+    .about-card {
+      background:var(--bg-surface);
+      border:1px solid var(--border-subtle);
+      border-radius:18px; padding:clamp(32px,5vw,56px);
+      box-shadow:var(--card-shadow);
+    }
+    .about-card p {
+      font-size:clamp(0.92rem,1.4vw,1.02rem); color:var(--text-secondary);
+      line-height:1.9; margin-bottom:18px; font-weight:400;
+    }
+    .about-card strong { color:var(--text-primary); font-weight:600; }
+    .tech-pills { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+    .tech-pill {
+      background:var(--bg-elevated); color:var(--text-secondary);
+      border:1px solid var(--border-subtle);
+      padding:4px 12px; border-radius:20px;
+      font-family:var(--font-mono); font-size:var(--text-xs);
+      font-weight:500; white-space:nowrap;
+    }
+
+    /* FOOTER */
+    footer {
+      position:relative; z-index:10; text-align:center;
+      padding:24px clamp(16px,4vw,56px);
+      border-top:1px solid var(--border-subtle);
+      font-size:0.8rem; color:var(--text-muted);
+    }
+    footer a { color:var(--text-secondary); text-decoration:none; transition:color 0.2s; }
+    footer a:hover { color:var(--accent-cyan); }
+
+    /* Reveal */
+    .reveal {
+      opacity:0; transform:translateY(18px);
+      transition:opacity 0.55s ease, transform 0.55s ease;
+    }
+    .reveal.in-view { opacity:1; transform:none; }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion:reduce) {
+      *,*::before,*::after {
+        animation-duration:0.001ms !important;
+        transition-duration:0.001ms !important;
+        scroll-behavior:auto !important;
+      }
+      .reveal,.project-card,.arch-row { opacity:1 !important; transform:none !important; }
+    }
+
+    /* High contrast */
+    @media (forced-colors:active) {
+      .project-card,.about-card { border:2px solid ButtonText; }
+      .btn-primary,.github-btn { forced-color-adjust:none; }
+    }
+  </style>
+</head>
+<body>
+
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <nav aria-label="Main navigation">
+    <a href="/" class="nav-logo" aria-label="AIWeave home"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 88" width="30" height="30" aria-hidden="true" focusable="false"><rect x="36" y="3"  width="49" height="49" rx="12" fill="none" stroke="currentColor" stroke-width="10"/><rect x="3"  y="36" width="49" height="49" rx="12" fill="none" stroke="currentColor" stroke-width="10"/><rect x="3"  y="3"  width="49" height="49" rx="12" fill="none" stroke="currentColor" stroke-width="10"/><rect x="36" y="36" width="49" height="49" rx="12" fill="none" stroke="currentColor" stroke-width="10"/></svg><span id="nav-wordmark" class="nav-wm"></span></a>
+    <ul class="nav-links" role="list">
+      <li><a href="#home" class="nav-home" aria-label="Home">Home</a></li>
+      <li><a href="#projects" aria-label="Projects">Projects</a></li>
+      <li><a href="#story" aria-label="How it works">How it works</a></li>
+      <li><a href="#about" class="nav-about" aria-label="About">About</a></li>
+      <li>
+        <button class="theme-toggle" id="theme-toggle"
+                aria-label="Switch to light mode" aria-pressed="false">
+          <span id="theme-icon" aria-hidden="true">&#9790;</span>
+          <span id="theme-label">Light</span>
+        </button>
+      </li>
+      <li>
+        <a href="https://github.com/rajatarun" class="github-btn"
+           target="_blank" rel="noopener noreferrer"
+           aria-label="Visit rajatarun on GitHub (opens in new tab)">
+          &#128195; GitHub
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="bg-container" aria-hidden="true" role="presentation">
+    <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 1920 1080"
+     preserveAspectRatio="xMidYMid slice"
+     role="img"
+     aria-label="AI system architecture background diagram">
+
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" class="arch-element"/>
+    </marker>
+    <marker id="arrow-sm" markerWidth="6" markerHeight="6" refX="5" refY="2.5" orient="auto">
+      <path d="M0,0 L0,5 L6,2.5 z" class="arch-element"/>
+    </marker>
+  </defs>
+
+  <!-- ═══════════════════════════════════════════════════
+       CONNECTION LINES (drawn first, under components)
+       ═══════════════════════════════════════════════════ -->
+
+  <!-- Lambda cluster → Central hex -->
+  <path d="M255,265 L255,520 L890,520" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- API Gateway → Central hex (top) -->
+  <path d="M960,215 L960,450" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- Central hex → DynamoDB (right) -->
+  <path d="M1030,520 L1670,520" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- Central hex → Neptune / Graph DB (bottom) -->
+  <path d="M960,590 L960,845" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- S3 → Central hex -->
+  <path d="M245,820 L899,820 L899,590" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- EC2 → Step Functions -->
+  <path d="M1660,260 L1660,760" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- Step Functions → DynamoDB -->
+  <path d="M1600,795 L1720,795 L1720,574" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- Cloud → Lambda cluster -->
+  <path d="M195,490 L255,490 L255,307" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- Memgraph/PostgreSQL → DynamoDB -->
+  <path d="M1510,355 L1580,355 L1580,490 L1670,490" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- Central hex → Memgraph (upper-right) -->
+  <path d="M1030,490 L1430,490 L1430,380" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- Playwright browser → Central hex -->
+  <path d="M430,865 L899,865 L899,590" class="arch-element" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+
+  <!-- Neptune → Playwright (bottom connector) -->
+  <path d="M910,900 L380,900 L380,895" class="arch-element" stroke-width="1.2" stroke-dasharray="6,4" fill="none"/>
+
+  <!-- API Gateway → EC2 (horizontal) -->
+  <path d="M1010,165 L1620,165 L1620,140" class="arch-element" stroke-width="1.2" stroke-dasharray="6,4" fill="none"/>
+
+  <!-- Lambda → API Gateway (dashed async) -->
+  <path d="M290,190 L960,190" class="arch-element" stroke-width="1.2" stroke-dasharray="6,4" fill="none" marker-end="url(#arrow-sm)"/>
+
+  <!-- ═══════════════════════════════════════════════════
+       CENTRAL AI HEXAGON (cx=960, cy=520, r=70)
+       ═══════════════════════════════════════════════════ -->
+  <polygon points="960,450 1021,485 1021,555 960,590 899,555 899,485"
+           class="arch-element" stroke-width="2.5" fill="none"/>
+  <!-- Inner hexagon -->
+  <polygon points="960,466 1005,491 1005,541 960,566 915,541 915,491"
+           class="arch-element" stroke-width="1" fill="none" opacity="0.6"/>
+  <!-- Cross lines inside hex -->
+  <line x1="960" y1="450" x2="960" y2="590" class="arch-element" stroke-width="0.8" opacity="0.4"/>
+  <line x1="899" y1="485" x2="1021" y2="555" class="arch-element" stroke-width="0.8" opacity="0.4"/>
+  <line x1="899" y1="555" x2="1021" y2="485" class="arch-element" stroke-width="0.8" opacity="0.4"/>
+  <!-- "AI" label in center -->
+  <text x="960" y="527" class="arch-text" text-anchor="middle" font-family="monospace" font-size="22" font-weight="bold" letter-spacing="2">AI</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       NEURAL NET NODES (r=130 from center 960,520)
+       ═══════════════════════════════════════════════════ -->
+  <!-- 0°   → (1090, 520) -->
+  <circle cx="1090" cy="520" r="7" class="arch-element" stroke-width="1.5" fill="none"/>
+  <line x1="1030" y1="520" x2="1083" y2="520" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <!-- 45°  → (1052, 428) -->
+  <circle cx="1052" cy="428" r="7" class="arch-element" stroke-width="1.5" fill="none"/>
+  <line x1="1021" y1="485" x2="1048" y2="435" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <!-- 90°  → (960, 390) -->
+  <circle cx="960" cy="390" r="7" class="arch-element" stroke-width="1.5" fill="none"/>
+  <line x1="960" y1="450" x2="960" y2="397" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <!-- 135° → (868, 428) -->
+  <circle cx="868" cy="428" r="7" class="arch-element" stroke-width="1.5" fill="none"/>
+  <line x1="899" y1="485" x2="875" y2="435" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <!-- 180° → (830, 520) -->
+  <circle cx="830" cy="520" r="7" class="arch-element" stroke-width="1.5" fill="none"/>
+  <line x1="890" y1="520" x2="837" y2="520" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <!-- 225° → (868, 612) -->
+  <circle cx="868" cy="612" r="7" class="arch-element" stroke-width="1.5" fill="none"/>
+  <line x1="899" y1="555" x2="875" y2="605" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <!-- 270° → (960, 650) -->
+  <circle cx="960" cy="650" r="7" class="arch-element" stroke-width="1.5" fill="none"/>
+  <line x1="960" y1="590" x2="960" y2="643" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <!-- 315° → (1052, 612) -->
+  <circle cx="1052" cy="612" r="7" class="arch-element" stroke-width="1.5" fill="none"/>
+  <line x1="1021" y1="555" x2="1048" y2="605" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <!-- Inter-node connections (outer ring) -->
+  <line x1="1090" y1="520" x2="1052" y2="428" class="arch-element" stroke-width="0.6" opacity="0.35"/>
+  <line x1="1052" y1="428" x2="960"  y2="390" class="arch-element" stroke-width="0.6" opacity="0.35"/>
+  <line x1="960"  y1="390" x2="868"  y2="428" class="arch-element" stroke-width="0.6" opacity="0.35"/>
+  <line x1="868"  y1="428" x2="830"  y2="520" class="arch-element" stroke-width="0.6" opacity="0.35"/>
+  <line x1="830"  y1="520" x2="868"  y2="612" class="arch-element" stroke-width="0.6" opacity="0.35"/>
+  <line x1="868"  y1="612" x2="960"  y2="650" class="arch-element" stroke-width="0.6" opacity="0.35"/>
+  <line x1="960"  y1="650" x2="1052" y2="612" class="arch-element" stroke-width="0.6" opacity="0.35"/>
+  <line x1="1052" y1="612" x2="1090" y2="520" class="arch-element" stroke-width="0.6" opacity="0.35"/>
+
+  <!-- ═══════════════════════════════════════════════════
+       LAMBDA CLUSTER (top-left, ~240,220)
+       ═══════════════════════════════════════════════════ -->
+  <circle cx="220" cy="190" r="42" class="arch-element" stroke-width="2" fill="none"/>
+  <text x="220" y="197" class="arch-text" text-anchor="middle" font-family="monospace" font-size="26" font-weight="bold">λ</text>
+  <circle cx="295" cy="210" r="42" class="arch-element" stroke-width="2" fill="none"/>
+  <text x="295" y="217" class="arch-text" text-anchor="middle" font-family="monospace" font-size="26" font-weight="bold">λ</text>
+  <circle cx="255" cy="275" r="42" class="arch-element" stroke-width="2" fill="none"/>
+  <text x="255" y="282" class="arch-text" text-anchor="middle" font-family="monospace" font-size="26" font-weight="bold">λ</text>
+  <text x="255" y="345" class="arch-text" text-anchor="middle" font-family="monospace" font-size="11">Lambda</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       API GATEWAY SHIELD (top-center, ~960,130)
+       ═══════════════════════════════════════════════════ -->
+  <path d="M960,115 L1005,135 L1005,185 Q960,215 960,215 Q915,185 915,185 L915,135 Z"
+        class="arch-element" stroke-width="2" fill="none"/>
+  <!-- Inner shield line -->
+  <path d="M960,128 L993,143 L993,178 Q960,200 960,200 Q927,178 927,178 L927,143 Z"
+        class="arch-element" stroke-width="0.8" fill="none" opacity="0.5"/>
+  <text x="960" y="168" class="arch-text" text-anchor="middle" font-family="monospace" font-size="13" font-weight="bold">API</text>
+  <text x="960" y="230" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">API Gateway</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       EC2 SERVER RACK (top-right, ~1620,140)
+       ═══════════════════════════════════════════════════ -->
+  <rect x="1600" y="130" width="90" height="130" rx="3" class="arch-element" stroke-width="2" fill="none"/>
+  <!-- Rack unit dividers -->
+  <line x1="1600" y1="155" x2="1690" y2="155" class="arch-element" stroke-width="1"/>
+  <line x1="1600" y1="180" x2="1690" y2="180" class="arch-element" stroke-width="1"/>
+  <line x1="1600" y1="205" x2="1690" y2="205" class="arch-element" stroke-width="1"/>
+  <line x1="1600" y1="230" x2="1690" y2="230" class="arch-element" stroke-width="1"/>
+  <!-- LED dots -->
+  <circle cx="1680" cy="142" r="3" class="arch-element" stroke-width="1"/>
+  <circle cx="1680" cy="167" r="3" class="arch-element" stroke-width="1"/>
+  <circle cx="1680" cy="192" r="3" class="arch-element" stroke-width="1"/>
+  <circle cx="1680" cy="217" r="3" class="arch-element" stroke-width="1"/>
+  <circle cx="1680" cy="242" r="3" class="arch-element" stroke-width="1"/>
+  <!-- Drive bays -->
+  <rect x="1608" y="135" width="60" height="15" rx="2" class="arch-element" stroke-width="0.8" fill="none"/>
+  <rect x="1608" y="160" width="60" height="15" rx="2" class="arch-element" stroke-width="0.8" fill="none"/>
+  <rect x="1608" y="185" width="60" height="15" rx="2" class="arch-element" stroke-width="0.8" fill="none"/>
+  <rect x="1608" y="210" width="60" height="15" rx="2" class="arch-element" stroke-width="0.8" fill="none"/>
+  <text x="1645" y="280" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">EC2</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       S3 BUCKET (bottom-left, ~200,800)
+       ═══════════════════════════════════════════════════ -->
+  <ellipse cx="200" cy="795" rx="48" ry="13" class="arch-element" stroke-width="2" fill="none"/>
+  <line x1="152" y1="795" x2="152" y2="855" class="arch-element" stroke-width="2"/>
+  <line x1="248" y1="795" x2="248" y2="855" class="arch-element" stroke-width="2"/>
+  <ellipse cx="200" cy="855" rx="48" ry="13" class="arch-element" stroke-width="2" fill="none"/>
+  <!-- Lid line -->
+  <path d="M152,820 Q200,835 248,820" class="arch-element" stroke-width="1" fill="none" opacity="0.6"/>
+  <text x="200" y="882" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">S3</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       DYNAMODB CYLINDER STACK (right, ~1720,480)
+       ═══════════════════════════════════════════════════ -->
+  <!-- Table 1 -->
+  <ellipse cx="1720" cy="480" rx="52" ry="14" class="arch-element" stroke-width="2" fill="none"/>
+  <line x1="1668" y1="480" x2="1668" y2="540" class="arch-element" stroke-width="2"/>
+  <line x1="1772" y1="480" x2="1772" y2="540" class="arch-element" stroke-width="2"/>
+  <ellipse cx="1720" cy="540" rx="52" ry="14" class="arch-element" stroke-width="2" fill="none"/>
+  <!-- Table 2 (offset above) -->
+  <ellipse cx="1720" cy="444" rx="52" ry="14" class="arch-element" stroke-width="1.2" fill="none" opacity="0.6"/>
+  <line x1="1668" y1="444" x2="1668" y2="480" class="arch-element" stroke-width="1.2" opacity="0.6"/>
+  <line x1="1772" y1="444" x2="1772" y2="480" class="arch-element" stroke-width="1.2" opacity="0.6"/>
+  <text x="1720" y="575" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">DynamoDB</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       STEP FUNCTIONS FLOW (bottom-right, ~1580,770)
+       ═══════════════════════════════════════════════════ -->
+  <rect x="1545" y="760" width="90" height="28" rx="6" class="arch-element" stroke-width="1.8" fill="none"/>
+  <text x="1590" y="779" class="arch-text" text-anchor="middle" font-family="monospace" font-size="9">Start</text>
+  <!-- Arrow 1 -->
+  <line x1="1590" y1="788" x2="1590" y2="808" class="arch-element" stroke-width="1.5" marker-end="url(#arrow-sm)"/>
+  <rect x="1545" y="808" width="90" height="28" rx="6" class="arch-element" stroke-width="1.8" fill="none"/>
+  <text x="1590" y="827" class="arch-text" text-anchor="middle" font-family="monospace" font-size="9">Process</text>
+  <!-- Arrow 2 -->
+  <line x1="1590" y1="836" x2="1590" y2="856" class="arch-element" stroke-width="1.5" marker-end="url(#arrow-sm)"/>
+  <rect x="1545" y="856" width="90" height="28" rx="6" class="arch-element" stroke-width="1.8" fill="none"/>
+  <text x="1590" y="875" class="arch-text" text-anchor="middle" font-family="monospace" font-size="9">Complete</text>
+  <text x="1590" y="902" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">Step Functions</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       CLOUD SHAPE (mid-left, ~155,510)
+       ═══════════════════════════════════════════════════ -->
+  <circle cx="155" cy="515" r="38" class="arch-element" stroke-width="1.8" fill="none"/>
+  <circle cx="118" cy="530" r="25" class="arch-element" stroke-width="1.8" fill="none"/>
+  <circle cx="192" cy="528" r="28" class="arch-element" stroke-width="1.8" fill="none"/>
+  <circle cx="158" cy="498" r="22" class="arch-element" stroke-width="1.8" fill="none"/>
+  <!-- Flat bottom mask via rect is not SVG-pure; use line to imply baseline -->
+  <line x1="93" y1="552" x2="220" y2="552" class="arch-element" stroke-width="1.8"/>
+  <text x="155" y="578" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">Bedrock</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       NEPTUNE / GRAPH DB PENTAGON (bottom-center, ~960,880)
+       ═══════════════════════════════════════════════════ -->
+  <polygon points="960,830 1012,866 992,926 928,926 908,866" class="arch-element" stroke-width="2" fill="none"/>
+  <!-- Graph vertices inside -->
+  <circle cx="960" cy="858" r="5" class="arch-element" stroke-width="1.2" fill="none"/>
+  <circle cx="940" cy="890" r="4" class="arch-element" stroke-width="1.2" fill="none"/>
+  <circle cx="980" cy="890" r="4" class="arch-element" stroke-width="1.2" fill="none"/>
+  <circle cx="960" cy="912" r="4" class="arch-element" stroke-width="1.2" fill="none"/>
+  <line x1="960" y1="858" x2="940" y2="890" class="arch-element" stroke-width="0.8" opacity="0.6"/>
+  <line x1="960" y1="858" x2="980" y2="890" class="arch-element" stroke-width="0.8" opacity="0.6"/>
+  <line x1="940" y1="890" x2="960" y2="912" class="arch-element" stroke-width="0.8" opacity="0.6"/>
+  <line x1="980" y1="890" x2="960" y2="912" class="arch-element" stroke-width="0.8" opacity="0.6"/>
+  <line x1="940" y1="890" x2="980" y2="890" class="arch-element" stroke-width="0.8" opacity="0.6"/>
+  <text x="960" y="950" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">Neptune</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       MEMGRAPH + POSTGRESQL DOUBLE CYLINDER (mid-right, ~1450,330)
+       ═══════════════════════════════════════════════════ -->
+  <!-- Cylinder 1 (Memgraph) -->
+  <ellipse cx="1430" cy="310" rx="42" ry="11" class="arch-element" stroke-width="1.8" fill="none"/>
+  <line x1="1388" y1="310" x2="1388" y2="370" class="arch-element" stroke-width="1.8"/>
+  <line x1="1472" y1="310" x2="1472" y2="370" class="arch-element" stroke-width="1.8"/>
+  <ellipse cx="1430" cy="370" rx="42" ry="11" class="arch-element" stroke-width="1.8" fill="none"/>
+  <!-- Cylinder 2 (PostgreSQL) behind/offset -->
+  <ellipse cx="1465" cy="330" rx="42" ry="11" class="arch-element" stroke-width="1.2" fill="none" opacity="0.6"/>
+  <line x1="1423" y1="330" x2="1423" y2="390" class="arch-element" stroke-width="1.2" opacity="0.6"/>
+  <line x1="1507" y1="330" x2="1507" y2="390" class="arch-element" stroke-width="1.2" opacity="0.6"/>
+  <ellipse cx="1465" cy="390" rx="42" ry="11" class="arch-element" stroke-width="1.2" fill="none" opacity="0.6"/>
+  <text x="1448" y="415" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">Memgraph / pgvector</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       PLAYWRIGHT BROWSER FRAME (bottom-left-mid, ~375,845)
+       ═══════════════════════════════════════════════════ -->
+  <rect x="330" y="825" width="110" height="80" rx="4" class="arch-element" stroke-width="2" fill="none"/>
+  <!-- Title bar -->
+  <rect x="330" y="825" width="110" height="18" rx="4" class="arch-element" stroke-width="1" fill="none"/>
+  <!-- Window controls dots -->
+  <circle cx="342" cy="834" r="3" class="arch-element" stroke-width="1" fill="none"/>
+  <circle cx="354" cy="834" r="3" class="arch-element" stroke-width="1" fill="none"/>
+  <circle cx="366" cy="834" r="3" class="arch-element" stroke-width="1" fill="none"/>
+  <!-- Address bar -->
+  <rect x="337" y="848" width="96" height="10" rx="2" class="arch-element" stroke-width="0.8" fill="none"/>
+  <!-- Content lines -->
+  <line x1="337" y1="864" x2="433" y2="864" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <line x1="337" y1="874" x2="410" y2="874" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <line x1="337" y1="884" x2="420" y2="884" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <line x1="337" y1="894" x2="395" y2="894" class="arch-element" stroke-width="0.8" opacity="0.5"/>
+  <text x="385" y="922" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">Playwright</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       SCATTERED TECH TEXT LABELS
+       ═══════════════════════════════════════════════════ -->
+  <text x="500"  y="78"  class="arch-text" font-family="monospace" font-size="32" font-weight="bold" opacity="0.25">AI</text>
+  <text x="1390" y="95"  class="arch-text" font-family="monospace" font-size="22" opacity="0.2">ML</text>
+  <text x="740"  y="960" class="arch-text" font-family="monospace" font-size="18" opacity="0.22">RAG</text>
+  <text x="1130" y="965" class="arch-text" font-family="monospace" font-size="15" opacity="0.2">Vector</text>
+  <text x="85"   y="385" class="arch-text" font-family="monospace" font-size="13" opacity="0.3">Lambda</text>
+  <text x="1090" y="78"  class="arch-text" font-family="monospace" font-size="14" opacity="0.25">Bedrock</text>
+  <text x="335"  y="145" class="arch-text" font-family="monospace" font-size="13" opacity="0.3">Python</text>
+  <text x="585"  y="295" class="arch-text" font-family="monospace" font-size="18" opacity="0.28">API</text>
+  <text x="1265" y="615" class="arch-text" font-family="monospace" font-size="15" opacity="0.25">Agent</text>
+  <text x="65"   y="688" class="arch-text" font-family="monospace" font-size="12" opacity="0.25">GraphRAG</text>
+  <text x="1780" y="360" class="arch-text" font-family="monospace" font-size="14" opacity="0.28">LoRA</text>
+  <text x="1748" y="720" class="arch-text" font-family="monospace" font-size="12" opacity="0.25">Fine-tuning</text>
+  <text x="420"  y="718" class="arch-text" font-family="monospace" font-size="12" opacity="0.25">Embeddings</text>
+  <text x="680"  y="760" class="arch-text" font-family="monospace" font-size="15" opacity="0.28">FastMCP</text>
+  <text x="1185" y="195" class="arch-text" font-family="monospace" font-size="13" opacity="0.25">LangGraph</text>
+  <text x="1580" y="460" class="arch-text" font-family="monospace" font-size="13" opacity="0.25">LangChain</text>
+  <text x="195"  y="355" class="arch-text" font-family="monospace" font-size="15" opacity="0.3">Claude</text>
+  <text x="812"  y="305" class="arch-text" font-family="monospace" font-size="11" opacity="0.2">Java</text>
+  <text x="1048" y="762" class="arch-text" font-family="monospace" font-size="13" opacity="0.25">JSON</text>
+  <text x="540"  y="555" class="arch-text" font-family="monospace" font-size="15" opacity="0.28">REST</text>
+  <text x="1280" y="868" class="arch-text" font-family="monospace" font-size="13" opacity="0.25">GraphQL</text>
+  <text x="738"  y="455" class="arch-text" font-family="monospace" font-size="18" opacity="0.3">MCP</text>
+  <text x="1030" y="148" class="arch-text" font-family="monospace" font-size="13" opacity="0.22">Serverless</text>
+  <text x="1430" y="195" class="arch-text" font-family="monospace" font-size="14" opacity="0.22">Step Functions</text>
+  <text x="620"  y="110" class="arch-text" font-family="monospace" font-size="13" opacity="0.22">Transformer</text>
+  <text x="75"   y="215" class="arch-text" font-family="monospace" font-size="12" opacity="0.25">Orchestration</text>
+  <text x="1750" y="165" class="arch-text" font-family="monospace" font-size="12" opacity="0.22">YAML</text>
+  <text x="490"  y="385" class="arch-text" font-family="monospace" font-size="12" opacity="0.22">Inference</text>
+  <text x="1160" y="655" class="arch-text" font-family="monospace" font-size="14" opacity="0.25">Routing</text>
+  <text x="300"  y="620" class="arch-text" font-family="monospace" font-size="13" opacity="0.22">Context</text>
+  <text x="1350" y="740" class="arch-text" font-family="monospace" font-size="12" opacity="0.22">Telemetry</text>
+  <text x="700"  y="185" class="arch-text" font-family="monospace" font-size="14" opacity="0.28">Gateway</text>
+  <text x="1810" y="550" class="arch-text" font-family="monospace" font-size="12" opacity="0.22">Tokens</text>
+  <text x="825"  y="680" class="arch-text" font-family="monospace" font-size="13" opacity="0.25">Prompt</text>
+  <text x="460"  y="480" class="arch-text" font-family="monospace" font-size="12" opacity="0.2">Weights</text>
+  <text x="1260" y="420" class="arch-text" font-family="monospace" font-size="14" opacity="0.25">Vector DB</text>
+  <text x="80"   y="940" class="arch-text" font-family="monospace" font-size="13" opacity="0.22">Architecture</text>
+  <text x="1520" y="635" class="arch-text" font-family="monospace" font-size="12" opacity="0.2">Checkpoint</text>
+  <text x="640"  y="645" class="arch-text" font-family="monospace" font-size="13" opacity="0.22">Pipeline</text>
+  <text x="1650" y="885" class="arch-text" font-family="monospace" font-size="14" opacity="0.25">Bedrock</text>
+  <text x="1840" y="90"  class="arch-text" font-family="monospace" font-size="13" opacity="0.2">Cloud</text>
+  <text x="30"   y="530" class="arch-text" font-family="monospace" font-size="22" font-weight="bold" opacity="0.18">AWS</text>
+  <text x="1690" y="310" class="arch-text" font-family="monospace" font-size="20" font-weight="bold" opacity="0.2">ML</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       BLOCH SPHERE / QUBIT (top-center, ~570,140)
+       ═══════════════════════════════════════════════════ -->
+  <!-- Outer sphere -->
+  <circle cx="570" cy="138" r="46" class="arch-element" stroke-width="1.8" fill="none"/>
+  <!-- Equatorial ellipse (horizontal plane) -->
+  <ellipse cx="570" cy="138" rx="46" ry="12" class="arch-element" stroke-width="1" fill="none" opacity="0.6"/>
+  <!-- Meridian ellipse (vertical plane, thin) -->
+  <ellipse cx="570" cy="138" rx="12" ry="46" class="arch-element" stroke-width="0.8" fill="none" opacity="0.4"/>
+  <!-- Z axis (dashed) -->
+  <line x1="570" y1="92" x2="570" y2="184" class="arch-element" stroke-width="0.8" stroke-dasharray="3,3" opacity="0.5"/>
+  <!-- X axis (dashed) -->
+  <line x1="524" y1="138" x2="616" y2="138" class="arch-element" stroke-width="0.8" stroke-dasharray="3,3" opacity="0.5"/>
+  <!-- State vector |ψ⟩ arrow from center toward upper-right surface -->
+  <line x1="570" y1="138" x2="601" y2="105" class="arch-element" stroke-width="2.2" marker-end="url(#arrow)"/>
+  <!-- North/south pole dots -->
+  <circle cx="570" cy="92" r="4" class="arch-element" stroke-width="1.5" fill="none"/>
+  <circle cx="570" cy="184" r="4" class="arch-element" stroke-width="1.5" fill="none"/>
+  <!-- Pole labels -->
+  <text x="576" y="87" class="arch-text" font-family="monospace" font-size="11">|0⟩</text>
+  <text x="576" y="200" class="arch-text" font-family="monospace" font-size="11">|1⟩</text>
+  <!-- State vector label -->
+  <text x="607" y="101" class="arch-text" font-family="monospace" font-size="12" font-weight="bold">|ψ⟩</text>
+  <text x="570" y="220" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">Bloch Sphere</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       QUANTUM ENTANGLEMENT PAIR (far right, ~1808,375)
+       ═══════════════════════════════════════════════════ -->
+  <!-- Left particle -->
+  <circle cx="1800" cy="370" r="21" class="arch-element" stroke-width="1.8" fill="none"/>
+  <!-- Left orbital ring (tilted) -->
+  <ellipse cx="1800" cy="370" rx="21" ry="7" class="arch-element" stroke-width="0.8" fill="none" opacity="0.55" transform="rotate(-35,1800,370)"/>
+  <!-- Right particle -->
+  <circle cx="1865" cy="370" r="21" class="arch-element" stroke-width="1.8" fill="none"/>
+  <!-- Right orbital ring (tilted opposite) -->
+  <ellipse cx="1865" cy="370" rx="21" ry="7" class="arch-element" stroke-width="0.8" fill="none" opacity="0.55" transform="rotate(35,1865,370)"/>
+  <!-- Entanglement squiggly link -->
+  <path d="M1821,370 Q1829,357 1837,370 Q1845,383 1853,370" class="arch-element" stroke-width="1.4" fill="none" stroke-dasharray="4,3"/>
+  <!-- Correlation arrows pointing outward -->
+  <line x1="1779" y1="370" x2="1758" y2="370" class="arch-element" stroke-width="1.5" marker-end="url(#arrow-sm)"/>
+  <line x1="1886" y1="370" x2="1907" y2="370" class="arch-element" stroke-width="1.5" marker-end="url(#arrow-sm)"/>
+  <!-- Spin up / down labels -->
+  <text x="1800" y="375" class="arch-text" text-anchor="middle" font-family="monospace" font-size="14">↑</text>
+  <text x="1865" y="375" class="arch-text" text-anchor="middle" font-family="monospace" font-size="14">↓</text>
+  <text x="1833" y="404" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">Entanglement</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       PADLOCK (bottom-center, ~800,938)
+       ═══════════════════════════════════════════════════ -->
+  <!-- Shackle (U-arc) -->
+  <path d="M781,942 L781,924 Q781,904 800,904 Q819,904 819,924 L819,942" class="arch-element" stroke-width="2.2" fill="none"/>
+  <!-- Lock body -->
+  <rect x="770" y="942" width="60" height="46" rx="5" class="arch-element" stroke-width="2.2" fill="none"/>
+  <!-- Keyhole circle -->
+  <circle cx="800" cy="958" r="7" class="arch-element" stroke-width="1.8" fill="none"/>
+  <!-- Keyhole slot -->
+  <line x1="800" y1="965" x2="800" y2="978" class="arch-element" stroke-width="3.5"/>
+  <text x="800" y="1005" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">Encryption</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       KEY SYMBOL (left of padlock, ~660,940)
+       ═══════════════════════════════════════════════════ -->
+  <!-- Bow (double ring = hollow circle) -->
+  <circle cx="652" cy="940" r="19" class="arch-element" stroke-width="2" fill="none"/>
+  <circle cx="652" cy="940" r="10" class="arch-element" stroke-width="1.5" fill="none"/>
+  <!-- Blade shaft -->
+  <line x1="671" y1="940" x2="725" y2="940" class="arch-element" stroke-width="3.5"/>
+  <!-- Teeth (notches down from blade) -->
+  <line x1="695" y1="940" x2="695" y2="953" class="arch-element" stroke-width="2.2"/>
+  <line x1="708" y1="940" x2="708" y2="950" class="arch-element" stroke-width="2.2"/>
+  <line x1="682" y1="940" x2="682" y2="951" class="arch-element" stroke-width="2.2"/>
+  <text x="658" y="972" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">KMS Key</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       QUANTUM CIRCUIT (bottom-right of center, ~1195,930)
+       ═══════════════════════════════════════════════════ -->
+  <!-- Qubit wire 1 -->
+  <line x1="1108" y1="918" x2="1282" y2="918" class="arch-element" stroke-width="1.3"/>
+  <!-- Qubit wire 2 -->
+  <line x1="1108" y1="948" x2="1282" y2="948" class="arch-element" stroke-width="1.3"/>
+  <!-- Wire labels -->
+  <text x="1100" y="922" class="arch-text" text-anchor="end" font-family="monospace" font-size="10">q₀</text>
+  <text x="1100" y="952" class="arch-text" text-anchor="end" font-family="monospace" font-size="10">q₁</text>
+  <!-- Hadamard gate on q₀ -->
+  <rect x="1118" y="908" width="26" height="20" class="arch-element" stroke-width="1.5" fill="none"/>
+  <text x="1131" y="922" class="arch-text" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold">H</text>
+  <!-- CNOT gate: control dot on q₀, target ⊕ on q₁ -->
+  <circle cx="1174" cy="918" r="5" class="arch-element" stroke-width="1.8"/>
+  <line x1="1174" y1="918" x2="1174" y2="948" class="arch-element" stroke-width="1.3"/>
+  <circle cx="1174" cy="948" r="11" class="arch-element" stroke-width="1.5" fill="none"/>
+  <line x1="1163" y1="948" x2="1185" y2="948" class="arch-element" stroke-width="1.3"/>
+  <line x1="1174" y1="937" x2="1174" y2="959" class="arch-element" stroke-width="1.3"/>
+  <!-- Phase gate S on q₀ -->
+  <rect x="1204" y="908" width="26" height="20" class="arch-element" stroke-width="1.5" fill="none"/>
+  <text x="1217" y="922" class="arch-text" text-anchor="middle" font-family="monospace" font-size="11">S</text>
+  <!-- Measurement box on q₁: arc + pointer -->
+  <rect x="1238" y="938" width="28" height="20" class="arch-element" stroke-width="1.5" fill="none"/>
+  <path d="M1242,956 Q1252,942 1262,956" class="arch-element" stroke-width="1.2" fill="none"/>
+  <line x1="1252" y1="950" x2="1261" y2="941" class="arch-element" stroke-width="1.2" marker-end="url(#arrow-sm)"/>
+  <text x="1195" y="978" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">QKD Circuit</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       XOR CIPHER GRID (left side, ~90,645)
+       ═══════════════════════════════════════════════════ -->
+  <!-- 3×3 grid (cell size 22×22) -->
+  <rect x="57"  y="628" width="22" height="22" class="arch-element" stroke-width="1" fill="none"/>
+  <rect x="79"  y="628" width="22" height="22" class="arch-element" stroke-width="1" fill="none"/>
+  <rect x="101" y="628" width="22" height="22" class="arch-element" stroke-width="1" fill="none"/>
+  <rect x="57"  y="650" width="22" height="22" class="arch-element" stroke-width="1" fill="none"/>
+  <rect x="79"  y="650" width="22" height="22" class="arch-element" stroke-width="1.8" fill="none"/>
+  <rect x="101" y="650" width="22" height="22" class="arch-element" stroke-width="1" fill="none"/>
+  <rect x="57"  y="672" width="22" height="22" class="arch-element" stroke-width="1" fill="none"/>
+  <rect x="79"  y="672" width="22" height="22" class="arch-element" stroke-width="1" fill="none"/>
+  <rect x="101" y="672" width="22" height="22" class="arch-element" stroke-width="1" fill="none"/>
+  <!-- Cell values (row 0) -->
+  <text x="68"  y="643" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">1</text>
+  <text x="90"  y="643" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">0</text>
+  <text x="112" y="643" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">1</text>
+  <!-- Cell values (row 1) — center cell has ⊕ -->
+  <text x="68"  y="665" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">0</text>
+  <text x="90"  y="666" class="arch-text" text-anchor="middle" font-family="monospace" font-size="13">⊕</text>
+  <text x="112" y="665" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">0</text>
+  <!-- Cell values (row 2) -->
+  <text x="68"  y="687" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">1</text>
+  <text x="90"  y="687" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">1</text>
+  <text x="112" y="687" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">0</text>
+  <text x="90"  y="710" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">XOR Cipher</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       SUPERPOSITION WAVEFORM (top area, ~470,65)
+       ═══════════════════════════════════════════════════ -->
+  <path d="M430,62 Q444,42 458,62 Q472,82 486,62 Q500,42 514,62 Q528,82 542,62"
+        class="arch-element" stroke-width="1.6" fill="none"/>
+  <text x="416" y="66" class="arch-text" font-family="monospace" font-size="11">|0⟩</text>
+  <text x="547" y="66" class="arch-text" font-family="monospace" font-size="11">|1⟩</text>
+  <text x="486" y="88" class="arch-text" text-anchor="middle" font-family="monospace" font-size="10">Superposition</text>
+
+  <!-- ═══════════════════════════════════════════════════
+       SCATTERED CRYPTO / QUANTUM TEXT LABELS
+       ═══════════════════════════════════════════════════ -->
+  <text x="350"  y="45"   class="arch-text" font-family="monospace" font-size="14" opacity="0.28">Lattice Crypto</text>
+  <text x="680"  y="68"   class="arch-text" font-family="monospace" font-size="15" opacity="0.3">Photon</text>
+  <text x="1310" y="55"   class="arch-text" font-family="monospace" font-size="13" opacity="0.25">AES-256</text>
+  <text x="1480" y="85"   class="arch-text" font-family="monospace" font-size="12" opacity="0.22">Post-Quantum</text>
+  <text x="1840" y="195"  class="arch-text" font-family="monospace" font-size="13" opacity="0.25">Zero-Trust</text>
+  <text x="1840" y="250"  class="arch-text" font-family="monospace" font-size="12" opacity="0.22">Entropy</text>
+  <text x="1840" y="300"  class="arch-text" font-family="monospace" font-size="13" opacity="0.25">ECDH</text>
+  <text x="1840" y="480"  class="arch-text" font-family="monospace" font-size="12" opacity="0.2">Nonce</text>
+  <text x="1840" y="530"  class="arch-text" font-family="monospace" font-size="13" opacity="0.25">HSM</text>
+  <text x="700"  y="228"  class="arch-text" font-family="monospace" font-size="13" opacity="0.28">Qubit</text>
+  <text x="400"  y="260"  class="arch-text" font-family="monospace" font-size="12" opacity="0.22">Quantum Key</text>
+  <text x="175"  y="130"  class="arch-text" font-family="monospace" font-size="12" opacity="0.25">SHA-256</text>
+  <text x="1355" y="120"  class="arch-text" font-family="monospace" font-size="13" opacity="0.25">PKI</text>
+  <text x="310"  y="760"  class="arch-text" font-family="monospace" font-size="13" opacity="0.25">TLS 1.3</text>
+  <text x="1090" y="855"  class="arch-text" font-family="monospace" font-size="12" opacity="0.22">Homomorphic</text>
+  <text x="495"  y="1005" class="arch-text" font-family="monospace" font-size="13" opacity="0.28">QKD</text>
+  <text x="1620" y="985"  class="arch-text" font-family="monospace" font-size="13" opacity="0.25">Key Rotation</text>
+  <text x="1840" y="950"  class="arch-text" font-family="monospace" font-size="14" font-weight="bold" opacity="0.2">⚿</text>
+
+</svg>
+  </div>
+
+  <main id="main">
+
+    <!-- HERO -->
+    <section id="home" aria-labelledby="hero-title">
+      <canvas id="hero-canvas" aria-hidden="true"></canvas>
+      <div class="hero-inner">
+        <p class="hero-eyebrow">Open-Source AWS AI Infrastructure</p>
+        <div class="hero-heading">
+          <h1 id="hero-title" class="sr-only">AIWeave</h1>
+          <div id="hero-wordmark" class="hero-wm" aria-hidden="true"></div>
+          <div id="hero-scan" class="hero-scan" aria-hidden="true"></div>
+        </div>
+        <p class="hero-subtitle">Build &middot; Fine-tune &middot; Orchestrate &middot; Deploy</p>
+        <p class="hero-description">
+          Production-ready AWS-native AI infrastructure: model fine-tuning, multi-agent
+          orchestration, GraphRAG, MCP servers, visual QA, and observability &mdash;
+          engineered to ship AI systems faster.
+        </p>
+        <div class="hero-ctas">
+          <a href="#projects" class="btn-primary"
+             aria-label="Explore all AIWeave projects">Explore Projects</a>
+          <a href="https://github.com/rajatarun" class="btn-outline"
+             target="_blank" rel="noopener noreferrer"
+             aria-label="View all repositories on GitHub (opens in new tab)">View on GitHub</a>
+        </div>
+      </div>
+      <div class="scroll-indicator" aria-hidden="true">
+        <div class="scroll-line"></div>
+        <span class="scroll-label">Scroll</span>
+      </div>
+    </section>
+
+    <!-- SIGNAL BAR -->
+    <div class="signal-bar" aria-label="Project statistics">
+      <div class="signal-stat">
+        <span class="signal-stat-num" data-count="10" data-suffix="">10</span>
+        <span class="signal-stat-label">Open-source tools</span>
+      </div>
+      <div class="signal-stat">
+        <span class="signal-stat-num" data-count="8" data-suffix="+">8+</span>
+        <span class="signal-stat-label">AWS services integrated</span>
+      </div>
+      <div class="signal-stat">
+        <span class="signal-stat-num" data-count="52" data-suffix="%">52%</span>
+        <span class="signal-stat-label">Cost savings vs SageMaker</span>
+      </div>
+    </div>
+
+    <!-- PROJECTS -->
+    <section id="projects" aria-labelledby="projects-title" class="section-wrap">
+      <div class="section-header">
+        <p class="section-eyebrow">Open Source Tooling</p>
+        <h2 id="projects-title" class="section-title">The <span>Weave</span> Ecosystem</h2>
+      </div>
+      <div class="projects-grid" role="list" aria-label="AIWeave projects">
+
+        <article class="project-card reveal"
+                 id="project-mcp_observatory" aria-labelledby="title-0" role="listitem"
+                 style="transition-delay:0ms">
+          <div class="card-header">
+            <span class="card-icon" aria-hidden="true">◉</span>
+            <div class="card-title-group">
+              <h3 id="title-0" class="card-title">mcp-observatory</h3>
+              <p class="card-tagline">Two-phase PROPOSE/COMMIT · Risk scoring · Safe MCP execution · Observability</p>
+            </div>
+            
+          </div>
+          <p class="card-summary">Two-phase execution framework for high-risk MCP tool operations — PROPOSE scores risk, COMMIT verifies signed tokens before side-effects.</p>
+          <div class="tech-tags" aria-label="Technologies used in mcp-observatory"><span class="tech-tag">FastMCP</span><span class="tech-tag">PROPOSE/COMMIT</span><span class="tech-tag">Risk Scoring</span><span class="tech-tag">PostgreSQL</span><span class="tech-tag">Observability</span></div>
+          <a href="https://github.com/rajatarun/mcp-observatory"
+             class="card-link"
+             target="_blank"
+             rel="noopener noreferrer"
+             aria-label="View mcp-observatory on GitHub (opens in new tab)">
+            View on GitHub &#8594;
+          </a>
+        </article>
+
+        <article class="project-card reveal"
+                 id="project-datadictionary" aria-labelledby="title-1" role="listitem"
+                 style="transition-delay:60ms">
+          <div class="card-header">
+            <span class="card-icon" aria-hidden="true">◫</span>
+            <div class="card-title-group">
+              <h3 id="title-1" class="card-title">DataDictionary</h3>
+              <p class="card-tagline">Schema registry · Data contracts · AWS Glue · Automated documentation</p>
+            </div>
+            
+          </div>
+          <p class="card-summary">Centralized schema registry and data dictionary for AWS-native data pipelines with automated documentation and data contract validation.</p>
+          <div class="tech-tags" aria-label="Technologies used in DataDictionary"><span class="tech-tag">AWS Glue</span><span class="tech-tag">S3</span><span class="tech-tag">Athena</span><span class="tech-tag">Lambda</span><span class="tech-tag">Schema Registry</span></div>
+          <a href="https://github.com/rajatarun/DataDictionary"
+             class="card-link"
+             target="_blank"
+             rel="noopener noreferrer"
+             aria-label="View DataDictionary on GitHub (opens in new tab)">
+            View on GitHub &#8594;
+          </a>
+        </article>
+      </div>
+    </section>
+
+    <!-- ARCHITECTURE -->
+    <section id="architecture" aria-labelledby="arch-title"
+             style="background:var(--bg-surface);border-top:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle);">
+      <div class="section-wrap">
+        <div class="section-header">
+          <p class="section-eyebrow">System Design</p>
+          <h2 id="arch-title" class="section-title">The <span>Architecture</span> Stack</h2>
+        </div>
+        <div class="arch-diagram">
+<div class="arch-row reveal"><span class="arch-icon" aria-hidden="true">◎</span><span class="arch-label">ORCHESTRATION</span><div class="arch-chips"><span class="arch-chip">TeamWeave</span><span class="arch-chip">TaskWeave</span><span class="arch-chip">Step Functions</span><span class="arch-chip">API Gateway</span></div></div>
+<div class="arch-row reveal"><span class="arch-icon" aria-hidden="true">⊞</span><span class="arch-label">RETRIEVAL &amp; RAG</span><div class="arch-chips"><span class="arch-chip">ContextWeave</span><span class="arch-chip">Memgraph</span><span class="arch-chip">pgvector</span><span class="arch-chip">Neptune Analytics</span></div></div>
+<div class="arch-row reveal"><span class="arch-icon" aria-hidden="true">⚙</span><span class="arch-label">EXECUTION &amp; TOOLS</span><div class="arch-chips"><span class="arch-chip">ToolWeave</span><span class="arch-chip">TrainWeave</span><span class="arch-chip">FastMCP</span><span class="arch-chip">EC2 Spot</span><span class="arch-chip">Lambda</span></div></div>
+<div class="arch-row reveal"><span class="arch-icon" aria-hidden="true">⊛</span><span class="arch-label">SECURITY &amp; SAFETY</span><div class="arch-chips"><span class="arch-chip">CipherWeave</span><span class="arch-chip">mcp-observatory</span><span class="arch-chip">KMS</span><span class="arch-chip">PROPOSE/COMMIT</span></div></div>
+<div class="arch-row reveal"><span class="arch-icon" aria-hidden="true">⬢</span><span class="arch-label">COMPUTE &amp; DEPLOY</span><div class="arch-chips"><span class="arch-chip">DeployWeave</span><span class="arch-chip">CDK</span><span class="arch-chip">CodePipeline</span><span class="arch-chip">Blue-green</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCROLLYTELLING -->
+    <section id="story" aria-labelledby="story-title" class="section-wrap">
+      <div class="section-header">
+        <p class="section-eyebrow">Developer Experience</p>
+        <h2 id="story-title" class="section-title">From <span>Intent</span> to Execution</h2>
+      </div>
+      <div class="story-outer">
+        <div class="story-panels-col">
+<div class="story-panel" data-idx="0" data-cmd="define" data-title="Define the Agent" data-body="Declare intent in plain JSON. TeamWeave resolves the right model, tools, and routing rules automatically — no hard-coded orchestration logic." data-output="✓ agent spec validated"><div class="story-step-num">01</div><h3 class="story-step-title">Define the Agent</h3><p class="story-step-body">Declare intent in plain JSON. TeamWeave resolves the right model, tools, and routing rules automatically — no hard-coded orchestration logic.</p></div>
+<div class="story-panel" data-idx="1" data-cmd="route" data-title="Route &amp; Plan" data-body="Step Functions maps the task graph. Parallel branches execute concurrently; retry policies and timeouts are infrastructure concerns, not application code." data-output="✓ execution plan emitted"><div class="story-step-num">02</div><h3 class="story-step-title">Route &amp; Plan</h3><p class="story-step-body">Step Functions maps the task graph. Parallel branches execute concurrently; retry policies and timeouts are infrastructure concerns, not application code.</p></div>
+<div class="story-panel" data-idx="2" data-cmd="execute" data-title="Execute with Tools" data-body="ToolWeave translates natural language into signed REST calls. Each tool invocation passes through risk scoring before any side-effect is committed." data-output="✓ 3 tools invoked, 0 errors"><div class="story-step-num">03</div><h3 class="story-step-title">Execute with Tools</h3><p class="story-step-body">ToolWeave translates natural language into signed REST calls. Each tool invocation passes through risk scoring before any side-effect is committed.</p></div>
+<div class="story-panel" data-idx="3" data-cmd="observe" data-title="Observe Everything" data-body="mcp-observatory captures every PROPOSE/COMMIT pair. Structured logs, risk scores, and latency traces flow to CloudWatch &amp; your SIEM of choice." data-output="✓ audit trail persisted"><div class="story-step-num">04</div><h3 class="story-step-title">Observe Everything</h3><p class="story-step-body">mcp-observatory captures every PROPOSE/COMMIT pair. Structured logs, risk scores, and latency traces flow to CloudWatch &amp; your SIEM of choice.</p></div>
+        </div>
+        <div class="story-terminal-col" aria-hidden="true">
+          <div id="story-terminal" class="story-terminal">
+            <div class="term-bar">
+              <div class="term-dot"></div>
+              <div class="term-dot"></div>
+              <div class="term-dot"></div>
+            </div>
+            <div class="term-prompt">$ aiweave define</div>
+            <div class="term-title">Define the Agent</div>
+            <div class="term-body">Declare intent in plain JSON. TeamWeave resolves the right model, tools, and routing rules automatically.</div>
+            <div class="term-output"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" aria-labelledby="about-title"
+             style="background:var(--bg-surface);border-top:1px solid var(--border-subtle);">
+      <div class="section-wrap">
+        <div class="section-header">
+          <p class="section-eyebrow">About</p>
+          <h2 id="about-title" class="section-title">What is <span>AIWeave</span>?</h2>
+        </div>
+        <div class="about-card">
+          <p>
+            <strong>AIWeave</strong> is a collection of open-source, AWS-native AI infrastructure
+            tools built for engineers who need production-grade AI systems without proprietary
+            lock-in. Each tool addresses a distinct layer of the AI engineering stack &mdash;
+            from raw compute and model training through retrieval, orchestration, and quality assurance.
+          </p>
+          <p>
+            Every library is built on AWS primitives: <strong>Lambda, Bedrock, Step Functions,
+            DynamoDB, EC2 Spot, API Gateway, S3</strong>, and <strong>Neptune</strong>.
+            Rather than abstracting cloud infrastructure away, AIWeave composes these services
+            into opinionated, battle-tested patterns that reduce operational overhead and cost
+            while remaining fully observable and auditable.
+          </p>
+          <p>
+            All tools are open source under the <strong>Apache 2.0 license</strong>, written in
+            Python, and designed for reliability. Site generated on 2026-06-24.
+          </p>
+          <div class="tech-pills" aria-label="Core technologies">
+            <span class="tech-pill">Python</span>
+            <span class="tech-pill">AWS Bedrock</span>
+            <span class="tech-pill">Lambda</span>
+            <span class="tech-pill">Step Functions</span>
+            <span class="tech-pill">EC2 Spot</span>
+            <span class="tech-pill">DynamoDB</span>
+            <span class="tech-pill">FastMCP</span>
+            <span class="tech-pill">Apache 2.0</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 88" width="14" height="14" aria-hidden="true" focusable="false" style="vertical-align:middle;color:var(--accent-cyan)"><rect x="36" y="3"  width="49" height="49" rx="12" fill="none" stroke="currentColor" stroke-width="10"/><rect x="3"  y="36" width="49" height="49" rx="12" fill="none" stroke="currentColor" stroke-width="10"/><rect x="3"  y="3"  width="49" height="49" rx="12" fill="none" stroke="currentColor" stroke-width="10"/><rect x="36" y="36" width="49" height="49" rx="12" fill="none" stroke="currentColor" stroke-width="10"/></svg>
+      &copy; 2026 AIWeave &middot;
+      <a href="https://github.com/rajatarun" target="_blank" rel="noopener noreferrer"
+         aria-label="GitHub profile (opens in new tab)">GitHub</a>
+      &middot;
+      <a href="https://aiweave.org" aria-label="AIWeave homepage">aiweave.org</a>
+      &middot; Apache 2.0 License
+    </p>
+  </footer>
+
+  <script>
+
+  /* AIWeave Geometric wordmark engine (AXIOM lineage) */
+  (function() {
+    const VB_TOP=-90, VB_BOT=790;
+    const CY='#00FFD1', GD='#F5C518', INK='#E8EDF5';
+    const f=n=>Math.round(n*10)/10;
+    let OX=0, OY=0;
+    const X=x=>x+OX, Y=y=>y+OY;
+    function pt(cx,cy,rx,ry,d){const r=d*Math.PI/180;return [X(cx+rx*Math.sin(r)),Y(cy-ry*Math.cos(r))];}
+    function arc(cx,cy,rx,ry,a0,a1,dir){
+      const [x0,y0]=pt(cx,cy,rx,ry,a0),[x1,y1]=pt(cx,cy,rx,ry,a1);
+      let sp=dir>0?(((a1-a0)%360)+360)%360:(((a0-a1)%360)+360)%360;
+      return `M ${f(x0)} ${f(y0)} A ${f(rx)} ${f(ry)} 0 ${sp>180?1:0} ${dir>0?1:0} ${f(x1)} ${f(y1)}`;
+    }
+    function line(x0,y0,x1,y1){return `M ${f(X(x0))} ${f(Y(y0))} L ${f(X(x1))} ${f(Y(y1))}`;}
+    function ring(cx,cy,rx,ry){return [arc(cx,cy,rx,ry,0,180,1),arc(cx,cy,rx,ry,180,360,1)];}
+    const G={
+      'A':()=>({w:620,p:[line(0,700,310,0),line(310,0,620,700),line(102,470,518,470)]}),
+      'B':()=>({w:475,p:[line(0,0,0,700),arc(0,175,420,175,0,180,1),arc(0,525,440,175,0,180,1)]}),
+      'C':()=>({w:680,p:[arc(350,350,330,330,50,130,-1)]}),
+      'D':()=>({w:560,p:[line(0,0,0,700),line(0,0,300,0),arc(300,250,250,250,0,90,1),line(550,250,550,450),arc(300,450,250,250,90,180,1),line(300,700,0,700)]}),
+      'E':()=>({w:520,p:[line(0,0,0,700),line(0,0,520,0),line(0,350,430,350),line(0,700,520,700)]}),
+      'F':()=>({w:520,p:[line(0,0,0,700),line(0,0,520,0),line(0,350,430,350)]}),
+      'G':()=>({w:680,p:[arc(350,350,330,330,50,130,-1),line(603,562,603,350),line(603,350,438,350)]}),
+      'H':()=>({w:560,p:[line(0,0,0,700),line(560,0,560,700),line(0,350,560,350)]}),
+      'I':()=>({w:0,p:[line(0,0,0,700)]}),
+      'J':()=>({w:470,p:[line(470,0,470,470),arc(220,470,250,250,90,160,1)]}),
+      'K':()=>({w:560,p:[line(0,0,0,700),line(0,372,530,0),line(0,372,560,700)]}),
+      'L':()=>({w:500,p:[line(0,0,0,700),line(0,700,500,700)]}),
+      'M':()=>({w:760,p:[line(0,700,0,0),line(0,0,380,480),line(380,480,760,0),line(760,0,760,700)]}),
+      'N':()=>({w:580,p:[line(0,700,0,0),line(0,0,580,700),line(580,700,580,0)]}),
+      'O':()=>({w:700,p:ring(350,350,350,350)}),
+      'P':()=>({w:490,p:[line(0,0,0,700),line(0,0,300,0),arc(300,190,190,190,0,180,1),line(300,380,0,380)]}),
+      'Q':()=>({w:700,p:[...ring(350,350,350,350),line(420,455,650,700)]}),
+      'R':()=>({w:540,p:[line(0,0,0,700),line(0,0,300,0),arc(300,190,190,190,0,180,1),line(300,380,0,380),line(250,380,540,700)]}),
+      'S':()=>({w:540,p:[arc(280,175,230,175,70,180,-1),arc(280,525,230,175,0,250,1)]}),
+      'T':()=>({w:560,p:[line(0,0,560,0),line(280,0,280,700)]}),
+      'U':()=>({w:620,p:[line(0,0,0,390),arc(310,390,310,310,270,90,-1),line(620,390,620,0)]}),
+      'V':()=>({w:620,p:[line(0,0,310,700),line(310,700,620,0)]}),
+      'W':()=>({w:860,p:[line(0,0,190,700),line(190,700,430,180),line(430,180,670,700),line(670,700,860,0)]}),
+      'X':()=>({w:560,p:[line(0,0,560,700),line(560,0,0,700)]}),
+      'Y':()=>({w:560,p:[line(0,0,280,360),line(560,0,280,360),line(280,360,280,700)]}),
+      'Z':()=>({w:540,p:[line(0,0,540,0),line(540,0,0,700),line(0,700,540,700)]}),
+      '0':()=>({w:540,p:ring(270,350,270,350),dots:[[270,350,0.16]]}),
+      '1':()=>({w:360,p:[line(250,0,250,700),line(95,165,250,0),line(110,700,390,700)]}),
+      '2':()=>({w:510,p:[arc(255,210,210,210,300,110,1),line(452,282,70,700),line(70,700,500,700)]}),
+      '3':()=>({w:480,p:[arc(265,190,200,190,350,180,1),arc(265,510,200,190,0,190,1)]}),
+      '4':()=>({w:560,p:[line(430,0,40,500),line(40,500,560,500),line(430,0,430,700)]}),
+      '5':()=>({w:500,p:[line(70,0,500,0),line(70,0,70,330),arc(255,490,235,210,300,200,1)]}),
+      '6':()=>({w:505,p:[...ring(270,495,235,205),arc(270,300,255,300,180,350,1)]}),
+      '7':()=>({w:520,p:[line(40,0,520,0),line(520,0,175,700)]}),
+      '8':()=>({w:485,p:[...ring(270,190,185,185),...ring(270,510,210,190)]}),
+      '9':()=>({w:505,p:[...ring(270,205,235,205),arc(270,400,255,300,0,170,1)]}),
+      '-':()=>({w:360,p:[line(60,360,300,360)]}),
+      '.':()=>({w:90,dots:[[45,650,0.52]]}),
+      '/':()=>({w:380,p:[line(40,720,340,-20)]}),
+    };
+    let gid=0;
+    function renderGeo(str,o){
+      o=o||{};
+      const w=o.weight??100,sb=o.sb??52,track=o.track??0;
+      let cursor=0,body='',i=0,id='wmg'+(gid++);
+      const useGrad=!!o.grad&&!o.colorFn;
+      for(const raw of str){
+        const ch=raw.toUpperCase();
+        if(ch===' '){cursor+=300+track;continue;}
+        const gen=G[ch];if(!gen){cursor+=300+track;continue;}
+        const ox=cursor+sb;OX=ox;OY=0;
+        const g=gen();OX=0;
+        const stroke=o.colorFn?o.colorFn(i,ch):(useGrad?`url(#${id})`:(o.color||INK));
+        body+=(g.p||[]).map(d=>`<path d="${d}" fill="none" stroke="${stroke}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`).join('');
+        body+=(g.dots||[]).map(dd=>`<circle cx="${f(dd[0]+ox)}" cy="${f(dd[1])}" r="${f(dd[2]*w)}" fill="${stroke}"/>`).join('');
+        cursor+=sb+(g.w||0)+sb+track;i++;
+      }
+      const width=Math.max(cursor-track,1);
+      const defs=useGrad?`<defs><linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${f(width)}" y2="0"><stop offset="0" stop-color="${CY}"/><stop offset="1" stop-color="${GD}"/></linearGradient></defs>`:'';
+      return `<svg class="geo-wm" xmlns="http://www.w3.org/2000/svg" viewBox="0 ${VB_TOP} ${f(width)} ${VB_BOT-VB_TOP}" role="img" aria-label="${str}" style="${o.style||''}">${defs}<g stroke-miterlimit="2.6">${body}</g></svg>`;
+    }
+    function inject(elId,str,o){const el=document.getElementById(elId);if(el)el.innerHTML=renderGeo(str,o);}
+    function initWordmarks(){
+      inject('nav-wordmark','AIWEAVE',{weight:120,grad:true,track:4,style:'height:22px;width:auto;display:block'});
+      const heroEl=document.getElementById('hero-wordmark');
+      if(heroEl){
+        heroEl.innerHTML=renderGeo('AIWEAVE',{weight:108,grad:true,track:4,style:'width:min(840px,100%);height:auto'});
+        if(!matchMedia('(prefers-reduced-motion:reduce)').matches){
+          heroEl.querySelectorAll('path').forEach((p,i)=>{
+            const L=p.getTotalLength();
+            p.style.strokeDasharray=L;p.style.strokeDashoffset=L;p.style.transition='none';
+            requestAnimationFrame(()=>requestAnimationFrame(()=>{
+              p.style.transition=`stroke-dashoffset .8s cubic-bezier(.65,0,.2,1) ${0.1+i*0.016}s`;
+              p.style.strokeDashoffset='0';
+            }));
+          });
+        }
+      }
+    }
+    document.addEventListener('DOMContentLoaded',()=>{
+      initWordmarks();
+      let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(initWordmarks,220);});
+    });
+  })();
+
+
+  /* Canvas particle field */
+  (function(){
+    const TERMS=['Bedrock','Lambda','LoRA','RAG','MCP','Step Functions','pgvector','CDK',
+                 'Neptune','DynamoDB','FastMCP','KMS','Playwright','LangGraph','EC2 Spot',
+                 'S3','Athena','SageMaker','Cognito','EventBridge'];
+    const canvas=document.getElementById('hero-canvas');
+    if(!canvas)return;
+    const ctx=canvas.getContext('2d');
+    let W,H,pts=[];
+    function resize(){
+      W=canvas.width=canvas.offsetWidth;
+      H=canvas.height=canvas.offsetHeight;
+    }
+    function mkPt(){
+      return {
+        x:Math.random()*W, y:Math.random()*H,
+        vx:(Math.random()-.5)*.18, vy:(Math.random()-.5)*.12,
+        alpha:Math.random()*.35+.08,
+        label:TERMS[Math.floor(Math.random()*TERMS.length)],
+        size:Math.random()*1.8+9
+      };
+    }
+    function init(){resize();pts=Array.from({length:28},mkPt);}
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+      ctx.font='500 11px "JetBrains Mono",monospace';
+      pts.forEach(p=>{
+        p.x+=p.vx; p.y+=p.vy;
+        if(p.x<-60)p.x=W+60;
+        if(p.x>W+60)p.x=-60;
+        if(p.y<-20)p.y=H+20;
+        if(p.y>H+20)p.y=-20;
+        ctx.globalAlpha=p.alpha;
+        ctx.fillStyle='#00FFD1';
+        ctx.fillText(p.label,p.x,p.y);
+      });
+      ctx.globalAlpha=1;
+      requestAnimationFrame(draw);
+    }
+    const mq=matchMedia('(prefers-reduced-motion:reduce)');
+    if(!mq.matches){
+      init();draw();
+      window.addEventListener('resize',()=>{resize();});
+    }
+  })();
+
+
+  /* Intersection observer – slide-in cards and layers */
+  (function(){
+    const io=new IntersectionObserver(entries=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          e.target.classList.add('in-view');
+          io.unobserve(e.target);
+        }
+      });
+    },{threshold:0.12});
+    document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+    /* Count-up for signal bar */
+    const cio=new IntersectionObserver(entries=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          e.target.querySelectorAll('[data-count]').forEach(el=>{
+            const target=+el.dataset.count, dur=1400;
+            let start=null;
+            function step(ts){
+              if(!start)start=ts;
+              const p=Math.min((ts-start)/dur,1);
+              const ease=1-Math.pow(1-p,3);
+              el.textContent=Math.round(ease*target)+(el.dataset.suffix||'');
+              if(p<1)requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+          });
+          cio.unobserve(e.target);
+        }
+      });
+    },{threshold:0.5});
+    document.querySelectorAll('.signal-bar').forEach(el=>cio.observe(el));
+
+    /* Architecture layers slide-in stagger */
+    const lio=new IntersectionObserver(entries=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          e.target.querySelectorAll('.arch-row').forEach((row,i)=>{
+            setTimeout(()=>row.classList.add('in-view'),i*80);
+          });
+          lio.unobserve(e.target);
+        }
+      });
+    },{threshold:0.1});
+    document.querySelectorAll('.arch-diagram').forEach(el=>lio.observe(el));
+  })();
+
+
+  /* Scrollytelling sticky terminal */
+  (function(){
+    const section=document.getElementById('story');
+    const panels=document.querySelectorAll('.story-panel');
+    const terminal=document.getElementById('story-terminal');
+    if(!section||!panels.length||!terminal)return;
+
+    function activate(idx){
+      panels.forEach((p,i)=>{
+        p.classList.toggle('active',i===idx);
+      });
+      const panel=panels[idx];
+      if(!panel)return;
+      terminal.querySelector('.term-prompt').textContent='$ aiweave '+panel.dataset.cmd;
+      terminal.querySelector('.term-title').textContent=panel.dataset.title||'';
+      terminal.querySelector('.term-body').textContent=panel.dataset.body||'';
+      const out=terminal.querySelector('.term-output');
+      out.textContent='';
+      setTimeout(()=>{out.textContent=panel.dataset.output||'';},400);
+    }
+
+    activate(0);
+
+    const io=new IntersectionObserver(entries=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          const idx=+e.target.dataset.idx;
+          activate(idx);
+        }
+      });
+    },{rootMargin:'-40% 0px -40% 0px'});
+    panels.forEach(p=>io.observe(p));
+  })();
+
+
+  /* Nav blur on scroll + theme toggle + smooth scroll */
+  (function(){
+    const nav=document.querySelector('nav');
+    const btn=document.getElementById('theme-toggle');
+    const icon=document.getElementById('theme-icon');
+    const lbl=document.getElementById('theme-label');
+    const htmlEl=document.documentElement;
+
+    /* Nav transparency */
+    let ticking=false;
+    window.addEventListener('scroll',()=>{
+      if(!ticking){
+        requestAnimationFrame(()=>{
+          nav.classList.toggle('scrolled',window.scrollY>80);
+          ticking=false;
+        });
+        ticking=true;
+      }
+    },{passive:true});
+
+    /* Theme toggle */
+    function applyTheme(t){
+      htmlEl.setAttribute('data-theme',t);
+      try{localStorage.setItem('aiweave-theme',t);}catch(e){}
+      const dark=t==='dark';
+      btn.setAttribute('aria-label',dark?'Switch to light mode':'Switch to dark mode');
+      btn.setAttribute('aria-pressed',dark?'false':'true');
+      icon.textContent=dark?'\u263E':'\u2600';
+      lbl.textContent=dark?'Light':'Dark';
+    }
+    let saved;try{saved=localStorage.getItem('aiweave-theme');}catch(e){}
+    const prefersDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches;
+    applyTheme(saved||(prefersDark?'dark':'light'));
+    btn.addEventListener('click',()=>applyTheme(htmlEl.getAttribute('data-theme')==='dark'?'light':'dark'));
+
+    /* Smooth scroll */
+    document.querySelectorAll('a[href^="#"]').forEach(a=>{
+      a.addEventListener('click',e=>{
+        const t=document.querySelector(a.getAttribute('href'));
+        if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth'});t.setAttribute('tabindex','-1');t.focus({preventScroll:true});}
+      });
+    });
+
+    /* Scan line animation */
+    const scan=document.getElementById('hero-scan');
+    if(scan&&!matchMedia('(prefers-reduced-motion:reduce)').matches){
+      let dir=1,pos=0;
+      function moveScan(){
+        pos+=dir*0.3;
+        if(pos>100){pos=100;dir=-1;}
+        if(pos<0){pos=0;dir=1;}
+        scan.style.top=pos+'%';
+        requestAnimationFrame(moveScan);
+      }
+      moveScan();
+    }
+  })();
+
+  </script>
+
+</body>
+</html>
