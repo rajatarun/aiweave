@@ -371,12 +371,116 @@ FAVICON_SVG_URI = (
     "data:image/svg+xml,"
     "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 88 88'>"
     "<rect width='88' height='88' rx='14' fill='%231a1a1a'/>"
-    "<rect x='36' y='3'  width='49' height='49' rx='12' fill='none' stroke='%2300d9ff' stroke-width='10'/>"
-    "<rect x='3'  y='36' width='49' height='49' rx='12' fill='none' stroke='%2300d9ff' stroke-width='10'/>"
-    "<rect x='3'  y='3'  width='49' height='49' rx='12' fill='none' stroke='%2300d9ff' stroke-width='10'/>"
-    "<rect x='36' y='36' width='49' height='49' rx='12' fill='none' stroke='%2300d9ff' stroke-width='10'/>"
+    "<rect x='36' y='3'  width='49' height='49' rx='12' fill='none' stroke='%2345E0D0' stroke-width='10'/>"
+    "<rect x='3'  y='36' width='49' height='49' rx='12' fill='none' stroke='%2345E0D0' stroke-width='10'/>"
+    "<rect x='3'  y='3'  width='49' height='49' rx='12' fill='none' stroke='%2345E0D0' stroke-width='10'/>"
+    "<rect x='36' y='36' width='49' height='49' rx='12' fill='none' stroke='%2345E0D0' stroke-width='10'/>"
     "</svg>"
 )
+
+
+_WORDMARK_JS = """
+  /* AIWeave Geometric wordmark engine (AXIOM lineage) */
+  (function() {
+    const VB_TOP=-90, VB_BOT=790;
+    const CY='#45E0D0', GD='#E6B763', INK='#ECEEF3';
+    const f=n=>Math.round(n*10)/10;
+    let OX=0, OY=0;
+    const X=x=>x+OX, Y=y=>y+OY;
+    function pt(cx,cy,rx,ry,d){const r=d*Math.PI/180;return [X(cx+rx*Math.sin(r)),Y(cy-ry*Math.cos(r))];}
+    function arc(cx,cy,rx,ry,a0,a1,dir){
+      const [x0,y0]=pt(cx,cy,rx,ry,a0),[x1,y1]=pt(cx,cy,rx,ry,a1);
+      let sp=dir>0?(((a1-a0)%360)+360)%360:(((a0-a1)%360)+360)%360;
+      return `M ${f(x0)} ${f(y0)} A ${f(rx)} ${f(ry)} 0 ${sp>180?1:0} ${dir>0?1:0} ${f(x1)} ${f(y1)}`;
+    }
+    function line(x0,y0,x1,y1){return `M ${f(X(x0))} ${f(Y(y0))} L ${f(X(x1))} ${f(Y(y1))}`;}
+    function ring(cx,cy,rx,ry){return [arc(cx,cy,rx,ry,0,180,1),arc(cx,cy,rx,ry,180,360,1)];}
+    const G={
+      'A':()=>({w:620,p:[line(0,700,310,0),line(310,0,620,700),line(102,470,518,470)]}),
+      'B':()=>({w:475,p:[line(0,0,0,700),arc(0,175,420,175,0,180,1),arc(0,525,440,175,0,180,1)]}),
+      'C':()=>({w:680,p:[arc(350,350,330,330,50,130,-1)]}),
+      'D':()=>({w:560,p:[line(0,0,0,700),line(0,0,300,0),arc(300,250,250,250,0,90,1),line(550,250,550,450),arc(300,450,250,250,90,180,1),line(300,700,0,700)]}),
+      'E':()=>({w:520,p:[line(0,0,0,700),line(0,0,520,0),line(0,350,430,350),line(0,700,520,700)]}),
+      'F':()=>({w:520,p:[line(0,0,0,700),line(0,0,520,0),line(0,350,430,350)]}),
+      'G':()=>({w:680,p:[arc(350,350,330,330,50,130,-1),line(603,562,603,350),line(603,350,438,350)]}),
+      'H':()=>({w:560,p:[line(0,0,0,700),line(560,0,560,700),line(0,350,560,350)]}),
+      'I':()=>({w:0,p:[line(0,0,0,700)]}),
+      'J':()=>({w:470,p:[line(470,0,470,470),arc(220,470,250,250,90,160,1)]}),
+      'K':()=>({w:560,p:[line(0,0,0,700),line(0,372,530,0),line(0,372,560,700)]}),
+      'L':()=>({w:500,p:[line(0,0,0,700),line(0,700,500,700)]}),
+      'M':()=>({w:760,p:[line(0,700,0,0),line(0,0,380,480),line(380,480,760,0),line(760,0,760,700)]}),
+      'N':()=>({w:580,p:[line(0,700,0,0),line(0,0,580,700),line(580,700,580,0)]}),
+      'O':()=>({w:700,p:ring(350,350,350,350)}),
+      'P':()=>({w:490,p:[line(0,0,0,700),line(0,0,300,0),arc(300,190,190,190,0,180,1),line(300,380,0,380)]}),
+      'Q':()=>({w:700,p:[...ring(350,350,350,350),line(420,455,650,700)]}),
+      'R':()=>({w:540,p:[line(0,0,0,700),line(0,0,300,0),arc(300,190,190,190,0,180,1),line(300,380,0,380),line(250,380,540,700)]}),
+      'S':()=>({w:540,p:[arc(280,175,230,175,70,180,-1),arc(280,525,230,175,0,250,1)]}),
+      'T':()=>({w:560,p:[line(0,0,560,0),line(280,0,280,700)]}),
+      'U':()=>({w:620,p:[line(0,0,0,390),arc(310,390,310,310,270,90,-1),line(620,390,620,0)]}),
+      'V':()=>({w:620,p:[line(0,0,310,700),line(310,700,620,0)]}),
+      'W':()=>({w:860,p:[line(0,0,190,700),line(190,700,430,180),line(430,180,670,700),line(670,700,860,0)]}),
+      'X':()=>({w:560,p:[line(0,0,560,700),line(560,0,0,700)]}),
+      'Y':()=>({w:560,p:[line(0,0,280,360),line(560,0,280,360),line(280,360,280,700)]}),
+      'Z':()=>({w:540,p:[line(0,0,540,0),line(540,0,0,700),line(0,700,540,700)]}),
+      '0':()=>({w:540,p:ring(270,350,270,350),dots:[[270,350,0.16]]}),
+      '1':()=>({w:360,p:[line(250,0,250,700),line(95,165,250,0),line(110,700,390,700)]}),
+      '2':()=>({w:510,p:[arc(255,210,210,210,300,110,1),line(452,282,70,700),line(70,700,500,700)]}),
+      '3':()=>({w:480,p:[arc(265,190,200,190,350,180,1),arc(265,510,200,190,0,190,1)]}),
+      '4':()=>({w:560,p:[line(430,0,40,500),line(40,500,560,500),line(430,0,430,700)]}),
+      '5':()=>({w:500,p:[line(70,0,500,0),line(70,0,70,330),arc(255,490,235,210,300,200,1)]}),
+      '6':()=>({w:505,p:[...ring(270,495,235,205),arc(270,300,255,300,180,350,1)]}),
+      '7':()=>({w:520,p:[line(40,0,520,0),line(520,0,175,700)]}),
+      '8':()=>({w:485,p:[...ring(270,190,185,185),...ring(270,510,210,190)]}),
+      '9':()=>({w:505,p:[...ring(270,205,235,205),arc(270,400,255,300,0,170,1)]}),
+      '-':()=>({w:360,p:[line(60,360,300,360)]}),
+      '.':()=>({w:90,dots:[[45,650,0.52]]}),
+      '/':()=>({w:380,p:[line(40,720,340,-20)]}),
+    };
+    let gid=0;
+    function renderGeo(str,o){
+      o=o||{};
+      const w=o.weight??100,sb=o.sb??52,track=o.track??0;
+      let cursor=0,body='',i=0,id='wmg'+(gid++);
+      const useGrad=!!o.grad&&!o.colorFn;
+      for(const raw of str){
+        const ch=raw.toUpperCase();
+        if(ch===' '){cursor+=300+track;continue;}
+        const gen=G[ch];if(!gen){cursor+=300+track;continue;}
+        const ox=cursor+sb;OX=ox;OY=0;
+        const g=gen();OX=0;
+        const stroke=o.colorFn?o.colorFn(i,ch):(useGrad?`url(#${id})`:(o.color||INK));
+        body+=(g.p||[]).map(d=>`<path d="${d}" fill="none" stroke="${stroke}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`).join('');
+        body+=(g.dots||[]).map(dd=>`<circle cx="${f(dd[0]+ox)}" cy="${f(dd[1])}" r="${f(dd[2]*w)}" fill="${stroke}"/>`).join('');
+        cursor+=sb+(g.w||0)+sb+track;i++;
+      }
+      const width=Math.max(cursor-track,1);
+      const defs=useGrad?`<defs><linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${f(width)}" y2="0"><stop offset="0" stop-color="${CY}"/><stop offset="1" stop-color="${GD}"/></linearGradient></defs>`:'';
+      return `<svg class="geo-wm" xmlns="http://www.w3.org/2000/svg" viewBox="0 ${VB_TOP} ${f(width)} ${VB_BOT-VB_TOP}" role="img" aria-label="${str}" style="${o.style||''}">${defs}<g stroke-miterlimit="2.6">${body}</g></svg>`;
+    }
+    function inject(elId,str,o){const el=document.getElementById(elId);if(el)el.innerHTML=renderGeo(str,o);}
+    function initWordmarks(){
+      inject('nav-wordmark','AIWEAVE',{weight:120,grad:true,track:4,style:'height:22px;width:auto;display:block'});
+      const heroEl=document.getElementById('hero-wordmark');
+      if(heroEl){
+        heroEl.innerHTML=renderGeo('AIWEAVE',{weight:108,grad:true,track:4,style:'width:min(840px,100%);height:auto'});
+        if(!matchMedia('(prefers-reduced-motion:reduce)').matches){
+          heroEl.querySelectorAll('path').forEach((p,i)=>{
+            const L=p.getTotalLength();
+            p.style.strokeDasharray=L;p.style.strokeDashoffset=L;p.style.transition='none';
+            requestAnimationFrame(()=>requestAnimationFrame(()=>{
+              p.style.transition=`stroke-dashoffset .8s cubic-bezier(.65,0,.2,1) ${0.1+i*0.016}s`;
+              p.style.strokeDashoffset='0';
+            }));
+          });
+        }
+      }
+    }
+    document.addEventListener('DOMContentLoaded',()=>{
+      initWordmarks();
+      let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(initWordmarks,220);});
+    });
+  })();
+"""
 
 
 def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str:
@@ -440,24 +544,41 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
 
   <style>
+    /* ── Type system ─────────────────────────────────────── */
+    :root {{
+      --font-display: 'Space Grotesk', system-ui, sans-serif;
+      --font-body:    'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+      --text-xs:      .75rem;
+      --text-sm:      .875rem;
+      --text-base:    1rem;
+      --text-lg:      1.125rem;
+      --text-xl:      1.5rem;
+      --text-2xl:     clamp(1.75rem, 3vw, 2.25rem);
+      --text-3xl:     clamp(2.25rem, 5vw, 3.5rem);
+      --text-display: clamp(3rem, 8vw, 6rem);
+    }}
+
     /* ── Theme variables ─────────────────────────────────── */
     :root, [data-theme="dark"] {{
-      --bg:           #050a14;
-      --surface:      #0d1a2e;
-      --surface-2:    #162238;
-      --surface-3:    #1c2d47;
-      --accent:       #00d4ff;
-      --accent-dim:   rgba(0,212,255,0.12);
-      --secondary:    #7b2fff;
-      --text:         #e2e8f0;
-      --text-muted:   #8899aa;
-      --border:       rgba(0,212,255,0.18);
+      --bg:           #08090C;
+      --surface:      #0E0F15;
+      --surface-2:    #13151D;
+      --surface-3:    #181B24;
+      --accent:       #45E0D0;
+      --accent-dim:   rgba(69,224,208,0.10);
+      --secondary:    #E6B763;
+      --text:         #ECEEF3;
+      --text-soft:    #C3C8D4;
+      --text-muted:   #777E8F;
+      --border:       rgba(255,255,255,.07);
+      --border-2:     rgba(255,255,255,.12);
       --card-shadow:  0 4px 28px rgba(0,0,0,0.5);
-      --nav-bg:       rgba(5,10,20,0.88);
-      --glow:         0 0 28px rgba(0,212,255,0.18);
+      --nav-bg:       rgba(8,9,12,0.92);
+      --glow:         0 0 28px rgba(69,224,208,0.18);
     }}
     [data-theme="light"] {{
       --bg:           #eef2f7;
@@ -485,16 +606,29 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
     *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
     html {{ scroll-behavior: smooth; font-size: 16px; }}
     body {{
-      font-family: 'Exo 2', system-ui, sans-serif;
+      font-family: var(--font-body);
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
       transition: background 0.35s, color 0.35s;
       overflow-x: hidden;
     }}
+    h1, h2, h3 {{
+      font-family: var(--font-display);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -.02em;
+    }}
+    code, pre, kbd {{ font-family: var(--font-mono); font-size: .9em; }}
 
     /* ── Accessibility ───────────────────────────────────── */
+    .sr-only {{
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }}
     .skip-link {{
       position: absolute;
       top: -120px;
@@ -507,7 +641,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
       font-weight: 700;
       text-decoration: none;
       transition: top 0.2s;
-      font-family: 'Exo 2', sans-serif;
+      font-family: var(--font-body);
     }}
     .skip-link:focus {{ top: 16px; outline: 3px solid var(--secondary); outline-offset: 2px; }}
     :focus-visible {{
@@ -547,27 +681,15 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
     .nav-logo {{
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       text-decoration: none;
       margin-right: auto;
       white-space: nowrap;
-      color: var(--text);
-      font-family: 'Orbitron', sans-serif;
-      font-size: 1.35rem;
-      font-weight: 900;
-      letter-spacing: 0.04em;
-      color: var(--accent);
+      flex-shrink: 0;
     }}
-    .nav-logo svg {{ flex-shrink: 0; }}
-    .nav-logo .brand-icon {{
-      width: 34px;
-      height: 34px;
-      border-radius: 8px;
-      display: inline-flex;
-      align-items: center;
-    }}
-    .nav-logo .brand-icon svg {{ width: 100%; height: 100%; display: block; }}
-    .nav-logo span {{ color: var(--secondary); }}
+    .nav-logo > svg {{ flex-shrink: 0; color: var(--accent); }}
+    .nav-wm {{ display: inline-flex; align-items: center; }}
+    .nav-wm .geo-wm {{ height: 22px; width: auto; display: block; }}
     .nav-links {{
       display: flex;
       align-items: center;
@@ -594,7 +716,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
       border-radius: 20px;
       cursor: pointer;
       font-size: 0.82rem;
-      font-family: 'Exo 2', sans-serif;
+      font-family: var(--font-body);
       transition: border-color 0.2s, color 0.2s;
       display: inline-flex;
       align-items: center;
@@ -606,7 +728,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
       background: var(--accent);
       color: #000;
       font-weight: 700;
-      font-family: 'Exo 2', sans-serif;
+      font-family: var(--font-body);
       font-size: 0.85rem;
       padding: 8px 16px;
       border-radius: 8px;
@@ -641,48 +763,26 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
       position: relative;
     }}
     .hero-eyebrow {{
-      font-size: 0.78rem;
-      letter-spacing: 0.22em;
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: .2em;
       text-transform: uppercase;
       color: var(--accent);
       margin-bottom: 18px;
-      font-weight: 600;
+      font-weight: 400;
     }}
     .hero-heading {{
-      display: inline-flex;
+      display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      gap: clamp(12px, 2.3vw, 20px);
-      margin-bottom: 10px;
-      filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.18));
+      gap: 0;
+      margin-bottom: 14px;
+      filter: drop-shadow(0 0 28px rgba(69, 224, 208, 0.15));
     }}
-    .hero-heading .brand-icon {{
-      width: clamp(48px, 7vw, 86px);
-      height: clamp(48px, 7vw, 86px);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }}
-    .hero-heading .brand-icon svg {{ width: 100%; height: 100%; display: block; }}
-    .hero-heading .brand-icon .icon-bg {{ fill: var(--surface-2); }}
-    [data-theme="light"] .hero-heading .brand-icon .icon-bg {{ fill: #edf3fb; }}
-    [data-theme="dark"] .hero-heading .brand-icon .icon-bg {{ fill: #0f1114; }}
-    .hero-title {{
-      font-family: 'Orbitron', sans-serif;
-      font-size: clamp(3.2rem, 9vw, 7.5rem);
-      font-weight: 900;
-      line-height: 1;
-      letter-spacing: -0.01em;
-      margin: 0;
-      background: linear-gradient(135deg, var(--accent) 0%, var(--secondary) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      color: transparent;
-    }}
+    .hero-wm {{ display: flex; justify-content: center; }}
+    .hero-wm .geo-wm {{ width: min(840px, 92vw); height: auto; display: block; }}
     .hero-subtitle {{
-      font-family: 'Orbitron', sans-serif;
+      font-family: var(--font-display);
       font-size: clamp(0.95rem, 2.2vw, 1.35rem);
       font-weight: 400;
       color: var(--text-muted);
@@ -692,10 +792,10 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
     .hero-description {{
       max-width: 620px;
       font-size: clamp(0.98rem, 1.6vw, 1.1rem);
-      color: var(--text-muted);
+      color: var(--text-soft);
       margin-bottom: 48px;
       line-height: 1.85;
-      font-weight: 300;
+      font-weight: 400;
     }}
     .hero-ctas {{
       display: flex;
@@ -709,7 +809,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
       border: none;
       padding: 14px 34px;
       border-radius: 10px;
-      font-family: 'Exo 2', sans-serif;
+      font-family: var(--font-body);
       font-size: 1rem;
       font-weight: 600;
       text-decoration: none;
@@ -724,7 +824,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
       border: 2px solid var(--accent);
       padding: 12px 32px;
       border-radius: 10px;
-      font-family: 'Exo 2', sans-serif;
+      font-family: var(--font-body);
       font-size: 1rem;
       font-weight: 600;
       text-decoration: none;
@@ -767,15 +867,27 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
       margin-bottom: clamp(36px,5vw,72px);
     }}
     .section-eyebrow {{
-      font-size: 0.75rem;
-      letter-spacing: 0.22em;
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      letter-spacing: .32em;
       text-transform: uppercase;
-      color: var(--accent);
+      color: var(--text-muted);
       margin-bottom: 12px;
-      font-weight: 600;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }}
+    .section-eyebrow::before {{
+      content: "";
+      width: 24px;
+      height: 1px;
+      background: var(--accent);
+      opacity: .85;
+      flex-shrink: 0;
     }}
     .section-title {{
-      font-family: 'Orbitron', sans-serif;
+      font-family: var(--font-display);
       font-size: clamp(1.8rem, 4vw, 3rem);
       font-weight: 700;
       color: var(--text);
@@ -804,7 +916,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
     }}
     .project-card:hover {{
       transform: translateY(-5px);
-      box-shadow: 0 12px 44px rgba(0,212,255,0.14), var(--card-shadow);
+      box-shadow: 0 12px 44px rgba(69,224,208,0.14), var(--card-shadow);
       border-color: var(--accent);
     }}
     [data-theme="light"] .project-card:hover {{
@@ -823,7 +935,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
     }}
     .card-title-group {{ flex: 1; min-width: 0; }}
     .card-title {{
-      font-family: 'Orbitron', sans-serif;
+      font-family: var(--font-display);
       font-size: 1rem;
       font-weight: 700;
       color: var(--accent);
@@ -875,7 +987,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
       font-size: 0.86rem;
       font-weight: 600;
       padding: 8px 15px;
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-2);
       border-radius: 8px;
       transition: background 0.2s, border-color 0.2s;
       display: inline-flex;
@@ -898,10 +1010,10 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
     }}
     .about-card p {{
       font-size: clamp(0.93rem,1.4vw,1.04rem);
-      color: var(--text-muted);
+      color: var(--text-soft);
       line-height: 1.9;
       margin-bottom: 18px;
-      font-weight: 300;
+      font-weight: 400;
     }}
     .about-card p:last-child {{ margin-bottom: 0; }}
     .about-card strong {{ color: var(--text); font-weight: 600; }}
@@ -942,7 +1054,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
   <a href="#main" class="skip-link">Skip to main content</a>
 
   <nav aria-label="Main navigation">
-    <a href="/" class="nav-logo" aria-label="AIWeave home">{_icon_svg(30, 30)}AI<span>Weave</span></a>
+    <a href="/" class="nav-logo" aria-label="AIWeave home">{_icon_svg(30, 30)}<span id="nav-wordmark" class="nav-wm"></span></a>
     <ul class="nav-links" role="list">
       <li><a href="#home" class="nav-home" aria-label="Go to Home section">Home</a></li>
       <li><a href="#projects" aria-label="Go to Projects section">Projects</a></li>
@@ -977,8 +1089,8 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
     <section id="home" aria-labelledby="hero-title">
       <p class="hero-eyebrow">Open-Source AWS AI Infrastructure</p>
       <div class="hero-heading">
-        <span class="brand-icon" aria-hidden="true">{_icon_svg(48, 48)}</span>
-        <h1 id="hero-title" class="hero-title">AIWeave</h1>
+        <h1 id="hero-title" class="sr-only">AIWeave</h1>
+        <div id="hero-wordmark" class="hero-wm" aria-hidden="true"></div>
       </div>
       <p class="hero-subtitle">Build &middot; Fine-tune &middot; Orchestrate &middot; Deploy</p>
       <p class="hero-description">
@@ -1058,6 +1170,7 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
   </footer>
 
   <script>
+{_WORDMARK_JS}
     (function () {{
       var html = document.documentElement;
       var btn  = document.getElementById('theme-toggle');
