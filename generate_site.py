@@ -597,10 +597,12 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
     }}
 
     /* ── SVG theme ───────────────────────────────────────── */
-    [data-theme="dark"]  .arch-element {{ stroke: rgba(255,255,255,0.5); fill: none; stroke-linecap: round; }}
-    [data-theme="dark"]  .arch-text    {{ fill: rgba(255,255,255,0.5); }}
-    [data-theme="light"] .arch-element {{ stroke: rgba(80,100,140,0.5); fill: none; stroke-linecap: round; }}
-    [data-theme="light"] .arch-text    {{ fill: rgba(60,80,120,0.5); }}
+    .bg-container {{ opacity: 0.55; }}
+    [data-theme="light"] .bg-container {{ opacity: 0.35; }}
+    [data-theme="dark"]  .arch-element {{ stroke: rgba(255,255,255,0.18); fill: none; stroke-linecap: round; }}
+    [data-theme="dark"]  .arch-text    {{ fill: rgba(255,255,255,0.18); }}
+    [data-theme="light"] .arch-element {{ stroke: rgba(40,60,120,0.18); fill: none; stroke-linecap: round; }}
+    [data-theme="light"] .arch-text    {{ fill: rgba(40,60,120,0.18); }}
 
     /* ── Reset ───────────────────────────────────────────── */
     *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
