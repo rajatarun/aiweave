@@ -319,7 +319,7 @@ function SiteApp({ reposData, tantuCss }) {
 
             {/* Hero Section */}
             <div className="hero-warp tantu-cell-warp-12">
-              <TantuCard warpSpan={12} reliefLevel="zardozi" talimCode="TALIM-HERO-01">
+              <TantuCard warpSpan={12} reliefLevel="zardozi">
                 <div style={{ padding: "12px 0" }}>
                   <TantuTag tone="accent" solid={false}>TANTU DESIGN SYSTEM (REACT NATIVE ENGINE)</TantuTag>
                   <h1 className="hero-title" style={{ marginTop: "16px" }}>AIWeave Infrastructure</h1>
@@ -366,17 +366,16 @@ function SiteApp({ reposData, tantuCss }) {
               <h2 className="section-title-text">[01] The Weave Ecosystem</h2>
             </div>
 
-            {reposData.map((repo, idx) => {
+            {reposData.map((repo) => {
               const meta = REPO_META[repo] || {
                 icon: "⬢",
                 tagline: "AWS-native AI tool · Open source",
                 tech: ["Python", "AWS", "Open Source"],
                 fallback_desc: "An open-source AWS-native tool from the AIWeave ecosystem.",
               };
-              const talimCode = `TALIM-W${String(idx + 1).padStart(2, "0")}`;
 
               return (
-                <TantuCard key={repo} warpSpan={6} reliefLevel="kanthi" talimCode={talimCode}>
+                <TantuCard key={repo} warpSpan={6} reliefLevel="kanthi">
                   <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
                     <div>
                       <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "12px" }}>
@@ -441,9 +440,6 @@ function SiteApp({ reposData, tantuCss }) {
 
             {STORY_PANELS.map((panel) => (
               <TantuCard key={panel.step} warpSpan={3} reliefLevel="kanthi">
-                <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", color: "var(--tantu-accent-highlight)", fontWeight: 700, marginBottom: "8px" }}>
-                  [TALIM-STEP-{panel.step}]
-                </div>
                 <h3 style={{ fontFamily: "var(--font-kalam)", fontSize: "1.2rem", color: "var(--tantu-accent-primary)", marginBottom: "10px" }}>{panel.title}</h3>
                 <p style={{ fontSize: "0.85rem", color: "var(--tantu-ink-primary)", lineHeight: 1.6, margin: 0 }}>{panel.body}</p>
               </TantuCard>
@@ -454,7 +450,7 @@ function SiteApp({ reposData, tantuCss }) {
               <h2 className="section-title-text">[04] About AIWeave</h2>
             </div>
 
-            <TantuCard warpSpan={12} reliefLevel="zardozi" talimCode="TALIM-ABOUT-01">
+            <TantuCard warpSpan={12} reliefLevel="zardozi">
               <p style={{ fontSize: "0.95rem", color: "var(--tantu-ink-primary)", lineHeight: 1.8, marginBottom: "16px" }}>
                 <strong>AIWeave</strong> is an ecosystem of open-source, AWS-native AI infrastructure tools built for engineers who need production-grade AI systems without proprietary lock-in.
               </p>
