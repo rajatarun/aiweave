@@ -309,11 +309,11 @@ def build_project_card(repo_data: dict, index: int) -> str:
     meta = repo_data["meta"]
     summary = repo_data["summary"]
     tech_tags = "".join(
-        f'<span class="tech-tag">{t}</span>' for t in meta["tech"]
+        f'<span class="tantu-tag tantu-tag-accent">{t}</span>' for t in meta["tech"]
     )
     stars = repo_data["stars"]
     star_html = (
-        f'<span class="star-count" aria-label="{stars} GitHub stars">&#9733; {stars}</span>'
+        f'<span class="tantu-tag tantu-tag-zari" aria-label="{stars} GitHub stars">&#9733; {stars}</span>'
         if stars
         else ""
     )
@@ -324,27 +324,36 @@ def build_project_card(repo_data: dict, index: int) -> str:
     extra_class = BENTO_CLASS.get(name, "")
     delay = f"transition-delay:{index * 60}ms"
 
+    # Assign warpSpan divisors (12-column warp): TrainWeave & ToolWeave get warpSpan 6/12, others 6
+    warp_span = 12 if extra_class == "card-wide" else 6
+    talim_code = f"TALIM-W{index+1:02d}"
+
     return f"""
-        <article class="project-card reveal{' ' + extra_class if extra_class else ''}"
+        <article class="tantu-card tantu-relief-kanthi tantu-cell-warp-{warp_span} reveal"
                  id="{card_id}" aria-labelledby="title-{index}" role="listitem"
+                 data-darshan-node="{talim_code}"
                  style="{delay}">
-          <div class="card-header">
-            <span class="card-icon" aria-hidden="true">{meta['icon']}</span>
-            <div class="card-title-group">
-              <h3 id="title-{index}" class="card-title">{safe_name}</h3>
-              <p class="card-tagline">{safe_tagline}</p>
+          <span class="tantu-card-talim" aria-hidden="true">[{talim_code}]</span>
+          <div class="tantu-card-payload">
+            <div class="tantu-card-header" style="display:flex; align-items:flex-start; gap:12px; margin-bottom:12px;">
+              <span style="font-size:1.6rem; line-height:1; color:var(--tantu-accent-highlight);" aria-hidden="true">{meta['icon']}</span>
+              <div style="flex:1; min-width:0;">
+                <h3 id="title-{index}" style="margin:0 0 4px; font-family:var(--font-kalam); color:var(--tantu-accent-primary);">{safe_name}</h3>
+                <p style="margin:0; font-size:0.75rem; color:var(--tantu-ink-secondary); font-family:var(--font-talim);">{safe_tagline}</p>
+              </div>
+              {star_html}
             </div>
-            {star_html}
+            <p style="font-size:0.88rem; color:var(--tantu-ink-primary); line-height:1.7; margin-bottom:16px;">{summary}</p>
+            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px;" aria-label="Technologies used in {safe_name}">{tech_tags}</div>
+            <a href="{safe_url}"
+               class="tantu-btn tantu-btn-secondary"
+               target="_blank"
+               rel="noopener noreferrer"
+               style="display:inline-flex; align-items:center; gap:6px; text-decoration:none; font-size:0.82rem;"
+               aria-label="View {safe_name} on GitHub (opens in new tab)">
+              View on GitHub &#8594;
+            </a>
           </div>
-          <p class="card-summary">{summary}</p>
-          <div class="tech-tags" aria-label="Technologies used in {safe_name}">{tech_tags}</div>
-          <a href="{safe_url}"
-             class="card-link"
-             target="_blank"
-             rel="noopener noreferrer"
-             aria-label="View {safe_name} on GitHub (opens in new tab)">
-            View on GitHub &#8594;
-          </a>
         </article>"""
 
 
@@ -716,12 +725,14 @@ _INIT_JS = """
 def _arch_layers_html() -> str:
     rows = []
     for icon, label, chips in ARCH_LAYERS:
-        chips_html = "".join(f'<span class="arch-chip">{c}</span>' for c in chips)
+        chips_html = "".join(f'<span class="tantu-tag tantu-tag-neutral">{c}</span>' for c in chips)
         rows.append(
-            f'<div class="arch-row reveal">'
-            f'<span class="arch-icon" aria-hidden="true">{icon}</span>'
-            f'<span class="arch-label">{label}</span>'
-            f'<div class="arch-chips">{chips_html}</div>'
+            f'<div class="tantu-card tantu-relief-kanthi tantu-cell-warp-12 reveal" style="margin-bottom:12px;">'
+            f'<div class="tantu-card-payload" style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">'
+            f'<span style="font-size:1.3rem; color:var(--tantu-accent-highlight);" aria-hidden="true">{icon}</span>'
+            f'<span style="font-family:var(--font-kasuti); font-size:0.75rem; font-weight:700; letter-spacing:0.12em; color:var(--tantu-accent-primary); min-width:180px;">{label}</span>'
+            f'<div style="display:flex; flex-wrap:wrap; gap:6px;">{chips_html}</div>'
+            f'</div>'
             f'</div>'
         )
     return "\n".join(rows)
@@ -734,17 +745,19 @@ def _story_panels_html() -> str:
         safe_output = output.replace('"', '&quot;')
         safe_title = title.replace('"', '&quot;')
         panels.append(
-            f'<div class="story-panel" data-idx="{i}" data-cmd="{cmd}" '
-            f'data-title="{safe_title}" data-body="{safe_body}" data-output="{safe_output}">'
-            f'<div class="story-step-num">0{i+1}</div>'
-            f'<h3 class="story-step-title">{title}</h3>'
-            f'<p class="story-step-body">{body}</p>'
+            f'<div class="story-panel tantu-card tantu-relief-kanthi tantu-cell-warp-12" data-idx="{i}" data-cmd="{cmd}" '
+            f'data-title="{safe_title}" data-body="{safe_body}" data-output="{safe_output}" style="margin-bottom:16px;">'
+            f'<div class="tantu-card-payload">'
+            f'<div style="font-family:var(--font-kasuti); font-size:0.75rem; color:var(--tantu-accent-highlight); font-weight:700; margin-bottom:8px;">[TALIM-STEP-0{i+1}]</div>'
+            f'<h3 style="font-family:var(--font-kalam); font-size:1.25rem; color:var(--tantu-accent-primary); margin-bottom:10px;">{title}</h3>'
+            f'<p style="font-size:0.88rem; color:var(--tantu-ink-primary); line-height:1.7; margin:0;">{body}</p>'
+            f'</div>'
             f'</div>'
         )
     return "\n".join(panels)
 
 
-def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str:
+def generate_html(repos_data: list, svg_content: str, icon_svg: str = "", tantu_css: str = "") -> str:
     cards_html = "\n".join(build_project_card(r, i) for i, r in enumerate(repos_data))
     build_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     build_year = datetime.now(timezone.utc).year
@@ -761,8 +774,8 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="index, follow">
-  <title>AIWeave &#8212; AWS AI Infrastructure Tools Ecosystem</title>
-  <meta name="description" content="AIWeave is a suite of open-source AWS-native AI infrastructure tools covering model fine-tuning, multi-agent orchestration, GraphRAG, MCP servers, visual QA, and more.">
+  <title>AIWeave &#8212; AWS AI Infrastructure Tools Ecosystem (Tantu Design)</title>
+  <meta name="description" content="AIWeave is a suite of open-source AWS-native AI infrastructure tools covering model fine-tuning, multi-agent orchestration, GraphRAG, MCP servers, visual QA, and more. Built with Tantu Design Library.">
   <link rel="canonical" href="https://aiweave.org">
   <link rel="icon" type="image/svg+xml" href="{icon_data_uri}">
   <link rel="apple-touch-icon" href="{icon_data_uri}">
@@ -770,16 +783,10 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="AIWeave &#8212; AWS AI Infrastructure Tools Ecosystem">
-  <meta property="og:description" content="Open-source AWS-native AI infrastructure tools: fine-tuning, multi-agent orchestration, GraphRAG, MCP servers, and visual QA.">
+  <meta property="og:description" content="Open-source AWS-native AI infrastructure tools: fine-tuning, multi-agent orchestration, GraphRAG, MCP servers, and visual QA. Built with Tantu Design Library.">
   <meta property="og:url" content="https://aiweave.org">
   <meta property="og:image" content="https://aiweave.org/og-image.png">
   <meta property="og:site_name" content="AIWeave">
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="AIWeave &#8212; AWS AI Infrastructure Tools Ecosystem">
-  <meta name="twitter:description" content="Open-source AWS-native AI infrastructure tools: fine-tuning, multi-agent orchestration, GraphRAG, MCP servers, and visual QA.">
-  <meta name="twitter:image" content="https://aiweave.org/og-image.png">
 
   <!-- Structured Data -->
   <script type="application/ld+json">
@@ -804,714 +811,304 @@ def generate_html(repos_data: list, svg_content: str, icon_svg: str = "") -> str
   }}
   </script>
 
-  <!-- Fonts -->
+  <!-- Google Fonts for IBM Plex Fallbacks -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Serif:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
-    /* Tokens */
-    :root {{
-      --font-display: 'Space Grotesk', system-ui, sans-serif;
-      --font-body:    'Inter', system-ui, -apple-system, sans-serif;
-      --font-mono:    'JetBrains Mono', ui-monospace, monospace;
-      --text-xs:   0.625rem;
-      --text-sm:   0.75rem;
-      --text-base: 1rem;
-      --text-lg:   1.125rem;
-      --text-xl:   1.375rem;
-      --text-2xl:  clamp(1.5rem, 2.5vw, 2rem);
-      --text-3xl:  clamp(2rem, 4vw, 3rem);
-      --text-hero: clamp(3rem, 8vw, 6rem);
-    }}
-    :root, [data-theme="dark"] {{
-      --bg-void:       #080B10;
-      --bg-surface:    #0E1219;
-      --bg-elevated:   #141A24;
-      --border-subtle: #1E2A3A;
-      --border-glow:   rgba(0,255,209,0.35);
-      --accent-cyan:   #00FFD1;
-      --accent-gold:   #F5C518;
-      --accent-dim:    rgba(0,255,209,0.08);
-      --text-primary:  #E8EDF5;
-      --text-secondary:#8A9BB8;
-      --text-muted:    #4A5568;
-      --text-code:     #00FFD1;
-      --nav-bg:        rgba(8,11,16,0.88);
-      --card-shadow:   0 4px 32px rgba(0,0,0,0.55);
-      --glow-cyan:     0 0 32px rgba(0,255,209,0.18);
-    }}
-    [data-theme="light"] {{
-      --bg-void:       #F5F7FA;
-      --bg-surface:    #FFFFFF;
-      --bg-elevated:   #EEF2F8;
-      --border-subtle: #D1DCF0;
-      --border-glow:   rgba(0,119,204,0.4);
-      --accent-cyan:   #0077CC;
-      --accent-gold:   #B8860B;
-      --accent-dim:    rgba(0,119,204,0.08);
-      --text-primary:  #0E1219;
-      --text-secondary:#4A5568;
-      --text-muted:    #9AA3B0;
-      --text-code:     #0077CC;
-      --nav-bg:        rgba(245,247,250,0.9);
-      --card-shadow:   0 4px 24px rgba(0,0,0,0.08);
-      --glow-cyan:     0 0 24px rgba(0,119,204,0.12);
-    }}
+/* TANTU DESIGN SYSTEM INLINED STYLESHEET */
+{tantu_css}
 
-    /* Background SVG */
-    .bg-container {{ opacity: 0.45; }}
-    [data-theme="light"] .bg-container {{ opacity: 0.25; }}
-    [data-theme="dark"]  .arch-element {{ stroke: rgba(255,255,255,0.12); fill: none; stroke-linecap: round; }}
-    [data-theme="dark"]  .arch-text    {{ fill: rgba(255,255,255,0.12); }}
-    [data-theme="light"] .arch-element {{ stroke: rgba(40,60,120,0.14); fill: none; stroke-linecap: round; }}
-    [data-theme="light"] .arch-text    {{ fill: rgba(40,60,120,0.14); }}
+/* CUSTOM PAGE OVERRIDES ON TANTU LOOM SUBSTRATE */
+:root {{
+  --tantu-bg-substrate: #12100e;
+  --tantu-kora-raw: #181512;
+  --tantu-kora-mud: #201c19;
+  --tantu-kala-iron: #faf7f0;
+  --tantu-kala-charcoal: #ece6d8;
+  --tantu-madder-root: #d44d42;
+  --tantu-madder-flame: #e05e53;
+  --tantu-indigo-vat: #2b5377;
+  --tantu-indigo-sky: #4c7ba6;
+  --tantu-zari-pure-gold: #d8b26e;
+}}
 
-    /* Reset */
-    *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
-    html {{ scroll-behavior: smooth; font-size: 16px; }}
-    body {{
-      font-family: var(--font-body);
-      background: var(--bg-void);
-      color: var(--text-primary);
-      min-height: 100vh;
-      line-height: 1.65;
-      -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
-      transition: background 0.3s, color 0.3s;
-    }}
-    h1,h2,h3,h4 {{
-      font-family: var(--font-display);
-      font-weight: 700;
-      line-height: 1.1;
-      letter-spacing: -.02em;
-    }}
-    code,pre,kbd {{ font-family: var(--font-mono); font-size: .9em; }}
+body {{
+  background-color: var(--tantu-bg-substrate);
+  color: var(--tantu-ink-primary);
+  font-family: var(--font-talim);
+}}
 
-    /* Accessibility */
-    .sr-only {{
-      position:absolute; width:1px; height:1px;
-      padding:0; margin:-1px; overflow:hidden;
-      clip:rect(0,0,0,0); white-space:nowrap; border:0;
-    }}
-    .skip-link {{
-      position:absolute; top:-120px; left:16px; z-index:9999;
-      background:var(--accent-cyan); color:#000; padding:10px 20px;
-      border-radius:6px; font-weight:700; text-decoration:none;
-      transition:top 0.2s; font-family:var(--font-body);
-    }}
-    .skip-link:focus {{ top:16px; outline:3px solid var(--accent-gold); outline-offset:2px; }}
-    :focus-visible {{ outline:3px solid var(--accent-cyan); outline-offset:3px; border-radius:4px; }}
+/* Loom Selvedge Structure */
+.tantu-loom {{
+  display: grid;
+  width: 100%;
+  min-height: 100vh;
+  grid-template-columns: var(--tantu-knot-8) 1fr var(--tantu-knot-8);
+  background-color: var(--tantu-bg-substrate);
+}}
 
-    /* Fixed BG */
-    .bg-container {{
-      position:fixed; inset:0; z-index:0;
-      pointer-events:none; overflow:hidden;
-    }}
-    .bg-container svg {{ width:100%; height:100%; }}
+.tantu-loom-selvedge-left,
+.tantu-loom-selvedge-right {{
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 12px,
+    var(--tantu-grid-thread) 12px,
+    var(--tantu-grid-thread) 13px
+  );
+  opacity: 0.25;
+}}
 
-    /* Nav */
-    nav {{
-      position:fixed; top:0; left:0; right:0; z-index:200;
-      background:transparent;
-      border-bottom:1px solid transparent;
-      height:64px;
-      display:flex; align-items:center;
-      padding:0 clamp(16px,4vw,56px); gap:8px;
-      transition:background 0.3s, border-color 0.3s;
-    }}
-    nav.scrolled {{
-      background:var(--nav-bg);
-      border-color:var(--border-subtle);
-      backdrop-filter:blur(16px);
-      -webkit-backdrop-filter:blur(16px);
-    }}
-    .nav-logo {{
-      display:inline-flex; align-items:center; gap:12px;
-      text-decoration:none; margin-right:auto;
-      white-space:nowrap; flex-shrink:0;
-    }}
-    .nav-logo > svg {{ flex-shrink:0; color:var(--accent-cyan); }}
-    .nav-wm {{ display:inline-flex; align-items:center; }}
-    .nav-wm .geo-wm {{ height:22px; width:auto; display:block; }}
-    .nav-links {{
-      display:flex; align-items:center; gap:4px; list-style:none;
-    }}
-    .nav-links a {{
-      color:var(--text-secondary); text-decoration:none;
-      padding:7px 13px; border-radius:7px;
-      font-size:0.875rem; font-weight:500; letter-spacing:0.02em;
-      transition:color 0.2s, background 0.2s; white-space:nowrap;
-    }}
-    .nav-links a:hover {{ color:var(--accent-cyan); background:var(--accent-dim); }}
-    .theme-toggle {{
-      background:transparent; border:1px solid var(--border-subtle);
-      color:var(--text-secondary); padding:6px 13px; border-radius:20px;
-      cursor:pointer; font-size:0.8rem; font-family:var(--font-body);
-      transition:border-color 0.2s, color 0.2s;
-      display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
-    }}
-    .theme-toggle:hover {{ border-color:var(--accent-cyan); color:var(--accent-cyan); }}
-    .github-btn {{
-      background:var(--accent-cyan); color:#000; font-weight:700;
-      font-family:var(--font-body); font-size:0.82rem;
-      padding:8px 16px; border-radius:8px; text-decoration:none;
-      display:inline-flex; align-items:center; gap:6px;
-      transition:opacity 0.2s, transform 0.15s; white-space:nowrap;
-    }}
-    .github-btn:hover {{ opacity:0.85; transform:translateY(-1px); }}
-    @media (max-width:640px) {{ .nav-home,.nav-about {{ display:none; }} }}
+.tantu-loom-content {{
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--tantu-knot-4);
+  padding: var(--tantu-knot-6) 0;
+}}
 
-    /* Main */
-    main {{ position:relative; z-index:10; padding-top:64px; }}
+@media (max-width: 768px) {{
+  .tantu-loom {{
+    grid-template-columns: 12px 1fr 12px;
+  }}
+  .tantu-loom-content {{
+    grid-template-columns: 1fr;
+  }}
+  [class*="tantu-cell-warp-"] {{
+    grid-column: span 12 / span 12 !important;
+  }}
+}}
 
-    /* HERO */
-    #home {{
-      min-height:100vh;
-      display:flex; flex-direction:column;
-      justify-content:center; align-items:center;
-      text-align:center;
-      padding:clamp(60px,10vw,140px) clamp(16px,4vw,48px) 80px;
-      position:relative; overflow:hidden;
-    }}
-    #hero-canvas {{
-      position:absolute; inset:0; width:100%; height:100%;
-      pointer-events:none; z-index:0;
-    }}
-    .hero-inner {{ position:relative; z-index:1; width:100%; max-width:1100px; margin:0 auto; }}
-    .hero-eyebrow {{
-      font-family:var(--font-mono); font-size:var(--text-xs);
-      letter-spacing:.22em; text-transform:uppercase;
-      color:var(--accent-cyan); margin-bottom:20px; font-weight:400;
-    }}
-    .hero-heading {{
-      display:flex; flex-direction:column; align-items:center;
-      gap:0; margin-bottom:16px;
-      filter:drop-shadow(0 0 36px rgba(0,255,209,0.18));
-      position:relative;
-    }}
-    .hero-wm {{ display:flex; justify-content:center; }}
-    .hero-wm .geo-wm {{ width:min(840px,92vw); height:auto; display:block; }}
-    .hero-scan {{
-      position:absolute; left:0; right:0; top:0;
-      height:1px; background:linear-gradient(90deg,transparent,var(--accent-cyan),transparent);
-      opacity:0.45; pointer-events:none;
-    }}
-    .hero-subtitle {{
-      font-family:var(--font-mono); font-size:clamp(0.68rem,1.3vw,0.82rem);
-      font-weight:400; color:var(--text-secondary);
-      letter-spacing:0.2em; text-transform:uppercase; margin-bottom:24px;
-    }}
-    .hero-description {{
-      max-width:600px; font-size:clamp(0.93rem,1.5vw,1.04rem);
-      color:var(--text-secondary); margin:0 auto 44px; line-height:1.9;
-    }}
-    .hero-ctas {{
-      display:flex; gap:14px; flex-wrap:wrap; justify-content:center;
-    }}
-    .btn-primary {{
-      background:var(--accent-cyan); color:#000; border:none;
-      padding:14px 34px; border-radius:8px;
-      font-family:var(--font-body); font-size:0.95rem; font-weight:700;
-      text-decoration:none; cursor:pointer;
-      transition:transform 0.15s, box-shadow 0.2s;
-      box-shadow:var(--glow-cyan);
-    }}
-    .btn-primary:hover {{ transform:translateY(-2px); box-shadow:0 0 48px rgba(0,255,209,0.35); }}
-    .btn-outline {{
-      background:transparent; color:var(--accent-cyan);
-      border:1px solid var(--accent-cyan);
-      padding:13px 32px; border-radius:8px;
-      font-family:var(--font-body); font-size:0.95rem; font-weight:600;
-      text-decoration:none; transition:background 0.2s, color 0.2s;
-    }}
-    .btn-outline:hover {{ background:var(--accent-cyan); color:#000; }}
-    .scroll-indicator {{
-      position:absolute; bottom:28px; left:50%; transform:translateX(-50%);
-      display:flex; flex-direction:column; align-items:center; gap:6px;
-    }}
-    .scroll-line {{
-      width:1px; height:44px;
-      background:linear-gradient(to bottom,var(--accent-cyan),transparent);
-      animation:pulse-line 2.4s ease-in-out infinite;
-    }}
-    .scroll-label {{
-      font-size:0.62rem; letter-spacing:0.22em;
-      text-transform:uppercase; color:var(--text-muted);
-    }}
-    @keyframes pulse-line {{
-      0%,100% {{ opacity:0.2; }}
-      50%      {{ opacity:0.9; }}
-    }}
+/* Navbar */
+nav.tantu-nav {{
+  grid-column: span 12;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px var(--tantu-knot-4);
+  border-bottom: var(--tantu-gauge-filament) solid var(--tantu-border-embroidery);
+  background: var(--tantu-kora-raw);
+  margin-bottom: var(--tantu-knot-6);
+}}
 
-    /* SIGNAL BAR */
-    .signal-bar {{
-      position:relative; z-index:10;
-      background:var(--bg-surface);
-      border-top:1px solid var(--border-subtle);
-      border-bottom:1px solid var(--border-subtle);
-      padding:28px clamp(16px,4vw,56px);
-      display:grid; grid-template-columns:repeat(3,1fr); gap:0;
-    }}
-    .signal-stat {{
-      text-align:center; padding:12px;
-      border-right:1px solid var(--border-subtle);
-    }}
-    .signal-stat:last-child {{ border-right:none; }}
-    .signal-stat-num {{
-      font-family:var(--font-display); font-size:var(--text-3xl);
-      font-weight:700; color:var(--accent-cyan); line-height:1;
-      display:block; margin-bottom:6px;
-    }}
-    .signal-stat-label {{
-      font-size:var(--text-xs); text-transform:uppercase;
-      letter-spacing:.18em; color:var(--text-muted); font-weight:500;
-    }}
+.nav-brand {{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--tantu-accent-primary);
+  font-weight: 700;
+  font-family: var(--font-kasuti);
+}}
 
-    /* SECTION SHARED */
-    .section-wrap {{
-      padding:clamp(72px,9vw,128px) clamp(16px,4vw,56px);
-    }}
-    .section-header {{ text-align:center; margin-bottom:clamp(40px,6vw,80px); }}
-    .section-eyebrow {{
-      font-family:var(--font-mono); font-size:var(--text-xs);
-      letter-spacing:.3em; text-transform:uppercase;
-      color:var(--text-muted); margin-bottom:12px; font-weight:500;
-      display:inline-flex; align-items:center; gap:12px;
-    }}
-    .section-eyebrow::before {{
-      content:""; width:24px; height:1px;
-      background:var(--accent-cyan); opacity:.7; flex-shrink:0;
-    }}
-    .section-title {{
-      font-family:var(--font-display);
-      font-size:clamp(1.8rem,4vw,2.8rem);
-      font-weight:700; color:var(--text-primary); line-height:1.15;
-    }}
-    .section-title span {{ color:var(--accent-cyan); }}
+.nav-links {{
+  display: flex;
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}}
 
-    /* PROJECTS BENTO */
-    .projects-grid {{
-      display:grid;
-      grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));
-      gap:clamp(14px,2vw,24px);
-      max-width:1320px; margin:0 auto;
-    }}
-    .project-card {{
-      background:var(--bg-surface);
-      border:1px solid var(--border-subtle);
-      border-radius:14px;
-      padding:clamp(20px,2.8vw,30px);
-      box-shadow:var(--card-shadow);
-      display:flex; flex-direction:column; gap:14px;
-      opacity:0; transform:translateY(18px);
-      transition:transform 0.22s ease, box-shadow 0.22s ease,
-                 border-color 0.22s ease, opacity 0.55s ease;
-    }}
-    .project-card.in-view {{ opacity:1; transform:translateY(0); }}
-    .project-card:hover {{
-      transform:translateY(-4px);
-      box-shadow:0 12px 44px rgba(0,255,209,0.12),var(--card-shadow);
-      border-color:var(--border-glow);
-    }}
-    .project-card.in-view:hover {{ transform:translateY(-4px); }}
-    @media (min-width:900px) {{
-      .card-wide {{ grid-column:span 2; }}
-      .card-tall {{ grid-row:span 2; }}
-    }}
-    .card-header {{ display:flex; align-items:flex-start; gap:12px; }}
-    .card-icon {{ font-size:1.75rem; line-height:1; flex-shrink:0; margin-top:2px; }}
-    .card-title-group {{ flex:1; min-width:0; }}
-    .card-title {{
-      font-family:var(--font-display); font-size:1rem; font-weight:700;
-      color:var(--accent-cyan); margin:0 0 3px;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }}
-    .card-tagline {{ font-size:0.72rem; color:var(--text-muted); line-height:1.5; }}
-    .star-count {{
-      flex-shrink:0; font-size:0.75rem; color:var(--text-muted);
-      margin-left:auto; padding-left:8px; white-space:nowrap;
-    }}
-    .card-summary {{
-      font-size:0.875rem; color:var(--text-secondary);
-      line-height:1.8; flex:1; font-weight:400;
-    }}
-    .tech-tags {{ display:flex; flex-wrap:wrap; gap:5px; }}
-    .tech-tag {{
-      background:var(--accent-dim); color:var(--accent-cyan);
-      border:1px solid var(--border-subtle);
-      padding:3px 8px; border-radius:20px;
-      font-size:0.67rem; font-weight:600; letter-spacing:0.04em; white-space:nowrap;
-    }}
-    .card-link {{
-      align-self:flex-start; color:var(--accent-cyan); text-decoration:none;
-      font-size:0.82rem; font-weight:600; padding:8px 14px;
-      border:1px solid var(--border-subtle); border-radius:7px;
-      transition:background 0.2s, border-color 0.2s;
-      display:inline-flex; align-items:center; gap:4px;
-    }}
-    .card-link:hover {{ background:var(--accent-dim); border-color:var(--border-glow); }}
+/* Hero Section */
+.hero-warp {{
+  grid-column: span 12;
+  text-align: center;
+  padding: var(--tantu-knot-8) var(--tantu-knot-4);
+  margin-bottom: var(--tantu-knot-6);
+}}
 
-    /* ARCHITECTURE */
-    .arch-diagram {{
-      max-width:960px; margin:0 auto;
-      display:flex; flex-direction:column; gap:10px;
-    }}
-    .arch-row {{
-      display:flex; align-items:center; gap:16px;
-      background:var(--bg-elevated); border:1px solid var(--border-subtle);
-      border-radius:10px; padding:14px 20px;
-      opacity:0; transform:translateX(-20px);
-      transition:transform 0.4s ease, opacity 0.4s ease, border-color 0.3s;
-    }}
-    .arch-row.in-view {{ opacity:1; transform:translateX(0); }}
-    .arch-row:hover {{ border-color:var(--border-glow); }}
-    .arch-icon {{
-      font-size:1.1rem; color:var(--accent-cyan);
-      flex-shrink:0; width:28px; text-align:center;
-    }}
-    .arch-label {{
-      font-family:var(--font-mono); font-size:var(--text-xs);
-      font-weight:500; color:var(--text-secondary);
-      letter-spacing:.16em; text-transform:uppercase;
-      flex-shrink:0; min-width:200px;
-    }}
-    .arch-chips {{ display:flex; flex-wrap:wrap; gap:6px; }}
-    .arch-chip {{
-      background:var(--bg-surface); color:var(--text-secondary);
-      border:1px solid var(--border-subtle);
-      padding:3px 10px; border-radius:20px;
-      font-size:var(--text-xs); font-weight:500; white-space:nowrap;
-    }}
-    @media (max-width:600px) {{
-      .arch-label {{ min-width:110px; font-size:0.55rem; }}
-      .arch-chip {{ font-size:0.6rem; }}
-    }}
+.hero-title {{
+  font-family: var(--font-kalam);
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  color: var(--tantu-accent-primary);
+  margin: 0 0 var(--tantu-knot-3);
+  letter-spacing: -0.02em;
+}}
 
-    /* SCROLLYTELLING */
-    .story-outer {{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:0 clamp(24px,4vw,64px);
-      max-width:1060px; margin:0 auto;
-    }}
-    @media (max-width:768px) {{
-      .story-outer {{ grid-template-columns:1fr; }}
-      .story-terminal-col {{ display:none; }}
-    }}
-    .story-panels-col {{ display:flex; flex-direction:column; }}
-    .story-panel {{
-      padding:clamp(28px,4vw,52px) 0;
-      border-bottom:1px solid var(--border-subtle);
-      opacity:0.38; transition:opacity 0.35s;
-    }}
-    .story-panel:last-child {{ border-bottom:none; }}
-    .story-panel.active {{ opacity:1; }}
-    .story-step-num {{
-      font-family:var(--font-mono); font-size:var(--text-xs);
-      color:var(--accent-cyan); font-weight:700;
-      letter-spacing:.2em; margin-bottom:10px;
-    }}
-    .story-step-title {{
-      font-family:var(--font-display); font-size:var(--text-2xl);
-      font-weight:700; color:var(--text-primary); margin-bottom:14px;
-    }}
-    .story-step-body {{ font-size:0.92rem; color:var(--text-secondary); line-height:1.85; }}
-    .story-terminal-col {{
-      position:sticky; top:calc(50vh - 160px);
-      height:320px; align-self:start;
-    }}
-    .story-terminal {{
-      background:rgba(14,18,25,0.88);
-      border:1px solid var(--border-subtle);
-      border-radius:12px; padding:22px;
-      font-family:var(--font-mono); font-size:0.78rem;
-      backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
-      height:100%; overflow:hidden;
-    }}
-    [data-theme="light"] .story-terminal {{
-      background:rgba(255,255,255,0.9);
-      border-color:var(--border-subtle);
-    }}
-    .term-bar {{
-      display:flex; gap:6px; margin-bottom:16px; align-items:center;
-    }}
-    .term-dot {{ width:10px; height:10px; border-radius:50%; }}
-    .term-dot:nth-child(1) {{ background:#FF5F57; }}
-    .term-dot:nth-child(2) {{ background:#FEBC2E; }}
-    .term-dot:nth-child(3) {{ background:#28C840; }}
-    .term-prompt {{
-      color:var(--accent-cyan); margin-bottom:10px;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }}
-    .term-title {{
-      color:var(--accent-gold); margin-bottom:8px;
-      font-weight:700; font-size:var(--text-xs); letter-spacing:.1em;
-    }}
-    .term-body {{
-      color:var(--text-secondary); line-height:1.75;
-      font-size:0.75rem; margin-bottom:12px;
-    }}
-    .term-output {{
-      color:var(--accent-cyan); font-size:var(--text-xs);
-      opacity:0; transition:opacity 0.4s;
-    }}
-    .term-output:not(:empty) {{ opacity:1; }}
+.hero-sub {{
+  font-family: var(--font-kasuti);
+  color: var(--tantu-zari-pure-gold);
+  font-size: var(--text-lg);
+  margin-bottom: var(--tantu-knot-4);
+}}
 
-    /* ABOUT */
-    #about .section-wrap {{ max-width:860px; margin:0 auto; }}
-    .about-card {{
-      background:var(--bg-surface);
-      border:1px solid var(--border-subtle);
-      border-radius:18px; padding:clamp(32px,5vw,56px);
-      box-shadow:var(--card-shadow);
-    }}
-    .about-card p {{
-      font-size:clamp(0.92rem,1.4vw,1.02rem); color:var(--text-secondary);
-      line-height:1.9; margin-bottom:18px; font-weight:400;
-    }}
-    .about-card strong {{ color:var(--text-primary); font-weight:600; }}
-    .tech-pills {{ display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }}
-    .tech-pill {{
-      background:var(--bg-elevated); color:var(--text-secondary);
-      border:1px solid var(--border-subtle);
-      padding:4px 12px; border-radius:20px;
-      font-family:var(--font-mono); font-size:var(--text-xs);
-      font-weight:500; white-space:nowrap;
-    }}
+/* Signal Bar */
+.signal-warp {{
+  grid-column: span 12;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--tantu-knot-4);
+  margin-bottom: var(--tantu-knot-8);
+}}
 
-    /* FOOTER */
-    footer {{
-      position:relative; z-index:10; text-align:center;
-      padding:24px clamp(16px,4vw,56px);
-      border-top:1px solid var(--border-subtle);
-      font-size:0.8rem; color:var(--text-muted);
-    }}
-    footer a {{ color:var(--text-secondary); text-decoration:none; transition:color 0.2s; }}
-    footer a:hover {{ color:var(--accent-cyan); }}
+.signal-cell {{
+  text-align: center;
+  padding: var(--tantu-knot-4);
+}}
 
-    /* Reveal */
-    .reveal {{
-      opacity:0; transform:translateY(18px);
-      transition:opacity 0.55s ease, transform 0.55s ease;
-    }}
-    .reveal.in-view {{ opacity:1; transform:none; }}
+.signal-num {{
+  font-family: var(--font-kasuti);
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--tantu-accent-primary);
+  display: block;
+}}
 
-    /* Reduced motion */
-    @media (prefers-reduced-motion:reduce) {{
-      *,*::before,*::after {{
-        animation-duration:0.001ms !important;
-        transition-duration:0.001ms !important;
-        scroll-behavior:auto !important;
-      }}
-      .reveal,.project-card,.arch-row {{ opacity:1 !important; transform:none !important; }}
-    }}
+/* Section Headings */
+.section-title-warp {{
+  grid-column: span 12;
+  border-bottom: var(--tantu-gauge-filament) dashed var(--tantu-grid-thread);
+  padding-bottom: 8px;
+  margin-bottom: var(--tantu-knot-6);
+}}
 
-    /* High contrast */
-    @media (forced-colors:active) {{
-      .project-card,.about-card {{ border:2px solid ButtonText; }}
-      .btn-primary,.github-btn {{ forced-color-adjust:none; }}
-    }}
+.section-title-text {{
+  font-family: var(--font-kalam);
+  font-size: 1.8rem;
+  color: var(--tantu-accent-primary);
+  margin: 0;
+}}
+
+/* Footer */
+footer.tantu-footer {{
+  grid-column: span 12;
+  text-align: center;
+  padding: var(--tantu-knot-8) 0;
+  border-top: var(--tantu-gauge-filament) solid var(--tantu-border-embroidery);
+  font-size: 0.82rem;
+  color: var(--tantu-ink-secondary);
+  margin-top: var(--tantu-knot-8);
+}}
   </style>
 </head>
 <body>
 
-  <a href="#main" class="skip-link">Skip to main content</a>
+  <div class="tantu-loom">
+    <div class="tantu-loom-selvedge-left" aria-hidden="true"></div>
 
-  <nav aria-label="Main navigation">
-    <a href="/" class="nav-logo" aria-label="AIWeave home">{_icon_svg(30,30)}<span id="nav-wordmark" class="nav-wm"></span></a>
-    <ul class="nav-links" role="list">
-      <li><a href="#home" class="nav-home" aria-label="Home">Home</a></li>
-      <li><a href="#projects" aria-label="Projects">Projects</a></li>
-      <li><a href="#story" aria-label="How it works">How it works</a></li>
-      <li><a href="#about" class="nav-about" aria-label="About">About</a></li>
-      <li>
-        <button class="theme-toggle" id="theme-toggle"
-                aria-label="Switch to light mode" aria-pressed="false">
-          <span id="theme-icon" aria-hidden="true">&#9790;</span>
-          <span id="theme-label">Light</span>
-        </button>
-      </li>
-      <li>
-        <a href="https://github.com/{GH_OWNER}" class="github-btn"
-           target="_blank" rel="noopener noreferrer"
-           aria-label="Visit {GH_OWNER} on GitHub (opens in new tab)">
-          &#128195; GitHub
+    <main id="main" class="tantu-loom-content">
+
+      <!-- NAVIGATION -->
+      <nav class="tantu-nav" aria-label="Main navigation">
+        <a href="/" class="nav-brand">
+          {_icon_svg(28,28)}
+          <span>AIWEAVE</span>
         </a>
-      </li>
-    </ul>
-  </nav>
+        <ul class="nav-links">
+          <li><a href="#projects" class="tantu-btn tantu-btn-ghost" style="text-decoration:none;">Projects</a></li>
+          <li><a href="#architecture" class="tantu-btn tantu-btn-ghost" style="text-decoration:none;">Architecture</a></li>
+          <li><a href="#story" class="tantu-btn tantu-btn-ghost" style="text-decoration:none;">Process</a></li>
+          <li>
+            <a href="https://github.com/{GH_OWNER}"
+               class="tantu-btn tantu-btn-primary"
+               target="_blank"
+               rel="noopener noreferrer"
+               style="text-decoration:none;">
+              GitHub &#8594;
+            </a>
+          </li>
+        </ul>
+      </nav>
 
-  <div class="bg-container" aria-hidden="true" role="presentation">
-    {svg_content}
-  </div>
-
-  <main id="main">
-
-    <!-- HERO -->
-    <section id="home" aria-labelledby="hero-title">
-      <canvas id="hero-canvas" aria-hidden="true"></canvas>
-      <div class="hero-inner">
-        <p class="hero-eyebrow">Open-Source AWS AI Infrastructure</p>
-        <div class="hero-heading">
-          <h1 id="hero-title" class="sr-only">AIWeave</h1>
-          <div id="hero-wordmark" class="hero-wm" aria-hidden="true"></div>
-          <div id="hero-scan" class="hero-scan" aria-hidden="true"></div>
+      <!-- HERO -->
+      <section class="hero-warp tantu-card tantu-relief-zardozi tantu-cell-warp-12">
+        <span class="tantu-card-talim" aria-hidden="true">[TALIM-HERO-01]</span>
+        <div class="tantu-card-payload">
+          <div class="tantu-tag tantu-tag-accent" style="margin-bottom:16px;">TANTU DESIGN SYSTEM V2.0</div>
+          <h1 class="hero-title">AIWeave Infrastructure</h1>
+          <p class="hero-sub">[ BUILD &middot; FINE-TUNE &middot; ORCHESTRATE &middot; DEPLOY ]</p>
+          <p style="max-width:680px; margin:0 auto 28px; font-size:0.95rem; color:var(--tantu-ink-secondary); line-height:1.8;">
+            Production-ready AWS-native AI infrastructure engineered with deterministic tapestry standards.
+            Model fine-tuning, multi-agent orchestration, GraphRAG, MCP servers, and visual QA.
+          </p>
+          <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+            <a href="#projects" class="tantu-btn tantu-btn-primary" style="text-decoration:none;">Explore Projects</a>
+            <a href="https://github.com/{GH_OWNER}" class="tantu-btn tantu-btn-secondary" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">GitHub Repositories</a>
+          </div>
         </div>
-        <p class="hero-subtitle">Build &middot; Fine-tune &middot; Orchestrate &middot; Deploy</p>
-        <p class="hero-description">
-          Production-ready AWS-native AI infrastructure: model fine-tuning, multi-agent
-          orchestration, GraphRAG, MCP servers, visual QA, and observability &mdash;
-          engineered to ship AI systems faster.
+      </section>
+
+      <!-- SIGNAL BAR -->
+      <div class="signal-warp tantu-card tantu-relief-kanthi tantu-cell-warp-12">
+        <div class="tantu-card-payload" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; text-align:center;">
+          <div class="signal-cell">
+            <span class="signal-num">10</span>
+            <span style="font-family:var(--font-kasuti); font-size:0.75rem; color:var(--tantu-ink-secondary);">OPEN SOURCE TOOLS</span>
+          </div>
+          <div class="signal-cell">
+            <span class="signal-num">8+</span>
+            <span style="font-family:var(--font-kasuti); font-size:0.75rem; color:var(--tantu-ink-secondary);">AWS SERVICES INTEGRATED</span>
+          </div>
+          <div class="signal-cell">
+            <span class="signal-num">~52%</span>
+            <span style="font-family:var(--font-kasuti); font-size:0.75rem; color:var(--tantu-ink-secondary);">COST SAVINGS VS SAGEMAKER</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROJECTS -->
+      <div id="projects" class="section-title-warp">
+        <h2 class="section-title-text">[01] The Weave Ecosystem</h2>
+      </div>
+
+      {cards_html}
+
+      <!-- ARCHITECTURE -->
+      <div id="architecture" class="section-title-warp" style="margin-top:var(--tantu-knot-8);">
+        <h2 class="section-title-text">[02] Architecture Stack</h2>
+      </div>
+
+      {arch_html}
+
+      <!-- PROCESS / STORY -->
+      <div id="story" class="section-title-warp" style="margin-top:var(--tantu-knot-8);">
+        <h2 class="section-title-text">[03] Developer Experience & Execution</h2>
+      </div>
+
+      {story_html}
+
+      <!-- ABOUT -->
+      <div id="about" class="section-title-warp" style="margin-top:var(--tantu-knot-8);">
+        <h2 class="section-title-text">[04] About AIWeave</h2>
+      </div>
+
+      <article class="tantu-card tantu-relief-zardozi tantu-cell-warp-12">
+        <span class="tantu-card-talim" aria-hidden="true">[TALIM-ABOUT-01]</span>
+        <div class="tantu-card-payload">
+          <p style="font-size:0.95rem; color:var(--tantu-ink-primary); line-height:1.8; margin-bottom:16px;">
+            <strong>AIWeave</strong> is an ecosystem of open-source, AWS-native AI infrastructure tools built for engineers who need production-grade AI systems without proprietary lock-in.
+          </p>
+          <p style="font-size:0.95rem; color:var(--tantu-ink-secondary); line-height:1.8; margin-bottom:16px;">
+            Every library is composed on AWS primitives: Lambda, Bedrock, Step Functions, DynamoDB, EC2 Spot, API Gateway, S3, and Neptune. Redesigned using the <strong>Tantu UI Design Library</strong> (Tapestry Engine V2.0).
+          </p>
+          <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            <span class="tantu-tag tantu-tag-accent">Python</span>
+            <span class="tantu-tag tantu-tag-neutral">AWS Bedrock</span>
+            <span class="tantu-tag tantu-tag-neutral">Lambda</span>
+            <span class="tantu-tag tantu-tag-neutral">Step Functions</span>
+            <span class="tantu-tag tantu-tag-neutral">EC2 Spot</span>
+            <span class="tantu-tag tantu-tag-neutral">Tantu Design System</span>
+            <span class="tantu-tag tantu-tag-zari">Apache 2.0</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- FOOTER -->
+      <footer class="tantu-footer">
+        <p>
+          &copy; {build_year} AIWeave &middot; Designed with Tantu Design Library &middot; Apache 2.0 License
         </p>
-        <div class="hero-ctas">
-          <a href="#projects" class="btn-primary"
-             aria-label="Explore all AIWeave projects">Explore Projects</a>
-          <a href="https://github.com/{GH_OWNER}" class="btn-outline"
-             target="_blank" rel="noopener noreferrer"
-             aria-label="View all repositories on GitHub (opens in new tab)">View on GitHub</a>
-        </div>
-      </div>
-      <div class="scroll-indicator" aria-hidden="true">
-        <div class="scroll-line"></div>
-        <span class="scroll-label">Scroll</span>
-      </div>
-    </section>
+      </footer>
 
-    <!-- SIGNAL BAR -->
-    <div class="signal-bar" aria-label="Project statistics">
-      <div class="signal-stat">
-        <span class="signal-stat-num" data-count="10" data-suffix="">10</span>
-        <span class="signal-stat-label">Open-source tools</span>
-      </div>
-      <div class="signal-stat">
-        <span class="signal-stat-num" data-count="8" data-suffix="+">8+</span>
-        <span class="signal-stat-label">AWS services integrated</span>
-      </div>
-      <div class="signal-stat">
-        <span class="signal-stat-num" data-count="52" data-suffix="%">52%</span>
-        <span class="signal-stat-label">Cost savings vs SageMaker</span>
-      </div>
-    </div>
+    </main>
 
-    <!-- PROJECTS -->
-    <section id="projects" aria-labelledby="projects-title" class="section-wrap">
-      <div class="section-header">
-        <p class="section-eyebrow">Open Source Tooling</p>
-        <h2 id="projects-title" class="section-title">The <span>Weave</span> Ecosystem</h2>
-      </div>
-      <div class="projects-grid" role="list" aria-label="AIWeave projects">
-{cards_html}
-      </div>
-    </section>
-
-    <!-- ARCHITECTURE -->
-    <section id="architecture" aria-labelledby="arch-title"
-             style="background:var(--bg-surface);border-top:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle);">
-      <div class="section-wrap">
-        <div class="section-header">
-          <p class="section-eyebrow">System Design</p>
-          <h2 id="arch-title" class="section-title">The <span>Architecture</span> Stack</h2>
-        </div>
-        <div class="arch-diagram">
-{arch_html}
-        </div>
-      </div>
-    </section>
-
-    <!-- SCROLLYTELLING -->
-    <section id="story" aria-labelledby="story-title" class="section-wrap">
-      <div class="section-header">
-        <p class="section-eyebrow">Developer Experience</p>
-        <h2 id="story-title" class="section-title">From <span>Intent</span> to Execution</h2>
-      </div>
-      <div class="story-outer">
-        <div class="story-panels-col">
-{story_html}
-        </div>
-        <div class="story-terminal-col" aria-hidden="true">
-          <div id="story-terminal" class="story-terminal">
-            <div class="term-bar">
-              <div class="term-dot"></div>
-              <div class="term-dot"></div>
-              <div class="term-dot"></div>
-            </div>
-            <div class="term-prompt">$ aiweave define</div>
-            <div class="term-title">Define the Agent</div>
-            <div class="term-body">Declare intent in plain JSON. TeamWeave resolves the right model, tools, and routing rules automatically.</div>
-            <div class="term-output"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ABOUT -->
-    <section id="about" aria-labelledby="about-title"
-             style="background:var(--bg-surface);border-top:1px solid var(--border-subtle);">
-      <div class="section-wrap">
-        <div class="section-header">
-          <p class="section-eyebrow">About</p>
-          <h2 id="about-title" class="section-title">What is <span>AIWeave</span>?</h2>
-        </div>
-        <div class="about-card">
-          <p>
-            <strong>AIWeave</strong> is a collection of open-source, AWS-native AI infrastructure
-            tools built for engineers who need production-grade AI systems without proprietary
-            lock-in. Each tool addresses a distinct layer of the AI engineering stack &mdash;
-            from raw compute and model training through retrieval, orchestration, and quality assurance.
-          </p>
-          <p>
-            Every library is built on AWS primitives: <strong>Lambda, Bedrock, Step Functions,
-            DynamoDB, EC2 Spot, API Gateway, S3</strong>, and <strong>Neptune</strong>.
-            Rather than abstracting cloud infrastructure away, AIWeave composes these services
-            into opinionated, battle-tested patterns that reduce operational overhead and cost
-            while remaining fully observable and auditable.
-          </p>
-          <p>
-            All tools are open source under the <strong>Apache 2.0 license</strong>, written in
-            Python, and designed for reliability. Site generated on {build_date}.
-          </p>
-          <div class="tech-pills" aria-label="Core technologies">
-            <span class="tech-pill">Python</span>
-            <span class="tech-pill">AWS Bedrock</span>
-            <span class="tech-pill">Lambda</span>
-            <span class="tech-pill">Step Functions</span>
-            <span class="tech-pill">EC2 Spot</span>
-            <span class="tech-pill">DynamoDB</span>
-            <span class="tech-pill">FastMCP</span>
-            <span class="tech-pill">Apache 2.0</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <footer>
-    <p>
-      {_icon_svg(14,14,'style="vertical-align:middle;color:var(--accent-cyan)"')}
-      &copy; {build_year} AIWeave &middot;
-      <a href="https://github.com/{GH_OWNER}" target="_blank" rel="noopener noreferrer"
-         aria-label="GitHub profile (opens in new tab)">GitHub</a>
-      &middot;
-      <a href="https://aiweave.org" aria-label="AIWeave homepage">aiweave.org</a>
-      &middot; Apache 2.0 License
-    </p>
-  </footer>
-
-  <script>
-{_WORDMARK_JS}
-{_PARTICLE_JS}
-{_ANIM_JS}
-{_STORY_JS}
-{_INIT_JS}
-  </script>
+    <div class="tantu-loom-selvedge-right" aria-hidden="true"></div>
+  </div>
 
 </body>
 </html>
 """
-
-
 
 
 def load_svg_asset(filename: str, fallback: str) -> str:
@@ -1520,7 +1117,17 @@ def load_svg_asset(filename: str, fallback: str) -> str:
     try:
         with open(path, "r", encoding="utf-8") as f:
             content = f.read()
-        return re.sub(r"<\?xml[^?]*\?>", "", content).strip()
+        return re.sub(r"<\\?xml[^?]*\\?>", "", content).strip()
+    except FileNotFoundError:
+        print(f"[WARN] {filename} not found, using fallback")
+        return fallback
+
+def load_text_asset(filename: str, fallback: str = "") -> str:
+    """Load a text asset file; return fallback if missing."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read()
     except FileNotFoundError:
         print(f"[WARN] {filename} not found, using fallback")
         return fallback
@@ -1530,7 +1137,6 @@ def main():
     if not token:
         print("[WARN] GH_TOKEN not set — API calls unauthenticated (60 req/hr limit)")
 
-    # Initialise Bedrock client when boto3 and AWS credentials are available
     bedrock_client = None
     if _HAS_BOTO3:
         try:
@@ -1541,7 +1147,6 @@ def main():
     else:
         print("[WARN] boto3 not installed — using regex summaries")
 
-    # Load SVG assets (inlined in generated HTML so deployments only need index.html)
     svg_content = load_svg_asset(
         "background.svg",
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080"></svg>',
@@ -1551,14 +1156,12 @@ def main():
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#00d9ff"/></svg>',
     )
 
-    # Discover all public *Weave repos, merge with pinned list
     print("[INFO] Discovering *Weave repos from GitHub...")
     weave_repos = discover_weave_repos(token)
     print(f"       Found: {weave_repos}")
     repo_list = build_repo_list(weave_repos)
     print(f"[INFO] Build order ({len(repo_list)} projects): {repo_list}")
 
-    # Fetch + summarise each repo
     repos_data = []
     for repo_name in repo_list:
         print(f"[INFO] Fetching {repo_name}...")
@@ -1577,7 +1180,8 @@ def main():
         src = "bedrock" if bedrock_client and data["readme_text"] else "regex/fallback"
         print(f"       stars={data['stars']}  summary_src={src}  summary_len={len(summary)}")
 
-    html_content = generate_html(repos_data, svg_content, icon_svg)
+    tantu_css = load_text_asset("assets/tantu.css", "")
+    html_content = generate_html(repos_data, svg_content, icon_svg, tantu_css)
     output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html_content)
