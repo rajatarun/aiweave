@@ -122,6 +122,11 @@ body {
   background-color: var(--tantu-grid-thread);
 }
 
+/* Explicit line placement, not DOM-order auto-placement: an auto-placed
+   grid item re-flows into whatever the first remaining track is once a
+   sibling drops out of the box tree (e.g. display:none). Pinning all three
+   to fixed lines makes their placement independent of each other's
+   presence or DOM order at every viewport. */
 .tantu-selvedge-left,
 .tantu-selvedge-right {
   background-color: var(--tantu-bg-elevated);
@@ -136,9 +141,12 @@ body {
   letter-spacing: 0.15em;
   color: var(--tantu-ink-secondary);
 }
+.tantu-selvedge-left { grid-column: 1; }
+.tantu-selvedge-right { grid-column: 3; }
 
 .tantu-loom-content {
   display: grid;
+  grid-column: 2;
   /* 12 equal-width columns. minmax(0, 1fr) prevents content blowout */
   grid-template-columns: repeat(12, minmax(0, 1fr));
   /* The 1px gap reveals the background, drawing the literal threads */
@@ -195,6 +203,15 @@ body {
   .tantu-loom-content {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     padding: var(--tantu-knot-3);
+  }
+
+  /* Fallback for any direct pick that isn't a sanctioned tantu-cell-warp-*
+     utility (e.g. a consumer page laying its own full-width section
+     straight into .tantu-loom-content): clamp it to the travel loom too, so
+     it can never force the grid to widen past its explicit 4 columns. The
+     specific tantu-cell-warp-* rules below still win for their own classes. */
+  .tantu-loom-content > * {
+    grid-column: span 4;
   }
 
   .tantu-cell-warp-12,

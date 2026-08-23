@@ -211,14 +211,14 @@ function SiteApp({ reposData, tantuCss }) {
               padding: 0;
               transition: background-color 0.2s ease, color 0.2s ease;
             }
+            /* Cosmetic overrides only — layout (display/grid-template-columns,
+               including the 768px Loom Drop) stays owned by the canonical
+               .tantu-loom / .tantu-loom-content rules in tantu.css so this
+               page never fights the design system's responsive collapse. */
             .tantu-loom {
-              display: grid;
-              width: 100%;
-              min-height: 100vh;
-              grid-template-columns: var(--tantu-knot-8) 1fr var(--tantu-knot-8);
               background-color: var(--tantu-bg-substrate);
             }
-            .tantu-loom-selvedge-left, .tantu-loom-selvedge-right {
+            .tantu-selvedge-left, .tantu-selvedge-right {
               background: repeating-linear-gradient(
                 0deg,
                 transparent,
@@ -229,13 +229,10 @@ function SiteApp({ reposData, tantuCss }) {
               opacity: 0.25;
             }
             .tantu-loom-content {
-              display: grid;
-              grid-template-columns: repeat(12, 1fr);
               gap: var(--tantu-knot-4);
               padding: var(--tantu-knot-6) 0;
             }
             nav.tantu-nav {
-              grid-column: span 12;
               display: flex;
               align-items: center;
               justify-content: space-between;
@@ -254,7 +251,6 @@ function SiteApp({ reposData, tantuCss }) {
               font-family: var(--font-kasuti);
             }
             .hero-warp {
-              grid-column: span 12;
               text-align: center;
             }
             .hero-title {
@@ -263,11 +259,7 @@ function SiteApp({ reposData, tantuCss }) {
               color: var(--tantu-accent-primary);
               margin: 0 0 var(--tantu-knot-3);
             }
-            .signal-warp {
-              grid-column: span 12;
-            }
             .section-title-warp {
-              grid-column: span 12;
               border-bottom: var(--tantu-gauge-filament) dashed var(--tantu-grid-thread);
               padding-bottom: 8px;
               margin-bottom: var(--tantu-knot-6);
@@ -279,7 +271,6 @@ function SiteApp({ reposData, tantuCss }) {
               margin: 0;
             }
             footer.tantu-footer {
-              grid-column: span 12;
               text-align: center;
               padding: var(--tantu-knot-8) 0;
               border-top: var(--tantu-gauge-filament) solid var(--tantu-border-embroidery);
@@ -294,7 +285,7 @@ function SiteApp({ reposData, tantuCss }) {
       <body>
         <TantuLoom viewTalimCode="AIW-HOME-01" shuttle={true}>
             {/* Navigation */}
-            <nav className="tantu-nav" aria-label="Main navigation">
+            <nav className="tantu-nav tantu-cell-warp-12" aria-label="Main navigation">
               <a href="/" className="nav-brand">
                 <svg width="28" height="28" viewBox="0 0 88 88" aria-hidden="true">
                   <rect x="36" y="3" width="49" height="49" rx="12" fill="none" stroke="currentColor" strokeWidth="10" />
@@ -304,7 +295,7 @@ function SiteApp({ reposData, tantuCss }) {
                 </svg>
                 <span>AIWEAVE</span>
               </a>
-              <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+              <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
                 <a href="#home" style={{ textDecoration: "none" }}>
                   <TantuButton variant="ghost" bleed={false}>HOME</TantuButton>
                 </a>
@@ -327,7 +318,7 @@ function SiteApp({ reposData, tantuCss }) {
             </nav>
 
             {/* Hero Section */}
-            <div className="hero-warp">
+            <div className="hero-warp tantu-cell-warp-12">
               <TantuCard warpSpan={12} reliefLevel="zardozi" talimCode="TALIM-HERO-01">
                 <div style={{ padding: "12px 0" }}>
                   <TantuTag tone="accent" solid={false}>TANTU DESIGN SYSTEM (REACT NATIVE ENGINE)</TantuTag>
@@ -371,7 +362,7 @@ function SiteApp({ reposData, tantuCss }) {
             </TantuCard>
 
             {/* Projects */}
-            <div id="projects" className="section-title-warp" style={{ marginTop: "32px" }}>
+            <div id="projects" className="section-title-warp tantu-cell-warp-12" style={{ marginTop: "32px" }}>
               <h2 className="section-title-text">[01] The Weave Ecosystem</h2>
             </div>
 
@@ -413,7 +404,7 @@ function SiteApp({ reposData, tantuCss }) {
             })}
 
             {/* Architecture Stack */}
-            <div id="architecture" className="section-title-warp" style={{ marginTop: "40px", textAlign: "center" }}>
+            <div id="architecture" className="section-title-warp tantu-cell-warp-12" style={{ marginTop: "40px", textAlign: "center" }}>
               <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.8rem", color: "var(--tantu-accent-highlight)", letterSpacing: "0.15em" }}>
                 | SYSTEM DESIGN
               </div>
@@ -439,7 +430,7 @@ function SiteApp({ reposData, tantuCss }) {
             ))}
 
             {/* Developer Experience */}
-            <div id="story" className="section-title-warp" style={{ marginTop: "40px", textAlign: "center" }}>
+            <div id="story" className="section-title-warp tantu-cell-warp-12" style={{ marginTop: "40px", textAlign: "center" }}>
               <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.8rem", color: "var(--tantu-accent-highlight)", letterSpacing: "0.15em" }}>
                 | DEVELOPER EXPERIENCE
               </div>
@@ -459,7 +450,7 @@ function SiteApp({ reposData, tantuCss }) {
             ))}
 
             {/* About */}
-            <div id="about" className="section-title-warp" style={{ marginTop: "40px" }}>
+            <div id="about" className="section-title-warp tantu-cell-warp-12" style={{ marginTop: "40px" }}>
               <h2 className="section-title-text">[04] About AIWeave</h2>
             </div>
 
@@ -481,7 +472,7 @@ function SiteApp({ reposData, tantuCss }) {
             </TantuCard>
 
             {/* Footer */}
-            <footer className="tantu-footer">
+            <footer className="tantu-footer tantu-cell-warp-12">
               <p>© 2026 AIWeave · Built with Tantu · Apache 2.0</p>
             </footer>
         </TantuLoom>
