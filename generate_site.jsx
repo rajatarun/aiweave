@@ -3,9 +3,14 @@ import path from "node:path";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 
-import { TantuCard } from "./src/tantu/components/TantuCard.js";
-import { TantuButton } from "./src/tantu/components/TantuButton.js";
-import { TantuTag } from "./src/tantu/components/TantuTag.js";
+import {
+  TantuLoom,
+  TantuCard,
+  TantuButton,
+  TantuTag,
+  TantuAcousticToggle,
+  TantuStack,
+} from "./src/tantu/index.ts";
 
 const GH_OWNER = "rajatarun";
 const GH_GRAPHQL_URL = "https://api.github.com/graphql";
@@ -287,10 +292,7 @@ function SiteApp({ reposData, tantuCss }) {
         />
       </head>
       <body>
-        <div className="tantu-loom">
-          <div className="tantu-loom-selvedge-left" aria-hidden="true" />
-
-          <main id="main" className="tantu-loom-content">
+        <TantuLoom viewTalimCode="AIW-HOME-01" shuttle={true}>
             {/* Navigation */}
             <nav className="tantu-nav" aria-label="Main navigation">
               <a href="/" className="nav-brand">
@@ -482,10 +484,7 @@ function SiteApp({ reposData, tantuCss }) {
             <footer className="tantu-footer">
               <p>© 2026 AIWeave · Built with Tantu · Apache 2.0</p>
             </footer>
-          </main>
-
-          <div className="tantu-loom-selvedge-right" aria-hidden="true" />
-        </div>
+        </TantuLoom>
         <script
           dangerouslySetInnerHTML={{
             __html: `
