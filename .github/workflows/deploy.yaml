@@ -41,10 +41,19 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: python fetch_md_upload_s3.py
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Node.js dependencies
+        run: npm ci
+
       - name: Generate index.html
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: python generate_site.py
+        run: npm run build
 
       - name: Verify index.html was generated
         run: |
