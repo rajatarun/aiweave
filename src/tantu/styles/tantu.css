@@ -150,7 +150,15 @@ body {
   line-height: var(--tantu-line-height-base);
   margin: 0;
   padding: 0;
+  max-width: 100%;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Ensure no text element or component overflows the weave */
+p, h1, h2, h3, h4, h5, h6, li, td, th, span, div, button, label, a, code {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* WARP & WEFT LAYOUT (Tana-Bana Engine) */
@@ -225,29 +233,33 @@ body {
 /* The Loom Drop: below 768px the 12-thread warp drops to the 4-thread travel
    loom. The hardware changes; nothing is torn out of the weave. */
 @media (max-width: 768px) {
-  /* The selvedges are wooden margins, not content: on a handheld frame they
-     narrow to bare thread so the weave owns the full device width. */
+  /* The Loom Drop: selvedges collapse to 0 on mobile, weave gets knot-3 padding */
   .tantu-loom {
-    grid-template-columns: var(--tantu-gauge-cord) minmax(0, 1fr) var(--tantu-gauge-cord);
+    grid-template-columns: 0 1fr 0;
   }
 
   .tantu-selvedge-left,
-  .tantu-selvedge-right {
-    padding: 0;
+  .tantu-selvedge-right,
+  .tantu-loom-selvedge-left,
+  .tantu-loom-selvedge-right {
+    display: none !important;
+    width: 0 !important;
+    padding: 0 !important;
     overflow: hidden;
   }
 
   .tantu-loom-content {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    padding: var(--tantu-knot-3);
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    padding: var(--tantu-knot-3) !important;
+    gap: var(--tantu-knot-3);
   }
 
   .tantu-cell-warp-12,
   .tantu-cell-warp-6,
   .tantu-cell-warp-4,
-  .tantu-cell-warp-3 { grid-column: span 4; }
+  .tantu-cell-warp-3,
   .tantu-cell-warp-2,
-  .tantu-cell-warp-1 { grid-column: span 2; }
+  .tantu-cell-warp-1 { grid-column: span 4 !important; }
 
   /* Kalam-Rupa is cut down so a single word never exceeds the travel loom. */
   h1.tantu-heading-kalam { font-size: 30px; }
