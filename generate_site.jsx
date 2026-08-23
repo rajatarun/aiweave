@@ -165,7 +165,7 @@ async function fetchRepoList() {
 
 function SiteApp({ reposData, tantuCss }) {
   return (
-    <html lang="en" data-theme="dark">
+    <html lang="en" data-theme="light">
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -184,24 +184,13 @@ function SiteApp({ reposData, tantuCss }) {
         <style
           dangerouslySetInnerHTML={{
             __html: `
-            :root {
-              --tantu-bg-substrate: #12100e;
-              --tantu-kora-raw: #181512;
-              --tantu-kora-mud: #201c19;
-              --tantu-kala-iron: #faf7f0;
-              --tantu-kala-charcoal: #ece6d8;
-              --tantu-madder-root: #d44d42;
-              --tantu-madder-flame: #e05e53;
-              --tantu-indigo-vat: #2b5377;
-              --tantu-indigo-sky: #4c7ba6;
-              --tantu-zari-pure-gold: #d8b26e;
-            }
             body {
               background-color: var(--tantu-bg-substrate);
               color: var(--tantu-ink-primary);
               font-family: var(--font-talim);
               margin: 0;
               padding: 0;
+              transition: background-color 0.2s ease, color 0.2s ease;
             }
             .tantu-loom {
               display: grid;
@@ -299,18 +288,24 @@ function SiteApp({ reposData, tantuCss }) {
                 </svg>
                 <span>AIWEAVE</span>
               </a>
-              <div style={{ display: "flex", gap: "12px" }}>
-                <a href="#projects" style={{ textDecoration: "none" }}>
-                  <TantuButton variant="ghost" bleed={false}>Projects</TantuButton>
+              <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                <a href="#home" style={{ textDecoration: "none" }}>
+                  <TantuButton variant="ghost" bleed={false}>HOME</TantuButton>
                 </a>
-                <a href="#architecture" style={{ textDecoration: "none" }}>
-                  <TantuButton variant="ghost" bleed={false}>Architecture</TantuButton>
+                <a href="#projects" style={{ textDecoration: "none" }}>
+                  <TantuButton variant="ghost" bleed={false}>PROJECTS</TantuButton>
                 </a>
                 <a href="#story" style={{ textDecoration: "none" }}>
-                  <TantuButton variant="ghost" bleed={false}>Process</TantuButton>
+                  <TantuButton variant="ghost" bleed={false}>HOW IT WORKS</TantuButton>
                 </a>
+                <a href="#about" style={{ textDecoration: "none" }}>
+                  <TantuButton variant="ghost" bleed={false}>ABOUT</TantuButton>
+                </a>
+                <button id="theme-toggle" className="tantu-btn tantu-btn-ghost" type="button" style={{ cursor: "pointer", fontFamily: "var(--font-kasuti)", fontSize: "11px" }}>
+                  ✱ DARK
+                </button>
                 <a href={`https://github.com/${GH_OWNER}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-                  <TantuButton variant="primary" bleed={false}>GitHub →</TantuButton>
+                  <TantuButton variant="primary" bleed={false}>GITHUB →</TantuButton>
                 </a>
               </div>
             </nav>
@@ -397,8 +392,13 @@ function SiteApp({ reposData, tantuCss }) {
             })}
 
             {/* Architecture Stack */}
-            <div id="architecture" className="section-title-warp" style={{ marginTop: "40px" }}>
-              <h2 className="section-title-text">[02] Architecture Stack</h2>
+            <div id="architecture" className="section-title-warp" style={{ marginTop: "40px", textAlign: "center" }}>
+              <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.8rem", color: "var(--tantu-accent-highlight)", letterSpacing: "0.15em" }}>
+                | SYSTEM DESIGN
+              </div>
+              <h2 className="hero-title" style={{ fontSize: "2.8rem", margin: "8px 0" }}>
+                The <span style={{ color: "var(--tantu-accent-structural)" }}>Architecture</span> Stack
+              </h2>
             </div>
 
             {ARCH_LAYERS.map((layer) => (
@@ -418,8 +418,13 @@ function SiteApp({ reposData, tantuCss }) {
             ))}
 
             {/* Developer Experience */}
-            <div id="story" className="section-title-warp" style={{ marginTop: "40px" }}>
-              <h2 className="section-title-text">[03] Developer Experience & Execution</h2>
+            <div id="story" className="section-title-warp" style={{ marginTop: "40px", textAlign: "center" }}>
+              <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.8rem", color: "var(--tantu-accent-highlight)", letterSpacing: "0.15em" }}>
+                | DEVELOPER EXPERIENCE
+              </div>
+              <h2 className="hero-title" style={{ fontSize: "2.5rem", margin: "8px 0" }}>
+                Execution & Workflow
+              </h2>
             </div>
 
             {STORY_PANELS.map((panel) => (
@@ -462,6 +467,22 @@ function SiteApp({ reposData, tantuCss }) {
 
           <div className="tantu-loom-selvedge-right" aria-hidden="true" />
         </div>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                var btn = document.getElementById('theme-toggle');
+                if (!btn) return;
+                btn.addEventListener('click', function() {
+                  var current = document.documentElement.getAttribute('data-theme') || 'light';
+                  var next = current === 'dark' ? 'light' : 'dark';
+                  document.documentElement.setAttribute('data-theme', next);
+                  btn.textContent = next === 'dark' ? '☀️ LIGHT' : '✱ DARK';
+                });
+              })();
+            `,
+          }}
+        />
       </body>
     </html>
   );

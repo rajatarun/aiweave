@@ -25,31 +25,76 @@
   --tantu-zari-pure-gold: #c5a059;
   --tantu-zari-tarnish: #9e7d3b;
 
-  /* 2. SEMANTIC TOKEN BINDINGS */
-  --tantu-bg-substrate: var(--tantu-kora-raw);
-  --tantu-bg-elevated: var(--tantu-kora-mud);
-  --tantu-bg-surface-active: var(--tantu-kora-bleached);
+  /* 2. SEMANTIC TOKEN BINDINGS (DEFAULT LIGHT) */
+  --tantu-bg-substrate: #f3eee2;
+  --tantu-bg-elevated: #e8e1d0;
+  --tantu-bg-surface-active: #eae3d2;
 
-  --tantu-ink-primary: var(--tantu-kala-iron);
-  --tantu-ink-secondary: var(--tantu-kala-charcoal);
-  --tantu-ink-inverted: var(--tantu-kora-raw);
+  --tantu-ink-primary: #12100e;
+  --tantu-ink-secondary: #524a42;
+  --tantu-ink-inverted: #faf7f0;
 
-  --tantu-accent-primary: var(--tantu-madder-root);
-  --tantu-accent-highlight: var(--tantu-madder-flame);
-  --tantu-accent-structural: var(--tantu-indigo-vat);
+  --tantu-accent-primary: #82231d;
+  --tantu-accent-highlight: #a83228;
+  --tantu-accent-structural: #0d233a;
 
   --tantu-state-success: var(--tantu-pala-copper);
   --tantu-state-caution: var(--tantu-genda-rust);
 
-  --tantu-grid-thread: var(--tantu-katha-bark);
-  --tantu-border-embroidery: var(--tantu-zari-pure-gold);
+  --tantu-grid-thread: rgba(110, 74, 53, 0.25);
+  --tantu-border-embroidery: #c5a059;
 
-  /* Spec V3.1 semantic aliases (raw dye tier -> what components reach for). */
-  --tantu-color-surface: var(--tantu-kora-raw);
-  --tantu-color-ink: var(--tantu-kala-iron);
-  --tantu-color-accent: var(--tantu-madder-root);
-  --tantu-color-structure: var(--tantu-indigo-vat);
-  --tantu-color-metallic: var(--tantu-zari-pure-gold);
+  --tantu-color-surface: #e8e1d0;
+  --tantu-color-ink: #12100e;
+  --tantu-color-accent: #82231d;
+  --tantu-color-structure: #0d233a;
+  --tantu-color-metallic: #c5a059;
+}
+
+[data-theme="light"] {
+  --tantu-bg-substrate: #f3eee2;
+  --tantu-bg-elevated: #e8e1d0;
+  --tantu-bg-surface-active: #eae3d2;
+
+  --tantu-ink-primary: #12100e;
+  --tantu-ink-secondary: #524a42;
+  --tantu-ink-inverted: #faf7f0;
+
+  --tantu-accent-primary: #82231d;
+  --tantu-accent-highlight: #a83228;
+  --tantu-accent-structural: #0d233a;
+
+  --tantu-grid-thread: rgba(110, 74, 53, 0.25);
+  --tantu-border-embroidery: #c5a059;
+
+  --tantu-color-surface: #e8e1d0;
+  --tantu-color-ink: #12100e;
+  --tantu-color-accent: #82231d;
+  --tantu-color-structure: #0d233a;
+  --tantu-color-metallic: #c5a059;
+}
+
+[data-theme="dark"] {
+  --tantu-bg-substrate: #12100e;
+  --tantu-bg-elevated: #1a1714;
+  --tantu-bg-surface-active: #201c19;
+
+  --tantu-ink-primary: #faf7f0;
+  --tantu-ink-secondary: #c8c0b2;
+  --tantu-ink-inverted: #12100e;
+
+  --tantu-accent-primary: #c5a059;
+  --tantu-accent-highlight: #d8b26e;
+  --tantu-accent-structural: #4c7ba6;
+
+  --tantu-grid-thread: rgba(197, 160, 89, 0.2);
+  --tantu-border-embroidery: #9e7d3b;
+
+  --tantu-color-surface: #1a1714;
+  --tantu-color-ink: #faf7f0;
+  --tantu-color-accent: #c5a059;
+  --tantu-color-structure: #4c7ba6;
+  --tantu-color-metallic: #c5a059;
 
   /* The single breakpoint where the Loom hands off to the Darshan Lens. */
   --tantu-breakpoint-lens: 768px;
