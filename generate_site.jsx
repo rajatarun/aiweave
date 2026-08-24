@@ -9,6 +9,8 @@ import {
   TantuCard,
   TantuButton,
   TantuTag,
+  TantuMeter,
+  TantuStepper,
 } from "./src/tantu/index.ts";
 
 const GH_OWNER = "rajatarun";
@@ -181,6 +183,25 @@ async function fetchRepoList() {
   }
 }
 
+/**
+ * SectionHeader — the one numbered marker every major section shares.
+ *
+ * Composed from the sanctioned primitives (TantuCell for loom placement,
+ * TantuTag for the count) rather than hand-styled bracket text, so "[01]"
+ * reads as a designed weaver's-count chip instead of stray characters set
+ * in the display serif.
+ */
+function SectionHeader({ id, number, title, style }) {
+  return (
+    <TantuCell warpSpan={12} id={id} className="section-title-warp" style={style}>
+      <div className="section-title-row">
+        <TantuTag tone="structural" solid>{number}</TantuTag>
+        <h2 className="section-title-text">{title}</h2>
+      </div>
+    </TantuCell>
+  );
+}
+
 function SiteApp({ reposData, tantuCss }) {
   return (
     <html lang="en" data-theme="light">
@@ -267,11 +288,19 @@ function SiteApp({ reposData, tantuCss }) {
               border-bottom: var(--tantu-gauge-filament) dashed var(--tantu-grid-thread);
               padding-bottom: var(--tantu-knot-1);
             }
+            .section-title-row {
+              display: flex;
+              align-items: center;
+              gap: var(--tantu-knot-2);
+            }
             .section-title-text {
               font-family: var(--font-kalam);
               font-size: 1.8rem;
               color: var(--tantu-accent-primary);
               margin: 0;
+            }
+            .arch-stepper {
+              margin-bottom: var(--tantu-knot-4);
             }
             footer.tantu-footer {
               text-align: center;
@@ -286,6 +315,14 @@ function SiteApp({ reposData, tantuCss }) {
         />
       </head>
       <body>
+        {/* The T2 capillary substrate — mounted once at the root, per the
+            design system's "one WebGL context" rule. Pointer contact
+            anywhere in the document wicks dye through the weave; the canvas
+            itself is fixed, aria-hidden and pointer-events:none, so it never
+            intercepts interaction. The engine is loaded client-side by the
+            module script below (the static build has no React runtime to
+            drive the component's own hook). */}
+        <canvas aria-hidden="true" className="tantu-loom-substrate" />
         <TantuLoom viewTalimCode="AIW-HOME-01" shuttle={true}>
             {/* Navigation — only TantuCell/TantuCard/ChambaRumalCard may be a
                 direct child of TantuLoom, so the nav lives inside a cell. */}
@@ -347,29 +384,28 @@ function SiteApp({ reposData, tantuCss }) {
             </TantuCard>
 
             {/* Stat Band (3-up desktop, stacked mobile) */}
-            <TantuCard warpSpan={4} reliefLevel="kanthi">
+            <TantuCard warpSpan={4} reliefLevel="kanthi" absorbent>
               <div style={{ textAlign: "center" }}>
                 <span style={{ fontFamily: "var(--font-kasuti)", fontSize: "2.2rem", fontWeight: 700, color: "var(--tantu-accent-primary)" }}>10</span>
                 <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "var(--tantu-knot-1)" }}>OPEN SOURCE TOOLS</div>
               </div>
             </TantuCard>
-            <TantuCard warpSpan={4} reliefLevel="kanthi">
+            <TantuCard warpSpan={4} reliefLevel="kanthi" absorbent>
               <div style={{ textAlign: "center" }}>
                 <span style={{ fontFamily: "var(--font-kasuti)", fontSize: "2.2rem", fontWeight: 700, color: "var(--tantu-accent-primary)" }}>8+</span>
                 <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "var(--tantu-knot-1)" }}>AWS SERVICES INTEGRATED</div>
               </div>
             </TantuCard>
-            <TantuCard warpSpan={4} reliefLevel="kanthi">
+            <TantuCard warpSpan={4} reliefLevel="kanthi" absorbent>
               <div style={{ textAlign: "center" }}>
                 <span style={{ fontFamily: "var(--font-kasuti)", fontSize: "2.2rem", fontWeight: 700, color: "var(--tantu-accent-primary)" }}>~52%</span>
                 <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "var(--tantu-knot-1)" }}>COST SAVINGS VS SAGEMAKER</div>
+                <TantuMeter value={52} label="Cost savings vs SageMaker" style={{ marginTop: "var(--tantu-knot-2)" }} />
               </div>
             </TantuCard>
 
             {/* Projects */}
-            <TantuCell warpSpan={12} id="projects" className="section-title-warp" style={{ marginTop: "var(--tantu-knot-6)" }}>
-              <h2 className="section-title-text">[01] The Weave Ecosystem</h2>
-            </TantuCell>
+            <SectionHeader id="projects" number="01" title="The Weave Ecosystem" style={{ marginTop: "var(--tantu-knot-6)" }} />
 
             {reposData.map((repo) => {
               const meta = REPO_META[repo] || {
@@ -380,7 +416,7 @@ function SiteApp({ reposData, tantuCss }) {
               };
 
               return (
-                <TantuCard key={repo} warpSpan={6} reliefLevel="kanthi">
+                <TantuCard key={repo} warpSpan={6} reliefLevel="kanthi" absorbent>
                   <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
                     <div>
                       <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--tantu-knot-2)", marginBottom: "var(--tantu-knot-2)" }}>
@@ -408,17 +444,23 @@ function SiteApp({ reposData, tantuCss }) {
             })}
 
             {/* Architecture Stack */}
-            <TantuCell warpSpan={12} id="architecture" className="section-title-warp" style={{ marginTop: "var(--tantu-knot-6)", textAlign: "center" }}>
-              <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.8rem", color: "var(--tantu-accent-highlight)", letterSpacing: "0.15em" }}>
-                | SYSTEM DESIGN
-              </div>
-              <h2 className="hero-title" style={{ fontSize: "2.8rem", margin: "var(--tantu-knot-1) 0" }}>
-                The <span style={{ color: "var(--tantu-accent-structural)" }}>Architecture</span> Stack
-              </h2>
+            <SectionHeader
+              id="architecture"
+              number="02"
+              title={<>The <span style={{ color: "var(--tantu-accent-structural)" }}>Architecture</span> Stack</>}
+              style={{ marginTop: "var(--tantu-knot-6)" }}
+            />
+
+            <TantuCell warpSpan={12} className="arch-stepper-cell">
+              <TantuStepper
+                steps={ARCH_LAYERS.map((layer) => ({ id: layer.label, label: layer.label, description: layer.chips[0] }))}
+                currentStepId={ARCH_LAYERS[ARCH_LAYERS.length - 1].label}
+                className="arch-stepper"
+              />
             </TantuCell>
 
             {ARCH_LAYERS.map((layer) => (
-              <TantuCard key={layer.label} warpSpan={12} reliefLevel="kanthi">
+              <TantuCard key={layer.label} warpSpan={12} reliefLevel="kanthi" absorbent>
                 <div style={{ display: "flex", alignItems: "center", gap: "var(--tantu-knot-3)", flexWrap: "wrap" }}>
                   <span style={{ fontSize: "1.3rem", color: "var(--tantu-accent-highlight)" }}>{layer.icon}</span>
                   <span style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.12em", color: "var(--tantu-accent-primary)", minWidth: "180px" }}>
@@ -434,26 +476,17 @@ function SiteApp({ reposData, tantuCss }) {
             ))}
 
             {/* Developer Experience */}
-            <TantuCell warpSpan={12} id="story" className="section-title-warp" style={{ marginTop: "var(--tantu-knot-6)", textAlign: "center" }}>
-              <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.8rem", color: "var(--tantu-accent-highlight)", letterSpacing: "0.15em" }}>
-                | DEVELOPER EXPERIENCE
-              </div>
-              <h2 className="hero-title" style={{ fontSize: "2.5rem", margin: "var(--tantu-knot-1) 0" }}>
-                Execution & Workflow
-              </h2>
-            </TantuCell>
+            <SectionHeader id="story" number="03" title="Execution & Workflow" style={{ marginTop: "var(--tantu-knot-6)" }} />
 
             {STORY_PANELS.map((panel) => (
-              <TantuCard key={panel.step} warpSpan={3} reliefLevel="kanthi">
+              <TantuCard key={panel.step} warpSpan={3} reliefLevel="kanthi" absorbent>
                 <h3 style={{ fontFamily: "var(--font-kalam)", fontSize: "1.2rem", color: "var(--tantu-accent-primary)", marginBottom: "var(--tantu-knot-2)" }}>{panel.title}</h3>
                 <p style={{ fontSize: "0.85rem", color: "var(--tantu-ink-primary)", lineHeight: 1.6, margin: 0 }}>{panel.body}</p>
               </TantuCard>
             ))}
 
             {/* About */}
-            <TantuCell warpSpan={12} id="about" className="section-title-warp" style={{ marginTop: "var(--tantu-knot-6)" }}>
-              <h2 className="section-title-text">[04] About AIWeave</h2>
-            </TantuCell>
+            <SectionHeader id="about" number="04" title="About AIWeave" style={{ marginTop: "var(--tantu-knot-6)" }} />
 
             <TantuCard warpSpan={12} reliefLevel="zardozi">
               <p style={{ fontSize: "0.95rem", color: "var(--tantu-ink-primary)", lineHeight: 1.8, marginBottom: "var(--tantu-knot-3)" }}>
@@ -491,6 +524,61 @@ function SiteApp({ reposData, tantuCss }) {
                   document.documentElement.setAttribute('data-theme', next);
                   btn.textContent = next === 'dark' ? '☀️ LIGHT' : '✱ DARK';
                 });
+              })();
+            `,
+          }}
+        />
+        {/* Boots the T2 capillary engine compiled from
+            src/tantu/lib/capillary-bleed.ts (npm run build:capillary) —
+            the same code TantuBleedCanvas's useCapillaryBleed hook drives,
+            wired up by hand since this page ships no React runtime.
+            Reproduces its global mode exactly: pointerdown always bleeds,
+            pointermove trails at most every 90ms, resize/ResizeObserver
+            keep the drawing buffer current. */}
+        <script
+          type="module"
+          dangerouslySetInnerHTML={{
+            __html: `
+              import { createCapillaryBleed } from "./assets/capillary-bleed.js";
+
+              (function () {
+                var canvas = document.querySelector(".tantu-loom-substrate");
+                if (!canvas) return;
+                if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+                var engine = createCapillaryBleed(canvas, {
+                  dye: "#2E4B6B",
+                  duration: 2600,
+                  maxRadius: 420,
+                  fray: 1,
+                  saturation: 0.5,
+                });
+                if (!engine.supported) return;
+
+                var trailInterval = 90;
+                var lastTrail = 0;
+
+                function emit(event) {
+                  var rect = canvas.getBoundingClientRect();
+                  engine.bleed(event.clientX - rect.left, event.clientY - rect.top);
+                }
+
+                window.addEventListener("pointerdown", emit);
+                window.addEventListener("pointermove", function (event) {
+                  var now = performance.now();
+                  if (now - lastTrail < trailInterval) return;
+                  lastTrail = now;
+                  emit(event);
+                });
+                window.addEventListener("resize", function () {
+                  engine.resize();
+                });
+
+                if (typeof ResizeObserver !== "undefined") {
+                  new ResizeObserver(function () {
+                    engine.resize();
+                  }).observe(canvas);
+                }
               })();
             `,
           }}
