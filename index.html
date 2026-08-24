@@ -3221,10 +3221,21 @@ textarea.tantu-maku-focus {
               font-style: normal;
               font-display: swap;
             }
+            /* Not var(--font-talim): tantu.css's own typography comment is
+               explicit that Talim is "machine voice only — codes, counts,
+               coordinates, captions, code blocks. Never body copy," and
+               Kalam is scoped to "display and headings," not prose either.
+               Neither of Tantu's two prose-adjacent faces is meant to carry
+               ordinary paragraph text, so the page default has to come from
+               somewhere else — a plain system stack, not a third custom
+               voice the design system doesn't define. Every paragraph in
+               this page inherits this rule unless it opts into a specific
+               Tantu voice (the .tantu-heading-kalam headings do; the small
+               kasuti/talim taglines set their own font-family already). */
             body {
               background-color: var(--tantu-bg-substrate);
               color: var(--tantu-ink-primary);
-              font-family: var(--font-talim);
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
               margin: 0;
               padding: 0;
               transition: background-color var(--tantu-motion-unspool) ease,
