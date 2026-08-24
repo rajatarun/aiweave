@@ -195,13 +195,17 @@ CAPS = {
     "P": [L(xL, yB, xL, yT), A(xL, 530, 340, 170, -90, 90)],
     "Q": [A(300, 350, 190, 350, 0, 360), L(340, 120, 470, -60)],
     "R": [L(xL, yB, xL, yT), A(xL, 530, 340, 170, -90, 90), L(xL, yH, 480, yB)],
-    # Two half-ellipses meeting exactly at (300, 350), spanning the full
-    # yB..yT box like O/B/E do — the earlier radii (150x140) left S ~18%
-    # shorter and ~23% narrower than every other cap. The upper bowl is
-    # deliberately the narrower of the two, as in B/3/8.
+    # Two arcs meeting exactly at (295, 364), spanning the full yB..yT box
+    # like O/B/E do. Each sweeps ~230 degrees rather than a clean 180: a
+    # half-ellipse would stop dead on the centreline at the apex and nadir,
+    # leaving the upper-right and lower-left corners empty and throwing all
+    # the weight onto a "\" diagonal, which reads as a tilted S. Carrying
+    # each terminal past the apex — to upper-right and lower-left, where a
+    # real S puts them — balances it. The junction sits slightly above
+    # centre so the upper bowl stays the smaller of the two, as in B/3/8.
     "S": [
-        A(300, 525, 165, 175, 270, 90),
-        A(300, 175, 190, 175, -90, 90),
+        A(295, 532, 172, 168, 270, 40),
+        A(295, 182, 190, 182, -130, 90),
     ],
     "T": [L(xL, yT, xR, yT), L(xM, yT, xM, yB)],
     "U": [L(xL, yT, xL, 200), A(300, 200, 190, 200, 180, 360), L(xR, 200, xR, yT)],
