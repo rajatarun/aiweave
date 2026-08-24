@@ -1,0 +1,399 @@
+import sys
+import os
+import math
+from unittest.mock import MagicMock
+
+# --- iOS SANDBOX ARMOR ---
+sys.modules['pathops'] = MagicMock()
+sys.modules['pyclipper'] = MagicMock()
+sys.modules['pyclipper._pyclipper'] = MagicMock()
+
+import defcon
+import ufo2ft
+from fontTools.ttLib import TTFont
+
+# --- TANTU TYPE PRIMITIVES ---
+UPM = 1000
+ASCENDER = 900
+DESCENDER = -200
+CAP_HEIGHT = 700
+X_HEIGHT = 500
+ADVANCE = 600  # every glyph in every family shares one advance (Talim must be
+                # monospace; Kasuti/Kalam just borrow the convention for a
+                # consistent, simple V0.1 metric across the whole system).
+
+def init_font(family_name, is_mono=False):
+    font = defcon.Font()
+    font.info.familyName = family_name
+    font.info.unitsPerEm = UPM
+    font.info.ascender = ASCENDER
+    font.info.descender = DESCENDER
+    font.info.capHeight = CAP_HEIGHT
+    font.info.xHeight = X_HEIGHT
+    if is_mono:
+        font.info.postscriptIsFixedPitch = True
+    return font
+
+# ---------------------------------------------------------------------------
+# LOW-LEVEL PEN PRIMITIVES
+#
+# Every primitive below winds its contour counter-clockwise. That's the one
+# rule that has to hold everywhere: with removeOverlaps=False (pathops is
+# mocked out — see "iOS SANDBOX ARMOR" above), overlapping strokes in a
+# glyph are never boolean-unioned, they just rely on the nonzero fill rule
+# to add up. Same winding direction always adds; opposite winding directions
+# would punch a hole wherever two shapes cross. So: CCW, always.
+# ---------------------------------------------------------------------------
+
+def draw_rect(pen, x, y, w, h):
+    pen.moveTo((x, y))
+    pen.lineTo((x + w, y))
+    pen.lineTo((x + w, y + h))
+    pen.lineTo((x, y + h))
+    pen.closePath()
+
+def draw_knot(pen, cx, cy, radius=40):
+    # A small diamond, wound CCW (bottom -> right -> top -> left).
+    pen.moveTo((cx, cy - radius))
+    pen.lineTo((cx + radius, cy))
+    pen.lineTo((cx, cy + radius))
+    pen.lineTo((cx - radius, cy))
+    pen.closePath()
+
+def _perp(dx, dy):
+    """Unit normal, rotated 90 degrees clockwise from (dx, dy)."""
+    length = math.hypot(dx, dy)
+    if length == 0:
+        return (0.0, 0.0)
+    return (dy / length, -dx / length)
+
+def draw_ribbon(pen, points, width):
+    """Fill a thick polyline through `points`, CCW."""
+    n = len(points)
+    if n < 2 or width <= 0:
+        return
+    hw = width / 2
+    normals = []
+    for i in range(n):
+        if i == 0:
+            dx, dy = points[1][0] - points[0][0], points[1][1] - points[0][1]
+        elif i == n - 1:
+            dx, dy = points[-1][0] - points[-2][0], points[-1][1] - points[-2][1]
+        else:
+            dx, dy = points[i + 1][0] - points[i - 1][0], points[i + 1][1] - points[i - 1][1]
+        normals.append(_perp(dx, dy))
+    left = [(points[i][0] + normals[i][0] * hw, points[i][1] + normals[i][1] * hw) for i in range(n)]
+    right = [(points[i][0] - normals[i][0] * hw, points[i][1] - normals[i][1] * hw) for i in range(n)]
+    pen.moveTo(left[0])
+    for p in left[1:]:
+        pen.lineTo(p)
+    for p in reversed(right):
+        pen.lineTo(p)
+    pen.closePath()
+
+def draw_square_dot(pen, cx, cy, size):
+    draw_rect(pen, cx - size / 2, cy - size / 2, size, size)
+
+# ---------------------------------------------------------------------------
+# STROKE SKELETONS
+#
+# Every letterform is authored exactly once, as an abstract "skeleton" of
+# strokes — a straight line ('L', x1, y1, x2, y2) or a circular/elliptical
+# arc ('A', cx, cy, rx, ry, angle0, angle1), in degrees. The three families
+# each turn that same skeleton into outlines their own way (see the three
+# stroke_fn implementations below): Kasuti rasterizes it into axis-aligned
+# blocks (never a diagonal line — "no diagonals allowed"), Talim threads it
+# as straight ribbon segments knotted at every joint, Kalam draws it as a
+# smooth ribbon with slab serifs. One drawing, three weavings.
+# ---------------------------------------------------------------------------
+
+def sample_stroke(stroke, n=16):
+    kind = stroke[0]
+    if kind == 'L':
+        # Subdivided even though a straight ribbon only needs its two
+        # endpoints (extra collinear points don't change that shape) —
+        # stroke_kasuti needs the intermediate points to lay down enough
+        # overlapping blocks to cover the whole segment.
+        _, x1, y1, x2, y2 = stroke
+        return [(x1 + (x2 - x1) * i / n, y1 + (y2 - y1) * i / n) for i in range(n + 1)]
+    if kind == 'A':
+        _, cx, cy, rx, ry, a0, a1 = stroke
+        pts = []
+        for i in range(n + 1):
+            t = i / n
+            a = math.radians(a0 + (a1 - a0) * t)
+            pts.append((cx + rx * math.cos(a), cy + ry * math.sin(a)))
+        return pts
+    raise ValueError(f"unknown stroke kind {kind!r}")
+
+def _path_length(pts):
+    return sum(math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]) for i in range(len(pts) - 1))
+
+# Glyph box (shared by every letter/digit skeleton below).
+xL, xL2, xM, xR2, xR = 110, 220, 300, 380, 490
+yB, yQ1, yH, yQ3, yT = 0, 175, 350, 525, 700
+
+L = lambda x1, y1, x2, y2: ('L', x1, y1, x2, y2)
+A = lambda cx, cy, rx, ry, a0, a1: ('A', cx, cy, rx, ry, a0, a1)
+
+CAPS = {
+    # --- Letters ---------------------------------------------------------
+    "A": [L(xL, yB, xM, yT), L(xM, yT, xR, yB), L(180, 230, 420, 230)],
+    "B": [
+        L(xL, yB, xL, yT),
+        A(xL, 530, 300, 170, -90, 90),
+        A(xL, 175, 340, 175, -90, 90),
+    ],
+    "C": [A(300, 350, 190, 350, 40, 320)],
+    "D": [L(xL, yB, xL, yT), A(xL, yH, 380, 350, -90, 90)],
+    "E": [L(xL, yB, xL, yT), L(xL, yT, 450, yT), L(xL, yH, 400, yH), L(xL, yB, 450, yB)],
+    "F": [L(xL, yB, xL, yT), L(xL, yT, 450, yT), L(xL, yH, 400, yH)],
+    "G": [A(300, 350, 190, 350, 40, 320), L(445, 125, 445, 300), L(300, 300, 445, 300)],
+    "H": [L(xL, yB, xL, yT), L(xR, yB, xR, yT), L(xL, yH, xR, yH)],
+    "I": [L(xM, yB, xM, yT)],
+    "J": [L(400, yT, 400, 180), A(290, 180, 110, 180, 0, -110)],
+    "K": [L(xL, yB, xL, yT), L(xL, yH, xR, yT), L(xL, yH, xR, yB)],
+    "L": [L(xL, yB, xL, yT), L(xL, yB, 450, yB)],
+    "M": [L(xL, yB, xL, yT), L(xL, yT, xM, 250), L(xM, 250, xR, yT), L(xR, yT, xR, yB)],
+    "N": [L(xL, yB, xL, yT), L(xL, yT, xR, yB), L(xR, yB, xR, yT)],
+    "O": [A(300, 350, 190, 350, 0, 360)],
+    "P": [L(xL, yB, xL, yT), A(xL, 530, 340, 170, -90, 90)],
+    "Q": [A(300, 350, 190, 350, 0, 360), L(340, 120, 470, -60)],
+    "R": [L(xL, yB, xL, yT), A(xL, 530, 340, 170, -90, 90), L(xL, yH, 480, yB)],
+    "S": [
+        A(310, 520, 160, 160, 200, -40),
+        A(290, 180, 160, 160, 140, 380),
+        L(433, 417, 167, 283),
+    ],
+    "T": [L(xL, yT, xR, yT), L(xM, yT, xM, yB)],
+    "U": [L(xL, yT, xL, 200), A(300, 200, 190, 200, 180, 360), L(xR, 200, xR, yT)],
+    "V": [L(xL, yT, xM, yB), L(xM, yB, xR, yT)],
+    "W": [L(xL, yT, 195, yB), L(195, yB, xM, 480), L(xM, 480, 405, yB), L(405, yB, xR, yT)],
+    "X": [L(xL, yT, xR, yB), L(xL, yB, xR, yT)],
+    "Y": [L(xL, yT, xM, yH), L(xR, yT, xM, yH), L(xM, yH, xM, yB)],
+    "Z": [L(xL, yT, xR, yT), L(xR, yT, xL, yB), L(xL, yB, xR, yB)],
+    # --- Digits ------------------------------------------------------------
+    "zero": [A(300, 350, 190, 350, 0, 360)],
+    "one": [L(xM, yB, xM, yT), L(xM, yT, 220, 600), L(220, yB, 380, yB)],
+    "two": [
+        A(300, 560, 140, 130, -90, 90),
+        L(300, 430, 460, yB),
+        L(140, yB, 470, yB),
+    ],
+    "three": [
+        A(290, 530, 175, 155, -60, 195),
+        A(290, 175, 175, 155, -195, 60),
+        L(455, 400, 455, 300),
+    ],
+    "four": [L(380, yT, 120, 250), L(120, 250, 460, 250), L(380, yT, 380, yB)],
+    "five": [
+        L(460, yT, 150, yT),
+        L(150, yT, 150, 380),
+        A(150, 175, 320, 175, -90, 90),
+    ],
+    "six": [
+        A(300, 480, 150, 200, 70, 260),
+        A(300, 180, 185, 175, 0, 360),
+    ],
+    "seven": [L(120, yT, 470, yT), L(470, yT, 230, yB)],
+    "eight": [
+        A(300, 515, 155, 170, 0, 360),
+        A(300, 180, 175, 175, 0, 360),
+    ],
+    "nine": [
+        A(300, 500, 180, 180, 0, 360),
+        A(300, 220, 150, 200, 110, -80),
+    ],
+    # --- Symbols -----------------------------------------------------------
+    "space": [],
+    "period": [L(xM, 20, 301, 20)],
+    "comma": [L(290, 60, 240, -70)],
+    "colon": [L(xM, 180, 301, 180), L(xM, 420, 301, 420)],
+    "semicolon": [L(xM, 420, 301, 420), L(290, 190, 240, 60)],
+    "hyphen": [L(160, yH, 440, yH)],
+    "underscore": [L(100, -60, 500, -60)],
+    "slash": [L(140, yB, 460, yT)],
+    "backslash": [L(140, yT, 460, yB)],
+    "parenleft": [A(480, yH, 220, 430, 110, 250)],
+    "parenright": [A(120, yH, 220, 430, -70, 70)],
+    "exclam": [L(xM, 250, xM, yT), L(xM, 20, 301, 20)],
+    "question": [
+        A(300, 560, 140, 130, -90, 90),
+        L(300, 430, 300, 280),
+        L(xM, 20, 301, 20),
+    ],
+    "quotesingle": [L(xM, 600, xM, 720)],
+    "quotedbl": [L(250, 600, 250, 720), L(350, 600, 350, 720)],
+    "plus": [L(150, yH, 450, yH), L(xM, 200, xM, 500)],
+    "equal": [L(150, 270, 450, 270), L(150, 430, 450, 430)],
+    "asterisk": [L(xM, 340, xM, 600), L(190, 405, 410, 535), L(190, 535, 410, 405)],
+    "ampersand": [
+        A(280, 470, 150, 150, 0, 360),
+        L(340, 340, 480, yB),
+        L(150, 250, 300, 250),
+    ],
+    "at": [A(300, 350, 220, 220, 0, 360), A(320, 340, 90, 90, 0, 340)],
+    "numbersign": [L(220, 50, 220, 650), L(380, 50, 380, 650), L(120, 220, 480, 220), L(120, 480, 480, 480)],
+    "percent": [A(180, 530, 80, 80, 0, 360), A(420, 170, 80, 80, 0, 360), L(150, yB, 450, yT)],
+    "less": [L(420, 600, 180, 350), L(180, 350, 420, 100)],
+    "greater": [L(180, 600, 420, 350), L(420, 350, 180, 100)],
+    "bracketleft": [L(280, yT, 280, yB), L(280, yT, 420, yT), L(280, yB, 420, yB)],
+    "bracketright": [L(320, yT, 320, yB), L(180, yT, 320, yT), L(180, yB, 320, yB)],
+}
+
+LETTER_KEYS = [k for k in CAPS if len(k) == 1 and k.isalpha() and k.isupper()]
+
+# ufo2ft builds the cmap strictly from each glyph's `unicodes` list — it does
+# NOT infer a codepoint from an AGL-standard glyph name on its own. Leaving
+# unicodes unset (or explicitly []) produces a font with an *empty* cmap:
+# every glyph still exists and still has outlines, but nothing routes a
+# character to it, so a renderer effectively picks glyphs at random. Every
+# name below maps back to the exact character it draws.
+GLYPH_UNICODE = {
+    "space": " ", "period": ".", "comma": ",", "colon": ":", "semicolon": ";",
+    "hyphen": "-", "underscore": "_", "slash": "/", "backslash": "\\",
+    "parenleft": "(", "parenright": ")", "exclam": "!", "question": "?",
+    "quotesingle": "'", "quotedbl": '"', "plus": "+", "equal": "=",
+    "asterisk": "*", "ampersand": "&", "at": "@", "numbersign": "#",
+    "percent": "%", "less": "<", "greater": ">", "bracketleft": "[",
+    "bracketright": "]",
+    "zero": "0", "one": "1", "two": "2", "three": "3", "four": "4",
+    "five": "5", "six": "6", "seven": "7", "eight": "8", "nine": "9",
+}
+for _k in LETTER_KEYS:
+    GLYPH_UNICODE[_k] = _k
+    GLYPH_UNICODE[_k.lower()] = _k.lower()
+
+def scale_skeleton(skeleton, y_scale):
+    """Squash a skeleton toward the baseline (cap-height -> x-height)."""
+    out = []
+    for s in skeleton:
+        if s[0] == 'L':
+            _, x1, y1, x2, y2 = s
+            out.append(('L', x1, y1 * y_scale, x2, y2 * y_scale))
+        else:
+            _, cx, cy, rx, ry, a0, a1 = s
+            out.append(('A', cx, cy * y_scale, rx, ry * y_scale, a0, a1))
+    return out
+
+LOWER_SCALE = X_HEIGHT / CAP_HEIGHT
+
+# ---------------------------------------------------------------------------
+# FAMILY RENDERERS
+# ---------------------------------------------------------------------------
+
+def stroke_kasuti(pen, stroke, size):
+    """Rasterize any stroke into overlapping axis-aligned blocks — the
+    Kasuti Matrix rule is strictly orthogonal, no diagonals, so every mark
+    laid down is a rectangle, even when the skeleton it traces is a diagonal
+    line or an arc."""
+    pts = sample_stroke(stroke, n=18)
+    if _path_length(pts) < size * 0.6:
+        draw_square_dot(pen, pts[0][0], pts[0][1], size)
+        return
+    last = None
+    for (x, y) in pts:
+        if last is not None and math.hypot(x - last[0], y - last[1]) < size * 0.45:
+            continue
+        draw_rect(pen, x - size / 2, y - size / 2, size, size)
+        last = (x, y)
+
+def stroke_talim(pen, stroke, width):
+    """Thread ribbon + a knot at every joint — the connected string-knots
+    of a Kashmiri shawl code."""
+    pts = sample_stroke(stroke, n=10)
+    if _path_length(pts) < width * 0.6:
+        draw_knot(pen, pts[0][0], pts[0][1], radius=width * 0.9)
+        return
+    draw_ribbon(pen, pts, width)
+    draw_knot(pen, pts[0][0], pts[0][1], radius=width * 0.55)
+    draw_knot(pen, pts[-1][0], pts[-1][1], radius=width * 0.55)
+
+def _serif(pen, p_end, p_next, width):
+    dx, dy = p_end[0] - p_next[0], p_end[1] - p_next[1]
+    length = math.hypot(dx, dy)
+    if length == 0:
+        return
+    ux, uy = dx / length, dy / length
+    px, py = -uy, ux
+    sw = width * 1.7
+    sl = width * 0.5
+    x0, y0 = p_end
+    x1, y1 = x0 + ux * sl, y0 + uy * sl
+    hw = sw / 2
+    pen.moveTo((x0 - px * hw, y0 - py * hw))
+    pen.lineTo((x1 - px * hw, y1 - py * hw))
+    pen.lineTo((x1 + px * hw, y1 + py * hw))
+    pen.lineTo((x0 + px * hw, y0 + py * hw))
+    pen.closePath()
+
+def stroke_kalam(pen, stroke, width):
+    """Smooth ribbon with slab serifs at the stroke ends — the display
+    face, brush-drawn."""
+    pts = sample_stroke(stroke, n=16)
+    if _path_length(pts) < width * 0.6:
+        draw_square_dot(pen, pts[0][0], pts[0][1], width * 1.2)
+        return
+    draw_ribbon(pen, pts, width)
+    _serif(pen, pts[0], pts[1], width)
+    _serif(pen, pts[-1], pts[-2], width)
+
+def build_family(family_name, stroke_fn, weight, is_mono=False):
+    font = init_font(family_name, is_mono=is_mono)
+    for name, skeleton in CAPS.items():
+        glyph = font.newGlyph(name)
+        glyph.width = ADVANCE
+        glyph.unicodes = [ord(GLYPH_UNICODE[name])]
+        pen = glyph.getPen()
+        for stroke in skeleton:
+            stroke_fn(pen, stroke, weight)
+    for upper in LETTER_KEYS:
+        lower = upper.lower()
+        glyph = font.newGlyph(lower)
+        glyph.width = ADVANCE
+        glyph.unicodes = [ord(GLYPH_UNICODE[lower])]
+        pen = glyph.getPen()
+        for stroke in scale_skeleton(CAPS[upper], LOWER_SCALE):
+            stroke_fn(pen, stroke, weight)
+    return font
+
+def compile_and_save(font_obj, out_name):
+    print(f"[*] Compiling {out_name}...")
+
+    ttf = ufo2ft.compileTTF(font_obj, removeOverlaps=False)
+    os.makedirs("fonts", exist_ok=True)
+
+    ttf_path = f"fonts/{out_name}.ttf"
+    ttf.save(ttf_path)
+
+    woff_path = f"fonts/{out_name}.woff"
+    ttf.flavor = "woff"
+    ttf.save(woff_path)
+
+    # Attempt WOFF2 but gracefully swallow the iOS crash if it happens
+    try:
+        woff2_path = f"fonts/{out_name}.woff2"
+        ttf.flavor = "woff2"
+        ttf.save(woff2_path)
+    except ImportError:
+        pass
+
+    # Validate the WOFF file instead of WOFF2 to prevent verification crash
+    verify_font = TTFont(woff_path)
+    assert 'glyf' in verify_font, "Validation Failed: No glyph data."
+    n_glyphs = len(verify_font.getGlyphOrder())
+    print(f"[+] Successfully built {out_name} ({n_glyphs} glyphs; TTF, WOFF)\n")
+
+if __name__ == "__main__":
+    print("=== Tantu V0.1 Loom Engine Build ===")
+
+    kasuti = build_family("Kasuti-Gauze", stroke_kasuti, weight=78)
+    compile_and_save(kasuti, "Kasuti-Gauze")
+
+    talim = build_family("Talim-Mono", stroke_talim, weight=44, is_mono=True)
+    compile_and_save(talim, "Talim-Mono")
+
+    kalam = build_family("Kalam-Rupa", stroke_kalam, weight=56)
+    compile_and_save(kalam, "Kalam-Rupa")
+
+    print("=== Build Complete ===")

@@ -1,0 +1,14 @@
+# Dependencies for build.py (Tantu type primitives) and scripts/render_*.py
+# (glyph QA tools). Not used by the Node/React site generator — install
+# separately with: pip install -r requirements-fonts.txt
+
+# font build
+defcon>=0.12
+ufo2ft>=3.9
+fonttools>=4.63
+brotli>=1.1  # lets ufo2ft emit real WOFF2, not just TTF/WOFF
+
+# glyph proof-sheet rendering (scripts/render_*.py) — QA only, not needed
+# to run build.py itself
+Pillow>=12.0
+freetype-py>=2.5
