@@ -195,9 +195,13 @@ CAPS = {
     "P": [L(xL, yB, xL, yT), A(xL, 530, 340, 170, -90, 90)],
     "Q": [A(300, 350, 190, 350, 0, 360), L(340, 120, 470, -60)],
     "R": [L(xL, yB, xL, yT), A(xL, 530, 340, 170, -90, 90), L(xL, yH, 480, yB)],
+    # Two half-ellipses meeting exactly at (300, 350), spanning the full
+    # yB..yT box like O/B/E do — the earlier radii (150x140) left S ~18%
+    # shorter and ~23% narrower than every other cap. The upper bowl is
+    # deliberately the narrower of the two, as in B/3/8.
     "S": [
-        A(300, 495, 150, 140, 270, 90),
-        A(300, 215, 150, 140, -90, 90),
+        A(300, 525, 165, 175, 270, 90),
+        A(300, 175, 190, 175, -90, 90),
     ],
     "T": [L(xL, yT, xR, yT), L(xM, yT, xM, yB)],
     "U": [L(xL, yT, xL, 200), A(300, 200, 190, 200, 180, 360), L(xR, 200, xR, yT)],
@@ -261,10 +265,17 @@ CAPS = {
     "plus": [L(150, yH, 450, yH), L(xM, 200, xM, 500)],
     "equal": [L(150, 270, 450, 270), L(150, 430, 450, 430)],
     "asterisk": [L(xM, 340, xM, 600), L(190, 405, 410, 535), L(190, 535, 410, 405)],
+    # "&" descends from an "et" ligature: a closed upper bowl over a larger
+    # lower bowl that is open on the right, with the diagonal tail of the
+    # "t" crossing out through it to the lower right. The bowls share a
+    # centre line and meet exactly at (270, 440); the tail starts on the
+    # upper bowl's lower-left quadrant so it reads as one continuous stroke.
+    # (The previous skeleton was a free-floating circle, a detached diagonal
+    # and an unattached dash — it rendered as a lollipop, not an ampersand.)
     "ampersand": [
-        A(280, 470, 150, 150, 0, 360),
-        L(340, 340, 480, yB),
-        L(150, 250, 300, 250),
+        A(270, 565, 118, 125, 0, 360),
+        A(270, 225, 160, 215, 90, 375),
+        L(187, 477, 490, 50),
     ],
     "at": [A(300, 350, 220, 220, 0, 360), A(320, 340, 90, 90, 0, 340)],
     "numbersign": [L(220, 50, 220, 650), L(380, 50, 380, 650), L(120, 220, 480, 220), L(120, 480, 480, 480)],
