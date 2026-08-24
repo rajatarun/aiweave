@@ -416,7 +416,7 @@ function SiteApp({ reposData, tantuCss }) {
                 <p style={{ fontFamily: "var(--font-kasuti)", color: "var(--tantu-zari-pure-gold)", fontSize: "1.1rem" }}>
                   [ BUILD · FINE-TUNE · ORCHESTRATE · DEPLOY ]
                 </p>
-                <p style={{ maxWidth: "680px", margin: "0 auto var(--tantu-knot-4)", fontSize: "0.95rem", color: "var(--tantu-ink-secondary)", lineHeight: 1.8 }}>
+                <p style={{ fontFamily: "var(--font-talim)", maxWidth: "680px", margin: "0 auto var(--tantu-knot-4)", fontSize: "0.95rem", color: "var(--tantu-ink-secondary)", lineHeight: 1.8 }}>
                   Production-ready AWS-native AI infrastructure generated natively with Tantu React Design Library components.
                 </p>
                 <div style={{ display: "flex", gap: "var(--tantu-knot-2)", justifyContent: "center", flexWrap: "wrap" }}>
@@ -473,7 +473,7 @@ function SiteApp({ reposData, tantuCss }) {
                           <p style={{ margin: 0, fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", fontFamily: "var(--font-talim)" }}>{meta.tagline}</p>
                         </div>
                       </div>
-                      <p style={{ fontSize: "0.88rem", color: "var(--tantu-ink-primary)", lineHeight: 1.7, marginBottom: "var(--tantu-knot-3)" }}>{meta.fallback_desc}</p>
+                      <p style={{ fontFamily: "var(--font-talim)", fontSize: "0.88rem", color: "var(--tantu-ink-primary)", lineHeight: 1.7, marginBottom: "var(--tantu-knot-3)" }}>{meta.fallback_desc}</p>
                     </div>
                     <div>
                       <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--tantu-knot-1)", marginBottom: "var(--tantu-knot-3)" }}>
@@ -528,7 +528,7 @@ function SiteApp({ reposData, tantuCss }) {
             {STORY_PANELS.map((panel) => (
               <TantuCard key={panel.step} warpSpan={3} reliefLevel="kanthi" absorbent>
                 <h3 style={{ fontFamily: "var(--font-kalam)", fontSize: "1.2rem", color: "var(--tantu-accent-primary)", marginBottom: "var(--tantu-knot-2)" }}>{panel.title}</h3>
-                <p style={{ fontSize: "0.85rem", color: "var(--tantu-ink-primary)", lineHeight: 1.6, margin: 0 }}>{panel.body}</p>
+                <p style={{ fontFamily: "var(--font-talim)", fontSize: "0.85rem", color: "var(--tantu-ink-primary)", lineHeight: 1.6, margin: 0 }}>{panel.body}</p>
               </TantuCard>
             ))}
 
@@ -536,10 +536,10 @@ function SiteApp({ reposData, tantuCss }) {
             <SectionHeader id="about" number="04" title="About AIWeave" style={{ marginTop: "var(--tantu-knot-6)" }} />
 
             <TantuCard warpSpan={12} reliefLevel="zardozi">
-              <p style={{ fontSize: "0.95rem", color: "var(--tantu-ink-primary)", lineHeight: 1.8, marginBottom: "var(--tantu-knot-3)" }}>
+              <p style={{ fontFamily: "var(--font-talim)", fontSize: "0.95rem", color: "var(--tantu-ink-primary)", lineHeight: 1.8, marginBottom: "var(--tantu-knot-3)" }}>
                 <strong>AIWeave</strong> is an ecosystem of open-source, AWS-native AI infrastructure tools built for engineers who need production-grade AI systems without proprietary lock-in.
               </p>
-              <p style={{ fontSize: "0.95rem", color: "var(--tantu-ink-secondary)", lineHeight: 1.8, marginBottom: "var(--tantu-knot-3)" }}>
+              <p style={{ fontFamily: "var(--font-talim)", fontSize: "0.95rem", color: "var(--tantu-ink-secondary)", lineHeight: 1.8, marginBottom: "var(--tantu-knot-3)" }}>
                 Every library is composed on AWS primitives: Lambda, Bedrock, Step Functions, DynamoDB, EC2 Spot, API Gateway, S3, and Neptune. Built natively using <strong>Tantu React Design Library Components</strong>.
               </p>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--tantu-knot-1)" }}>
