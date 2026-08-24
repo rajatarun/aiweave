@@ -49,7 +49,50 @@
   --tantu-color-accent: #82231d;
   --tantu-color-structure: #0d233a;
   --tantu-color-metallic: #c5a059;
+
+  /* The single breakpoint where the Loom hands off to the Darshan Lens. */
+  --tantu-breakpoint-lens: 768px;
+
+  /* 3. BASE-6 WARP & WEFT SPACING LATTICE
+     Deliberately non-linear: x1,2,3,4 then x6,8,12.
+     knot-5 and knot-7 are intentionally absent — do not "fix" the gap. */
+  --tantu-knot-1: 6px;
+  --tantu-knot-2: 12px;
+  --tantu-knot-3: 18px;
+  --tantu-knot-4: 24px;
+  --tantu-knot-6: 36px;
+  --tantu-knot-8: 48px;
+  --tantu-knot-12: 72px;
+
+  /* 4. THREAD GAUGES */
+  --tantu-gauge-filament: 1px;
+  --tantu-gauge-ply: 2px;
+  --tantu-gauge-cord: 4px;
+  --tantu-gauge-braid: 6px;
+
+  /* 5. TYPOGRAPHIC SPECIFICATIONS */
+  /* Primary brand fonts must be loaded by the consumer application.
+     IBM Plex serves as the on-screen fallback until the brand files are supplied. */
+  --font-talim: "Talim-Mono", "IBM Plex Mono", "Courier New", monospace;
+  --font-kalam: "Kalam-Rupa", "IBM Plex Serif", Georgia, serif;
+  --font-kasuti: "Kasuti-Gauze", "IBM Plex Mono", "Lucida Console", monospace;
+
+  --tantu-font-size-base: 14px;
+  --tantu-line-height-base: 1.5;
+
+  /* 6. KINETIC PRIMITIVES */
+  --tantu-motion-capillary: cubic-bezier(0.12, 0.9, 0.24, 1);
+  --tantu-motion-batten: 60ms;
+  --tantu-motion-shuttle: 180ms;
+  --tantu-motion-unspool: 240ms;
 }
+
+/* These tokens (breakpoint, knot spacing, gauges, fonts, motion) are
+   theme-agnostic — they describe the loom's physical construction, not its
+   dye. They belong on :root above, not inside a [data-theme] block: nesting
+   them under [data-theme="dark"] means they only resolve once dark mode is
+   active, leaving every var(--tantu-knot-*)/var(--font-*)/var(--tantu-gauge-*)
+   reference undefined on the light-mode default this page ships with. */
 
 [data-theme="light"] {
   --tantu-bg-substrate: #f3eee2;
@@ -95,42 +138,6 @@
   --tantu-color-accent: #c5a059;
   --tantu-color-structure: #4c7ba6;
   --tantu-color-metallic: #c5a059;
-
-  /* The single breakpoint where the Loom hands off to the Darshan Lens. */
-  --tantu-breakpoint-lens: 768px;
-
-  /* 3. BASE-6 WARP & WEFT SPACING LATTICE
-     Deliberately non-linear: x1,2,3,4 then x6,8,12.
-     knot-5 and knot-7 are intentionally absent — do not "fix" the gap. */
-  --tantu-knot-1: 6px;
-  --tantu-knot-2: 12px;
-  --tantu-knot-3: 18px;
-  --tantu-knot-4: 24px;
-  --tantu-knot-6: 36px;
-  --tantu-knot-8: 48px;
-  --tantu-knot-12: 72px;
-
-  /* 4. THREAD GAUGES */
-  --tantu-gauge-filament: 1px;
-  --tantu-gauge-ply: 2px;
-  --tantu-gauge-cord: 4px;
-  --tantu-gauge-braid: 6px;
-
-  /* 5. TYPOGRAPHIC SPECIFICATIONS */
-  /* Primary brand fonts must be loaded by the consumer application.
-     IBM Plex serves as the on-screen fallback until the brand files are supplied. */
-  --font-talim: "Talim-Mono", "IBM Plex Mono", "Courier New", monospace;
-  --font-kalam: "Kalam-Rupa", "IBM Plex Serif", Georgia, serif;
-  --font-kasuti: "Kasuti-Gauze", "IBM Plex Mono", "Lucida Console", monospace;
-
-  --tantu-font-size-base: 14px;
-  --tantu-line-height-base: 1.5;
-
-  /* 6. KINETIC PRIMITIVES */
-  --tantu-motion-capillary: cubic-bezier(0.12, 0.9, 0.24, 1);
-  --tantu-motion-batten: 60ms;
-  --tantu-motion-shuttle: 180ms;
-  --tantu-motion-unspool: 240ms;
 }
 
 /* GLOBAL RESET & LOOM SUBSTRATE */
