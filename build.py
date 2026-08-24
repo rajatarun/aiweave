@@ -217,15 +217,25 @@ CAPS = {
     # --- Digits ------------------------------------------------------------
     "zero": [A(300, 350, 190, 350, 0, 360)],
     "one": [L(xM, yB, xM, yT), L(xM, yT, 220, 600), L(220, yB, 380, yB)],
+    # The bowl swept -90..90, i.e. bottom -> right -> top, which draws the
+    # *right* half of an ellipse and leaves the left half missing: the result
+    # read as a mirrored 2. A 2's bowl is the other sweep — it starts at the
+    # upper left, runs clockwise over the top and down the right side, then
+    # hands off to the diagonal that falls to the baseline.
     "two": [
-        A(300, 560, 140, 130, -90, 90),
-        L(300, 430, 460, yB),
+        A(300, 545, 170, 145, 200, -35),
+        L(439, 462, 150, yB),
         L(140, yB, 470, yB),
     ],
+    # The upper bowl swept 255 degrees, wrapping so far around the left that
+    # it read as a closed loop rather than a 3's open bowl, and a bridging
+    # line at x=455 papered over the gap between the two bowls (the same
+    # visible-seam artefact that S had). Both bowls now stop at the waist,
+    # meeting exactly at (349, 350) — the direction reversal there is the
+    # pinch a 3 is supposed to have — so no connector is needed.
     "three": [
-        A(290, 530, 175, 155, -60, 195),
-        A(290, 175, 175, 155, -195, 60),
-        L(455, 400, 455, 300),
+        A(295, 520, 165, 180, 165, -71),
+        A(295, 180, 165, 180, 71, -165),
     ],
     "four": [L(380, yT, 120, 250), L(120, 250, 460, 250), L(380, yT, 380, yB)],
     "five": [
@@ -233,18 +243,26 @@ CAPS = {
         L(150, yT, 150, 380),
         A(150, 175, 320, 175, -90, 90),
     ],
+    # The spine used to stop at (274, 283), well inside the bowl rather than
+    # on its rim, so the two strokes crossed instead of joining. Sharing a
+    # centre with the bowl lets the spine land exactly on its leftmost point
+    # (145, 180), where both are travelling straight down — a clean tangent
+    # join. Same construction as nine, rotated.
     "six": [
-        A(300, 480, 150, 200, 70, 260),
-        A(300, 180, 185, 175, 0, 360),
+        A(305, 180, 160, 520, 60, 180),
+        A(305, 180, 160, 175, 0, 360),
     ],
     "seven": [L(120, yT, 470, yT), L(470, yT, 230, yB)],
     "eight": [
         A(300, 515, 155, 170, 0, 360),
         A(300, 180, 175, 175, 0, 360),
     ],
+    # As six, rotated 180 degrees: the tail began at (249, 408) inside the
+    # bowl; it now leaves the bowl's rightmost point (455, 520) on a shared
+    # tangent and falls to a terminal at the lower left.
     "nine": [
-        A(300, 500, 180, 180, 0, 360),
-        A(300, 220, 150, 200, 110, -80),
+        A(295, 520, 160, 520, 240, 360),
+        A(295, 520, 160, 175, 0, 360),
     ],
     # --- Symbols -----------------------------------------------------------
     "space": [],

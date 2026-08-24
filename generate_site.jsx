@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import React from "react";
@@ -12,6 +13,29 @@ import {
   TantuMeter,
   TantuStepper,
 } from "./src/tantu/index.ts";
+
+// deploy.yaml serves fonts/ with `cache-control: public, max-age=86400` under
+// stable filenames, so a browser that has loaded a glyph keeps rendering it
+// from cache for up to a day after the font is rebuilt — a fixed glyph looks
+// unfixed on the live site, indistinguishable from the fix never shipping.
+// Appending a short content hash gives every rebuild a fresh URL, so the
+// cache is bypassed exactly when the bytes change and reused when they don't.
+const fontRev = (file) => {
+  try {
+    const bytes = fs.readFileSync(path.join("fonts", file));
+    return crypto.createHash("sha256").update(bytes).digest("hex").slice(0, 8);
+  } catch {
+    return null;
+  }
+};
+
+const fontSrc = (family) => {
+  const w2 = fontRev(`${family}.woff2`);
+  const w1 = fontRev(`${family}.woff`);
+  const q = (rev) => (rev ? `?v=${rev}` : "");
+  return `url("fonts/${family}.woff2${q(w2)}") format("woff2"),
+                   url("fonts/${family}.woff${q(w1)}") format("woff")`;
+};
 
 const GH_OWNER = "rajatarun";
 const GH_GRAPHQL_URL = "https://api.github.com/graphql";
@@ -237,24 +261,21 @@ function SiteApp({ reposData, tantuCss }) {
                needed. */
             @font-face {
               font-family: "Kasuti-Gauze";
-              src: url("fonts/Kasuti-Gauze.woff2") format("woff2"),
-                   url("fonts/Kasuti-Gauze.woff") format("woff");
+              src: ${fontSrc("Kasuti-Gauze")};
               font-weight: 400;
               font-style: normal;
               font-display: swap;
             }
             @font-face {
               font-family: "Talim-Mono";
-              src: url("fonts/Talim-Mono.woff2") format("woff2"),
-                   url("fonts/Talim-Mono.woff") format("woff");
+              src: ${fontSrc("Talim-Mono")};
               font-weight: 400;
               font-style: normal;
               font-display: swap;
             }
             @font-face {
               font-family: "Kalam-Rupa";
-              src: url("fonts/Kalam-Rupa.woff2") format("woff2"),
-                   url("fonts/Kalam-Rupa.woff") format("woff");
+              src: ${fontSrc("Kalam-Rupa")};
               font-weight: 400;
               font-style: normal;
               font-display: swap;
