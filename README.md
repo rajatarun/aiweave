@@ -24,9 +24,16 @@ x-height (a deliberate unicase treatment, not a bug).
 
 ```
 pip install -r requirements-fonts.txt
-python3 build.py                 # writes fonts/
-python3 scripts/render_proof.py  # optional: renders a full-glyph-set PNG per family to /tmp, for visual QA
+npm run build:fonts               # writes fonts/ (python3 build.py)
+python3 scripts/render_proof.py   # optional: renders a full-glyph-set PNG per family to /tmp, for visual QA
 ```
 
-These fonts aren't wired into any `@font-face` rule yet — the `--font-*`
-tokens still fall back to their IBM Plex stack until that's done.
+`generate_site.jsx` registers all three via `@font-face`, pointing at
+`fonts/*.woff2`/`.woff`; the `--font-*` tokens already name these families
+first in their stacks, so the browser prefers them over the IBM Plex
+fallback automatically. `fonts/` is committed like any other build
+output (same as `assets/capillary-bleed.js` and `index.html` itself) —
+`npm run build:fonts` isn't chained into the default `npm run build`
+because it needs Python, not just Node; re-run it by hand whenever a
+glyph changes, then `npm run build` to regenerate the site against the
+new files.

@@ -223,6 +223,42 @@ function SiteApp({ reposData, tantuCss }) {
         <style
           dangerouslySetInnerHTML={{
             __html: `
+            /* Tantu's own stylesheet deliberately ships no @font-face rules
+               (see the "TYPOGRAPHIC SPECIFICATIONS" comment in tantu.css) —
+               loading the brand font files is a consumer concern, since the
+               design system has no way to know where this page will host
+               them. This is that wiring: build.py (npm run build:fonts, not
+               yet part of the default build — run it once after a fresh
+               checkout, or whenever a glyph changes) writes fonts/*.woff2
+               and .woff, and the --font-talim/--font-kalam/--font-kasuti
+               tokens above already name these families first in their
+               stacks, so once registered here the browser prefers them
+               over the IBM Plex fallback automatically — no other change
+               needed. */
+            @font-face {
+              font-family: "Kasuti-Gauze";
+              src: url("fonts/Kasuti-Gauze.woff2") format("woff2"),
+                   url("fonts/Kasuti-Gauze.woff") format("woff");
+              font-weight: 400;
+              font-style: normal;
+              font-display: swap;
+            }
+            @font-face {
+              font-family: "Talim-Mono";
+              src: url("fonts/Talim-Mono.woff2") format("woff2"),
+                   url("fonts/Talim-Mono.woff") format("woff");
+              font-weight: 400;
+              font-style: normal;
+              font-display: swap;
+            }
+            @font-face {
+              font-family: "Kalam-Rupa";
+              src: url("fonts/Kalam-Rupa.woff2") format("woff2"),
+                   url("fonts/Kalam-Rupa.woff") format("woff");
+              font-weight: 400;
+              font-style: normal;
+              font-display: swap;
+            }
             body {
               background-color: var(--tantu-bg-substrate);
               color: var(--tantu-ink-primary);
