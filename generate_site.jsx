@@ -5,11 +5,10 @@ import ReactDOMServer from "react-dom/server";
 
 import {
   TantuLoom,
+  TantuCell,
   TantuCard,
   TantuButton,
   TantuTag,
-  TantuAcousticToggle,
-  TantuStack,
 } from "./src/tantu/index.ts";
 
 const GH_OWNER = "rajatarun";
@@ -209,37 +208,37 @@ function SiteApp({ reposData, tantuCss }) {
               font-family: var(--font-talim);
               margin: 0;
               padding: 0;
-              transition: background-color 0.2s ease, color 0.2s ease;
+              transition: background-color var(--tantu-motion-unspool) ease,
+                color var(--tantu-motion-unspool) ease;
             }
+            /* Cosmetic overrides only — layout (display/grid-template-columns,
+               including the 768px Loom Drop) stays owned by the canonical
+               .tantu-loom / .tantu-loom-content rules in tantu.css so this
+               page never fights the design system's responsive collapse. */
             .tantu-loom {
-              display: grid;
-              width: 100%;
-              min-height: 100vh;
-              grid-template-columns: var(--tantu-knot-8) 1fr var(--tantu-knot-8);
               background-color: var(--tantu-bg-substrate);
             }
-            .tantu-loom-selvedge-left, .tantu-loom-selvedge-right {
+            .tantu-selvedge-left, .tantu-selvedge-right {
               background: repeating-linear-gradient(
                 0deg,
                 transparent,
-                transparent 12px,
-                var(--tantu-grid-thread) 12px,
-                var(--tantu-grid-thread) 13px
+                transparent var(--tantu-knot-2),
+                var(--tantu-grid-thread) var(--tantu-knot-2),
+                var(--tantu-grid-thread) calc(var(--tantu-knot-2) + var(--tantu-gauge-filament))
               );
               opacity: 0.25;
             }
             .tantu-loom-content {
-              display: grid;
-              grid-template-columns: repeat(12, 1fr);
               gap: var(--tantu-knot-4);
               padding: var(--tantu-knot-6) 0;
             }
             nav.tantu-nav {
-              grid-column: span 12;
               display: flex;
               align-items: center;
               justify-content: space-between;
-              padding: 16px var(--tantu-knot-4);
+              flex-wrap: wrap;
+              gap: var(--tantu-knot-2);
+              padding: var(--tantu-knot-3) var(--tantu-knot-4);
               border-bottom: var(--tantu-gauge-filament) solid var(--tantu-border-embroidery);
               background: var(--tantu-kora-raw);
               margin-bottom: var(--tantu-knot-6);
@@ -247,14 +246,15 @@ function SiteApp({ reposData, tantuCss }) {
             .nav-brand {
               display: flex;
               align-items: center;
-              gap: 12px;
+              flex-shrink: 0;
+              white-space: nowrap;
+              gap: var(--tantu-knot-2);
               text-decoration: none;
               color: var(--tantu-accent-primary);
               font-weight: 700;
               font-family: var(--font-kasuti);
             }
             .hero-warp {
-              grid-column: span 12;
               text-align: center;
             }
             .hero-title {
@@ -263,14 +263,9 @@ function SiteApp({ reposData, tantuCss }) {
               color: var(--tantu-accent-primary);
               margin: 0 0 var(--tantu-knot-3);
             }
-            .signal-warp {
-              grid-column: span 12;
-            }
             .section-title-warp {
-              grid-column: span 12;
               border-bottom: var(--tantu-gauge-filament) dashed var(--tantu-grid-thread);
-              padding-bottom: 8px;
-              margin-bottom: var(--tantu-knot-6);
+              padding-bottom: var(--tantu-knot-1);
             }
             .section-title-text {
               font-family: var(--font-kalam);
@@ -279,7 +274,6 @@ function SiteApp({ reposData, tantuCss }) {
               margin: 0;
             }
             footer.tantu-footer {
-              grid-column: span 12;
               text-align: center;
               padding: var(--tantu-knot-8) 0;
               border-top: var(--tantu-gauge-filament) solid var(--tantu-border-embroidery);
@@ -293,7 +287,9 @@ function SiteApp({ reposData, tantuCss }) {
       </head>
       <body>
         <TantuLoom viewTalimCode="AIW-HOME-01" shuttle={true}>
-            {/* Navigation */}
+            {/* Navigation — only TantuCell/TantuCard/ChambaRumalCard may be a
+                direct child of TantuLoom, so the nav lives inside a cell. */}
+            <TantuCell warpSpan={12}>
             <nav className="tantu-nav" aria-label="Main navigation">
               <a href="/" className="nav-brand">
                 <svg width="28" height="28" viewBox="0 0 88 88" aria-hidden="true">
@@ -304,7 +300,7 @@ function SiteApp({ reposData, tantuCss }) {
                 </svg>
                 <span>AIWEAVE</span>
               </a>
-              <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+              <div style={{ display: "flex", gap: "var(--tantu-knot-2)", alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
                 <a href="#home" style={{ textDecoration: "none" }}>
                   <TantuButton variant="ghost" bleed={false}>HOME</TantuButton>
                 </a>
@@ -325,80 +321,79 @@ function SiteApp({ reposData, tantuCss }) {
                 </a>
               </div>
             </nav>
+            </TantuCell>
 
-            {/* Hero Section */}
-            <div className="hero-warp">
-              <TantuCard warpSpan={12} reliefLevel="zardozi" talimCode="TALIM-HERO-01">
-                <div style={{ padding: "12px 0" }}>
-                  <TantuTag tone="accent" solid={false}>TANTU DESIGN SYSTEM (REACT NATIVE ENGINE)</TantuTag>
-                  <h1 className="hero-title" style={{ marginTop: "16px" }}>AIWeave Infrastructure</h1>
-                  <p style={{ fontFamily: "var(--font-kasuti)", color: "var(--tantu-zari-pure-gold)", fontSize: "1.1rem" }}>
-                    [ BUILD · FINE-TUNE · ORCHESTRATE · DEPLOY ]
-                  </p>
-                  <p style={{ maxWidth: "680px", margin: "0 auto 28px", fontSize: "0.95rem", color: "var(--tantu-ink-secondary)", lineHeight: 1.8 }}>
-                    Production-ready AWS-native AI infrastructure generated natively with Tantu React Design Library components.
-                  </p>
-                  <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-                    <a href="#projects" style={{ textDecoration: "none" }}>
-                      <TantuButton variant="primary" bleed={false}>Explore Projects</TantuButton>
-                    </a>
-                    <a href={`https://github.com/${GH_OWNER}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-                      <TantuButton variant="secondary" bleed={false}>GitHub Repositories</TantuButton>
-                    </a>
-                  </div>
+            {/* Hero Section — TantuCard is itself a sanctioned direct loom
+                child, so hero-warp styling rides on the card, no extra div. */}
+            <TantuCard warpSpan={12} reliefLevel="zardozi" className="hero-warp">
+              <div style={{ padding: "var(--tantu-knot-2) 0" }}>
+                <TantuTag tone="accent" solid={false}>TANTU DESIGN SYSTEM (REACT NATIVE ENGINE)</TantuTag>
+                <h1 className="hero-title" style={{ marginTop: "var(--tantu-knot-3)" }}>AIWeave Infrastructure</h1>
+                <p style={{ fontFamily: "var(--font-kasuti)", color: "var(--tantu-zari-pure-gold)", fontSize: "1.1rem" }}>
+                  [ BUILD · FINE-TUNE · ORCHESTRATE · DEPLOY ]
+                </p>
+                <p style={{ maxWidth: "680px", margin: "0 auto var(--tantu-knot-4)", fontSize: "0.95rem", color: "var(--tantu-ink-secondary)", lineHeight: 1.8 }}>
+                  Production-ready AWS-native AI infrastructure generated natively with Tantu React Design Library components.
+                </p>
+                <div style={{ display: "flex", gap: "var(--tantu-knot-2)", justifyContent: "center", flexWrap: "wrap" }}>
+                  <a href="#projects" style={{ textDecoration: "none" }}>
+                    <TantuButton variant="primary" bleed={false}>Explore Projects</TantuButton>
+                  </a>
+                  <a href={`https://github.com/${GH_OWNER}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                    <TantuButton variant="secondary" bleed={false}>GitHub Repositories</TantuButton>
+                  </a>
                 </div>
-              </TantuCard>
-            </div>
+              </div>
+            </TantuCard>
 
             {/* Stat Band (3-up desktop, stacked mobile) */}
             <TantuCard warpSpan={4} reliefLevel="kanthi">
               <div style={{ textAlign: "center" }}>
                 <span style={{ fontFamily: "var(--font-kasuti)", fontSize: "2.2rem", fontWeight: 700, color: "var(--tantu-accent-primary)" }}>10</span>
-                <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "4px" }}>OPEN SOURCE TOOLS</div>
+                <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "var(--tantu-knot-1)" }}>OPEN SOURCE TOOLS</div>
               </div>
             </TantuCard>
             <TantuCard warpSpan={4} reliefLevel="kanthi">
               <div style={{ textAlign: "center" }}>
                 <span style={{ fontFamily: "var(--font-kasuti)", fontSize: "2.2rem", fontWeight: 700, color: "var(--tantu-accent-primary)" }}>8+</span>
-                <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "4px" }}>AWS SERVICES INTEGRATED</div>
+                <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "var(--tantu-knot-1)" }}>AWS SERVICES INTEGRATED</div>
               </div>
             </TantuCard>
             <TantuCard warpSpan={4} reliefLevel="kanthi">
               <div style={{ textAlign: "center" }}>
                 <span style={{ fontFamily: "var(--font-kasuti)", fontSize: "2.2rem", fontWeight: 700, color: "var(--tantu-accent-primary)" }}>~52%</span>
-                <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "4px" }}>COST SAVINGS VS SAGEMAKER</div>
+                <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "var(--tantu-knot-1)" }}>COST SAVINGS VS SAGEMAKER</div>
               </div>
             </TantuCard>
 
             {/* Projects */}
-            <div id="projects" className="section-title-warp" style={{ marginTop: "32px" }}>
+            <TantuCell warpSpan={12} id="projects" className="section-title-warp" style={{ marginTop: "var(--tantu-knot-6)" }}>
               <h2 className="section-title-text">[01] The Weave Ecosystem</h2>
-            </div>
+            </TantuCell>
 
-            {reposData.map((repo, idx) => {
+            {reposData.map((repo) => {
               const meta = REPO_META[repo] || {
                 icon: "⬢",
                 tagline: "AWS-native AI tool · Open source",
                 tech: ["Python", "AWS", "Open Source"],
                 fallback_desc: "An open-source AWS-native tool from the AIWeave ecosystem.",
               };
-              const talimCode = `TALIM-W${String(idx + 1).padStart(2, "0")}`;
 
               return (
-                <TantuCard key={repo} warpSpan={6} reliefLevel="kanthi" talimCode={talimCode}>
+                <TantuCard key={repo} warpSpan={6} reliefLevel="kanthi">
                   <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
                     <div>
-                      <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "12px" }}>
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--tantu-knot-2)", marginBottom: "var(--tantu-knot-2)" }}>
                         <span style={{ fontSize: "1.6rem", lineHeight: 1, color: "var(--tantu-accent-highlight)" }}>{meta.icon}</span>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <h3 style={{ margin: "0 0 4px", fontFamily: "var(--font-kalam)", color: "var(--tantu-accent-primary)" }}>{repo}</h3>
+                          <h3 style={{ margin: "0 0 var(--tantu-knot-1)", fontFamily: "var(--font-kalam)", color: "var(--tantu-accent-primary)" }}>{repo}</h3>
                           <p style={{ margin: 0, fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", fontFamily: "var(--font-talim)" }}>{meta.tagline}</p>
                         </div>
                       </div>
-                      <p style={{ fontSize: "0.88rem", color: "var(--tantu-ink-primary)", lineHeight: 1.7, marginBottom: "16px" }}>{meta.fallback_desc}</p>
+                      <p style={{ fontSize: "0.88rem", color: "var(--tantu-ink-primary)", lineHeight: 1.7, marginBottom: "var(--tantu-knot-3)" }}>{meta.fallback_desc}</p>
                     </div>
                     <div>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "16px" }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--tantu-knot-1)", marginBottom: "var(--tantu-knot-3)" }}>
                         {meta.tech.map((tech) => (
                           <TantuTag key={tech} tone="accent">{tech}</TantuTag>
                         ))}
@@ -413,23 +408,23 @@ function SiteApp({ reposData, tantuCss }) {
             })}
 
             {/* Architecture Stack */}
-            <div id="architecture" className="section-title-warp" style={{ marginTop: "40px", textAlign: "center" }}>
+            <TantuCell warpSpan={12} id="architecture" className="section-title-warp" style={{ marginTop: "var(--tantu-knot-6)", textAlign: "center" }}>
               <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.8rem", color: "var(--tantu-accent-highlight)", letterSpacing: "0.15em" }}>
                 | SYSTEM DESIGN
               </div>
-              <h2 className="hero-title" style={{ fontSize: "2.8rem", margin: "8px 0" }}>
+              <h2 className="hero-title" style={{ fontSize: "2.8rem", margin: "var(--tantu-knot-1) 0" }}>
                 The <span style={{ color: "var(--tantu-accent-structural)" }}>Architecture</span> Stack
               </h2>
-            </div>
+            </TantuCell>
 
             {ARCH_LAYERS.map((layer) => (
               <TantuCard key={layer.label} warpSpan={12} reliefLevel="kanthi">
-                <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "var(--tantu-knot-3)", flexWrap: "wrap" }}>
                   <span style={{ fontSize: "1.3rem", color: "var(--tantu-accent-highlight)" }}>{layer.icon}</span>
                   <span style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.12em", color: "var(--tantu-accent-primary)", minWidth: "180px" }}>
                     {layer.label}
                   </span>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--tantu-knot-1)" }}>
                     {layer.chips.map((chip) => (
                       <TantuTag key={chip} tone="neutral">{chip}</TantuTag>
                     ))}
@@ -439,38 +434,35 @@ function SiteApp({ reposData, tantuCss }) {
             ))}
 
             {/* Developer Experience */}
-            <div id="story" className="section-title-warp" style={{ marginTop: "40px", textAlign: "center" }}>
+            <TantuCell warpSpan={12} id="story" className="section-title-warp" style={{ marginTop: "var(--tantu-knot-6)", textAlign: "center" }}>
               <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.8rem", color: "var(--tantu-accent-highlight)", letterSpacing: "0.15em" }}>
                 | DEVELOPER EXPERIENCE
               </div>
-              <h2 className="hero-title" style={{ fontSize: "2.5rem", margin: "8px 0" }}>
+              <h2 className="hero-title" style={{ fontSize: "2.5rem", margin: "var(--tantu-knot-1) 0" }}>
                 Execution & Workflow
               </h2>
-            </div>
+            </TantuCell>
 
             {STORY_PANELS.map((panel) => (
               <TantuCard key={panel.step} warpSpan={3} reliefLevel="kanthi">
-                <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", color: "var(--tantu-accent-highlight)", fontWeight: 700, marginBottom: "8px" }}>
-                  [TALIM-STEP-{panel.step}]
-                </div>
-                <h3 style={{ fontFamily: "var(--font-kalam)", fontSize: "1.2rem", color: "var(--tantu-accent-primary)", marginBottom: "10px" }}>{panel.title}</h3>
+                <h3 style={{ fontFamily: "var(--font-kalam)", fontSize: "1.2rem", color: "var(--tantu-accent-primary)", marginBottom: "var(--tantu-knot-2)" }}>{panel.title}</h3>
                 <p style={{ fontSize: "0.85rem", color: "var(--tantu-ink-primary)", lineHeight: 1.6, margin: 0 }}>{panel.body}</p>
               </TantuCard>
             ))}
 
             {/* About */}
-            <div id="about" className="section-title-warp" style={{ marginTop: "40px" }}>
+            <TantuCell warpSpan={12} id="about" className="section-title-warp" style={{ marginTop: "var(--tantu-knot-6)" }}>
               <h2 className="section-title-text">[04] About AIWeave</h2>
-            </div>
+            </TantuCell>
 
-            <TantuCard warpSpan={12} reliefLevel="zardozi" talimCode="TALIM-ABOUT-01">
-              <p style={{ fontSize: "0.95rem", color: "var(--tantu-ink-primary)", lineHeight: 1.8, marginBottom: "16px" }}>
+            <TantuCard warpSpan={12} reliefLevel="zardozi">
+              <p style={{ fontSize: "0.95rem", color: "var(--tantu-ink-primary)", lineHeight: 1.8, marginBottom: "var(--tantu-knot-3)" }}>
                 <strong>AIWeave</strong> is an ecosystem of open-source, AWS-native AI infrastructure tools built for engineers who need production-grade AI systems without proprietary lock-in.
               </p>
-              <p style={{ fontSize: "0.95rem", color: "var(--tantu-ink-secondary)", lineHeight: 1.8, marginBottom: "16px" }}>
+              <p style={{ fontSize: "0.95rem", color: "var(--tantu-ink-secondary)", lineHeight: 1.8, marginBottom: "var(--tantu-knot-3)" }}>
                 Every library is composed on AWS primitives: Lambda, Bedrock, Step Functions, DynamoDB, EC2 Spot, API Gateway, S3, and Neptune. Built natively using <strong>Tantu React Design Library Components</strong>.
               </p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--tantu-knot-1)" }}>
                 <TantuTag tone="accent">JavaScript / React</TantuTag>
                 <TantuTag tone="neutral">AWS Bedrock</TantuTag>
                 <TantuTag tone="neutral">Lambda</TantuTag>
@@ -481,9 +473,11 @@ function SiteApp({ reposData, tantuCss }) {
             </TantuCard>
 
             {/* Footer */}
+            <TantuCell warpSpan={12}>
             <footer className="tantu-footer">
               <p>© 2026 AIWeave · Built with Tantu · Apache 2.0</p>
             </footer>
+            </TantuCell>
         </TantuLoom>
         <script
           dangerouslySetInnerHTML={{

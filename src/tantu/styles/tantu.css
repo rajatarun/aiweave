@@ -49,7 +49,50 @@
   --tantu-color-accent: #82231d;
   --tantu-color-structure: #0d233a;
   --tantu-color-metallic: #c5a059;
+
+  /* The single breakpoint where the Loom hands off to the Darshan Lens. */
+  --tantu-breakpoint-lens: 768px;
+
+  /* 3. BASE-6 WARP & WEFT SPACING LATTICE
+     Deliberately non-linear: x1,2,3,4 then x6,8,12.
+     knot-5 and knot-7 are intentionally absent — do not "fix" the gap. */
+  --tantu-knot-1: 6px;
+  --tantu-knot-2: 12px;
+  --tantu-knot-3: 18px;
+  --tantu-knot-4: 24px;
+  --tantu-knot-6: 36px;
+  --tantu-knot-8: 48px;
+  --tantu-knot-12: 72px;
+
+  /* 4. THREAD GAUGES */
+  --tantu-gauge-filament: 1px;
+  --tantu-gauge-ply: 2px;
+  --tantu-gauge-cord: 4px;
+  --tantu-gauge-braid: 6px;
+
+  /* 5. TYPOGRAPHIC SPECIFICATIONS */
+  /* Primary brand fonts must be loaded by the consumer application.
+     IBM Plex serves as the on-screen fallback until the brand files are supplied. */
+  --font-talim: "Talim-Mono", "IBM Plex Mono", "Courier New", monospace;
+  --font-kalam: "Kalam-Rupa", "IBM Plex Serif", Georgia, serif;
+  --font-kasuti: "Kasuti-Gauze", "IBM Plex Mono", "Lucida Console", monospace;
+
+  --tantu-font-size-base: 14px;
+  --tantu-line-height-base: 1.5;
+
+  /* 6. KINETIC PRIMITIVES */
+  --tantu-motion-capillary: cubic-bezier(0.12, 0.9, 0.24, 1);
+  --tantu-motion-batten: 60ms;
+  --tantu-motion-shuttle: 180ms;
+  --tantu-motion-unspool: 240ms;
 }
+
+/* These tokens (breakpoint, knot spacing, gauges, fonts, motion) are
+   theme-agnostic — they describe the loom's physical construction, not its
+   dye. They belong on :root above, not inside a [data-theme] block: nesting
+   them under [data-theme="dark"] means they only resolve once dark mode is
+   active, leaving every var(--tantu-knot-*)/var(--font-*)/var(--tantu-gauge-*)
+   reference undefined on the light-mode default this page ships with. */
 
 [data-theme="light"] {
   --tantu-bg-substrate: #f3eee2;
@@ -95,42 +138,6 @@
   --tantu-color-accent: #c5a059;
   --tantu-color-structure: #4c7ba6;
   --tantu-color-metallic: #c5a059;
-
-  /* The single breakpoint where the Loom hands off to the Darshan Lens. */
-  --tantu-breakpoint-lens: 768px;
-
-  /* 3. BASE-6 WARP & WEFT SPACING LATTICE
-     Deliberately non-linear: x1,2,3,4 then x6,8,12.
-     knot-5 and knot-7 are intentionally absent — do not "fix" the gap. */
-  --tantu-knot-1: 6px;
-  --tantu-knot-2: 12px;
-  --tantu-knot-3: 18px;
-  --tantu-knot-4: 24px;
-  --tantu-knot-6: 36px;
-  --tantu-knot-8: 48px;
-  --tantu-knot-12: 72px;
-
-  /* 4. THREAD GAUGES */
-  --tantu-gauge-filament: 1px;
-  --tantu-gauge-ply: 2px;
-  --tantu-gauge-cord: 4px;
-  --tantu-gauge-braid: 6px;
-
-  /* 5. TYPOGRAPHIC SPECIFICATIONS */
-  /* Primary brand fonts must be loaded by the consumer application.
-     IBM Plex serves as the on-screen fallback until the brand files are supplied. */
-  --font-talim: "Talim-Mono", "IBM Plex Mono", "Courier New", monospace;
-  --font-kalam: "Kalam-Rupa", "IBM Plex Serif", Georgia, serif;
-  --font-kasuti: "Kasuti-Gauze", "IBM Plex Mono", "Lucida Console", monospace;
-
-  --tantu-font-size-base: 14px;
-  --tantu-line-height-base: 1.5;
-
-  /* 6. KINETIC PRIMITIVES */
-  --tantu-motion-capillary: cubic-bezier(0.12, 0.9, 0.24, 1);
-  --tantu-motion-batten: 60ms;
-  --tantu-motion-shuttle: 180ms;
-  --tantu-motion-unspool: 240ms;
 }
 
 /* GLOBAL RESET & LOOM SUBSTRATE */
@@ -175,6 +182,13 @@ p, h1, h2, h3, h4, h5, h6, li, td, th, span, div, button, label, a, code {
   background-color: var(--tantu-grid-thread);
 }
 
+/* Explicit line placement, not DOM-order auto-placement: the selvedges
+   collapse to display:none on mobile (below), and an auto-placed grid item
+   re-flows into whatever the first remaining track is once a sibling drops
+   out of the box tree. That silently shifted the main weave into the left
+   selvedge's own 0-width track and collapsed the entire loom. Pinning all
+   three to fixed lines makes their placement independent of each other's
+   presence or DOM order at every viewport. */
 .tantu-selvedge-left,
 .tantu-selvedge-right {
   background-color: var(--tantu-bg-elevated);
@@ -189,9 +203,12 @@ p, h1, h2, h3, h4, h5, h6, li, td, th, span, div, button, label, a, code {
   letter-spacing: 0.15em;
   color: var(--tantu-ink-secondary);
 }
+.tantu-selvedge-left { grid-column: 1; }
+.tantu-selvedge-right { grid-column: 3; }
 
 .tantu-loom-content {
   display: grid;
+  grid-column: 2;
   /* 12 equal-width columns. minmax(0, 1fr) prevents content blowout */
   grid-template-columns: repeat(12, minmax(0, 1fr));
   /* The 1px gap reveals the background, drawing the literal threads */
@@ -254,26 +271,35 @@ p, h1, h2, h3, h4, h5, h6, li, td, th, span, div, button, label, a, code {
     gap: var(--tantu-knot-3);
   }
 
-  .tantu-cell-warp-12,
-  .tantu-cell-warp-6,
-  .tantu-cell-warp-4,
-  .tantu-cell-warp-3,
-  .tantu-cell-warp-2,
-  .tantu-cell-warp-1 { grid-column: span 4 !important; }
+  /* Every direct pick is clamped to the 4-thread travel loom, no matter
+     what class granted its span (this supersedes a tantu-cell-warp-1/2/3/4/6/12
+     list that used to live here). A consumer page that lays its own
+     full-width sections (nav, hero, section headers, footer) directly into
+     .tantu-loom-content — instead of routing them through a sanctioned
+     tantu-cell-warp-* utility — must not be able to force the grid to widen
+     past its explicit 4 columns. That implicit-column overflow is what used
+     to collapse unrelated siblings into near-zero-width tracks and render
+     their text one letter per line. */
+  .tantu-loom-content > * {
+    grid-column: span 4 !important;
+  }
 
   /* Kalam-Rupa is cut down so a single word never exceeds the travel loom. */
   h1.tantu-heading-kalam { font-size: 30px; }
   h2.tantu-heading-kalam { font-size: 22px; }
   h3.tantu-heading-kalam { font-size: 17px; }
+
+  html,
+  body {
+    overflow-x: hidden;
+  }
 }
 
 /* The single-thread loom: on the narrowest frames every pick runs the full
    width of the cloth. */
 @media (max-width: 480px) {
-  .tantu-loom-content > .tantu-cell,
-  .tantu-loom-content > .tantu-card,
-  .tantu-loom-content > [class*="tantu-cell-warp-"] {
-    grid-column: span 4;
+  .tantu-loom-content > * {
+    grid-column: span 4 !important;
   }
 }
 
@@ -287,13 +313,6 @@ p, h1, h2, h3, h4, h5, h6, li, td, th, span, div, button, label, a, code {
 .tantu-loom-content :where(p, h1, h2, h3, h4, h5, h6, li, td, th, span, div, button, label) {
   overflow-wrap: anywhere;
   word-break: break-word;
-}
-
-@media (max-width: 768px) {
-  html,
-  body {
-    overflow-x: hidden;
-  }
 }
 
 
