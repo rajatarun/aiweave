@@ -67,13 +67,10 @@ def _perp(dx, dy):
         return (0.0, 0.0)
     return (dy / length, -dx / length)
 
-def draw_ribbon(pen, points, width):
-    """Fill a thick polyline through `points`, CCW."""
+def _tangents(points):
+    """Local travel direction at each point of a polyline."""
     n = len(points)
-    if n < 2 or width <= 0:
-        return
-    hw = width / 2
-    normals = []
+    out = []
     for i in range(n):
         if i == 0:
             dx, dy = points[1][0] - points[0][0], points[1][1] - points[0][1]
@@ -81,9 +78,47 @@ def draw_ribbon(pen, points, width):
             dx, dy = points[-1][0] - points[-2][0], points[-1][1] - points[-2][1]
         else:
             dx, dy = points[i + 1][0] - points[i - 1][0], points[i + 1][1] - points[i - 1][1]
-        normals.append(_perp(dx, dy))
-    left = [(points[i][0] + normals[i][0] * hw, points[i][1] + normals[i][1] * hw) for i in range(n)]
-    right = [(points[i][0] - normals[i][0] * hw, points[i][1] - normals[i][1] * hw) for i in range(n)]
+        out.append((dx, dy))
+    return out
+
+# The Kalam nib. "Kalam" is the reed pen (क़लम / قلم), so the display face is
+# modelled as one: a broad nib held at a fixed angle. A broad nib lays down
+# its full width only when the stroke travels perpendicular to the nib edge,
+# and narrows to a hairline when the stroke runs along it — which is exactly
+# where a humanist face's thick/thin modulation comes from, and what the
+# spec means by "organic, varied stroke widths."
+KALAM_NIB_ANGLE = 30.0   # degrees from horizontal, the classic broad-nib hold
+KALAM_NIB_FLOOR = 0.15   # thinnest stroke as a fraction of full nib width;
+                         # never 0, or the outline would pinch shut
+
+def nib_width(dx, dy, base, angle_deg=KALAM_NIB_ANGLE, floor=KALAM_NIB_FLOOR):
+    """Width the nib projects for a stroke travelling along (dx, dy)."""
+    if dx == 0 and dy == 0:
+        return base
+    theta = math.atan2(dy, dx)
+    alpha = math.radians(angle_deg)
+    return base * (floor + (1.0 - floor) * abs(math.sin(theta - alpha)))
+
+def draw_ribbon(pen, points, width):
+    """Fill a thick polyline through `points`, CCW.
+
+    `width` is either a scalar (a uniform monoline ribbon — Talim's thread)
+    or a callable (dx, dy) -> width, evaluated per point against the local
+    travel direction, which is how Kalam gets its nib modulation.
+    """
+    n = len(points)
+    if n < 2:
+        return
+    tangents = _tangents(points)
+    if callable(width):
+        halves = [width(dx, dy) / 2 for dx, dy in tangents]
+    else:
+        if width <= 0:
+            return
+        halves = [width / 2] * n
+    normals = [_perp(dx, dy) for dx, dy in tangents]
+    left = [(points[i][0] + normals[i][0] * halves[i], points[i][1] + normals[i][1] * halves[i]) for i in range(n)]
+    right = [(points[i][0] - normals[i][0] * halves[i], points[i][1] - normals[i][1] * halves[i]) for i in range(n)]
     pen.moveTo(left[0])
     for p in left[1:]:
         pen.lineTo(p)
@@ -327,15 +362,24 @@ def _serif(pen, p_end, p_next, width):
     pen.closePath()
 
 def stroke_kalam(pen, stroke, width):
-    """Smooth ribbon with slab serifs at the stroke ends — the display
-    face, brush-drawn."""
-    pts = sample_stroke(stroke, n=16)
+    """Reed-nib ribbon with slab serifs at the stroke ends — the display face.
+
+    The ribbon width is not constant: it is what the broad nib projects for
+    the local direction of travel (see nib_width), so verticals come out
+    full-weight, horizontals thin, and curves swell and taper continuously
+    around the bowl. That modulation is the spec's "organic, varied stroke
+    widths"; a single scalar width here would make this face a monoline,
+    geometrically identical to Talim.
+    """
+    pts = sample_stroke(stroke, n=24)
     if _path_length(pts) < width * 0.6:
         draw_square_dot(pen, pts[0][0], pts[0][1], width * 1.2)
         return
-    draw_ribbon(pen, pts, width)
-    _serif(pen, pts[0], pts[1], width)
-    _serif(pen, pts[-1], pts[-2], width)
+    draw_ribbon(pen, pts, lambda dx, dy: nib_width(dx, dy, width))
+    # Serifs pick up the nib width of the stroke they cap, so a thin
+    # horizontal terminal doesn't sprout a full-weight slab.
+    for end, nxt in ((pts[0], pts[1]), (pts[-1], pts[-2])):
+        _serif(pen, end, nxt, nib_width(end[0] - nxt[0], end[1] - nxt[1], width))
 
 def build_family(family_name, stroke_fn, weight, is_mono=False):
     font = init_font(family_name, is_mono=is_mono)
@@ -392,7 +436,10 @@ if __name__ == "__main__":
     talim = build_family("Talim-Mono", stroke_talim, weight=44, is_mono=True)
     compile_and_save(talim, "Talim-Mono")
 
-    kalam = build_family("Kalam-Rupa", stroke_kalam, weight=56)
+    # Base = the nib's FULL width, reached only on strokes running square to
+    # the nib; most strokes render lighter, so this sits above the old
+    # monoline 56 to keep the stems' visual weight.
+    kalam = build_family("Kalam-Rupa", stroke_kalam, weight=70)
     compile_and_save(kalam, "Kalam-Rupa")
 
     print("=== Build Complete ===")
