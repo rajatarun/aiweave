@@ -121,6 +121,30 @@ jobs:
           aws s3 cp assets/ "s3://${BUCKET}/assets/" \
             --recursive \
             --cache-control "public, max-age=86400"
+
+      - name: Upload fonts
+        # index.html's @font-face rules (see generate_site.jsx) reference
+        # fonts/*.woff2 and .woff — without this step those requests 404 on
+        # the live site and every browser silently falls back to the IBM
+        # Plex stack, indistinguishable from the custom fonts never having
+        # been wired in at all. Explicit --content-type per extension
+        # because S3's automatic guess for .woff2/.woff isn't reliable
+        # across CLI versions, and Safari in particular rejects a font
+        # served with the wrong MIME type.
+        run: |
+          aws s3 cp fonts/ "s3://${BUCKET}/fonts/" \
+            --recursive --exclude "*" --include "*.woff2" \
+            --content-type "font/woff2" \
+            --cache-control "public, max-age=86400"
+          aws s3 cp fonts/ "s3://${BUCKET}/fonts/" \
+            --recursive --exclude "*" --include "*.woff" \
+            --content-type "font/woff" \
+            --cache-control "public, max-age=86400"
+          aws s3 cp fonts/ "s3://${BUCKET}/fonts/" \
+            --recursive --exclude "*" --include "*.ttf" \
+            --content-type "font/ttf" \
+            --cache-control "public, max-age=86400"
+
       - name: Output website URL
         run: |
           echo "Website: http://${BUCKET}.s3-website-us-east-1.amazonaws.com"
