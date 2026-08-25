@@ -815,12 +815,24 @@ function SiteApp({ reposData, tantuCss }) {
               // attribute ChambaRumalCard's isFlipped prop would drive in a
               // hydrated app (see .tantu-card-rumal in tantu.css). Delegated
               // to the document since the cards are generated per-repo.
+              // Sets --tantu-rumal-ox/oy to the trigger button's own centre
+              // (not the raw click point — a keyboard-activated click has no
+              // meaningful clientX/clientY) so the dye front spreads from
+              // wherever the reader actually pressed.
               (function() {
                 document.addEventListener('click', function (event) {
                   var trigger = event.target.closest && event.target.closest('.tantu-rumal-flip');
                   if (!trigger) return;
                   var card = trigger.closest('.tantu-card-rumal');
                   if (!card) return;
+
+                  var cardBox = card.getBoundingClientRect();
+                  var triggerBox = trigger.getBoundingClientRect();
+                  var ox = ((triggerBox.left + triggerBox.width / 2 - cardBox.left) / cardBox.width) * 100;
+                  var oy = ((triggerBox.top + triggerBox.height / 2 - cardBox.top) / cardBox.height) * 100;
+                  card.style.setProperty('--tantu-rumal-ox', ox + '%');
+                  card.style.setProperty('--tantu-rumal-oy', oy + '%');
+
                   var reversed = card.getAttribute('data-state') === 'reverse';
                   card.setAttribute('data-state', reversed ? 'obverse' : 'reverse');
                   var obverse = card.querySelector('.tantu-rumal-obverse');
