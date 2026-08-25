@@ -1609,6 +1609,15 @@ body:has(.tantu-loom-substrate) .tantu-loom {
   grid-template-rows: 1fr;
   position: relative;
   overflow: hidden;
+  /* Belt and braces alongside overflow:hidden: the wet rim's SVG filter
+     declares an expanded x/y/width/height region (see InkBleedFilter) so
+     it has room to displace pixels near the edge, and that expanded
+     region isn't reliably clipped by plain overflow — it was spilling
+     frayed blobs past this card's own border into the page background,
+     over whatever sat next to it in the grid. An explicit clip-path,
+     which the filter/clip-path compositing pipeline treats as
+     authoritative regardless, actually contains it. */
+  clip-path: inset(0);
 }
 
 .tantu-rumal-obverse,
@@ -1616,16 +1625,26 @@ body:has(.tantu-loom-substrate) .tantu-loom {
   /* Both layers sit in the exact same grid cell */
   grid-area: 1 / 1 / 2 / 2;
   position: relative;
-  /* No `transition` on clip-path here, deliberately: a CSS
-     transition-timing-function can only ever be a cubic-bezier or a step
-     function, and the loom's capillary uptake is neither — it's the
-     asymptotic wick curve src/tantu/lib/capillary-bleed.ts's shader
-     actually runs, radius(t) = maxRadius * (1 - e^(-3.4 * t)), the same
-     comment there flags as "never a bezier." A bezier can be tuned to
-     *look* front-loaded like that curve, but it isn't the curve — so
-     whichever face is being revealed has its clip-path driven frame by
-     frame in JS against the real formula (see the flip script below)
-     instead. These are just the two faces' resting states. */
+  /* overflow:hidden and clip-path on .tantu-card-rumal (two levels up)
+     were not reliably containing the rim's filter output — it kept
+     spilling frayed blobs past the card's own border. Containing it
+     directly on the rim's actual parent is what worked in testing. */
+  overflow: hidden;
+  /* Driven from JS as three custom properties rather than a literal
+     clip-path string, so both this element's own (sharp) clip-path and
+     its ::before rim's (frayed, larger-radius) clip-path recompute from
+     the same numbers every frame with no extra JS work. No `transition`
+     here, deliberately: a CSS transition-timing-function can only ever
+     be a cubic-bezier or a step function, and the loom's capillary
+     uptake is neither — it's the asymptotic wick curve
+     src/tantu/lib/capillary-bleed.ts's shader actually runs,
+     radius(t) = maxRadius * (1 - e^(-3.4 * t)), the same comment there
+     flags as "never a bezier." So whichever face is being revealed has
+     its radius driven frame by frame in JS against the real formula
+     (see the flip script below) instead. */
+  --tantu-rumal-ox: 50%;
+  --tantu-rumal-oy: 50%;
+  clip-path: circle(var(--tantu-rumal-r) at var(--tantu-rumal-ox) var(--tantu-rumal-oy));
 }
 
 .tantu-rumal-obverse {
@@ -1637,7 +1656,7 @@ body:has(.tantu-loom-substrate) .tantu-loom {
      was still visible underneath. Same surface token .tantu-card itself
      paints with, so the two are indistinguishable once fully open. */
   background-color: var(--tantu-color-surface);
-  clip-path: circle(150% at 50% 50%);
+  --tantu-rumal-r: 150%;
 }
 
 .tantu-rumal-reverse {
@@ -1645,8 +1664,57 @@ body:has(.tantu-loom-substrate) .tantu-loom {
   background-color: var(--tantu-accent-structural);
   /* 150% is relative to the box, comfortably clearing every corner from
      any origin the dye front starts at. */
-  clip-path: circle(0% at 50% 50%);
+  --tantu-rumal-r: 0%;
   pointer-events: none;
+}
+
+/* The wet rim — two nested elements, deliberately, not one.
+   CSS applies `filter` to an element BEFORE that same element's own
+   `clip-path` (spec order: filter, then clip-path, then mask). A single
+   solid-colour box that is both clipped AND filtered gets its uniform
+   interior perturbed — nothing for a displacement map to grab onto — and
+   is then cropped by a mathematically clean clip-path regardless; the
+   edge never actually tears (confirmed: that was the first version of
+   this rule, and it rendered a perfect circle no matter the filter
+   settings). Splitting it fixes that: .tantu-rumal-rim-fill is clipped to
+   a hard-edged circle first; its wrapper .tantu-rumal-rim-filter (no
+   clip-path of its own) then applies the turbulence filter to that
+   already-rendered hard edge, which is the only order that actually
+   frays it. Applying the filter straight to the real content instead of
+   this separate rim was tried too — every line of manifest text came out
+   visibly warped and blurred, unreadable, since a filter distorts
+   everything painted inside the filtered element, text included. */
+.tantu-rumal-rim-filter {
+  /* Hidden except while the flip script is actually animating this face
+     (toggled to display:block there): at rest the sharp content's own
+     circle is wide open (150%) with no edge left to fray, but the SVG
+     filter's declared region still extends past the element's own box
+     (x="-10%" ... width="120%" in InkBleedFilter) — and left permanently
+     on, that spilled paint wasn't being clipped by this card's own
+     overflow:hidden, leaving dark frayed blobs sitting in the page
+     background outside the card border indefinitely. Only exists during
+     the ~1.4s the edge is actually moving. */
+  display: none;
+  position: absolute;
+  inset: 0;
+  /* .tantu-rumal-obverse/-reverse each carry an explicit z-index (they're
+     what stack the two faces), which makes them stacking contexts in their
+     own right — inside one, a positioned z-index:auto child (this rim)
+     paints ABOVE plain in-flow content (the real text) regardless of DOM
+     order. Without this negative z-index the rim sat on top of the
+     manifest text and blotted it out completely rather than sitting
+     behind it. */
+  z-index: -1;
+  background-color: inherit;
+  filter: url(#tantu-rumal-bleed);
+  pointer-events: none;
+}
+
+.tantu-rumal-rim-fill {
+  position: absolute;
+  inset: 0;
+  background-color: inherit;
+  clip-path: circle(calc(var(--tantu-rumal-r) + 4%) at var(--tantu-rumal-ox) var(--tantu-rumal-oy));
 }
 
 .tantu-card-rumal[data-state="reverse"] .tantu-rumal-reverse {
