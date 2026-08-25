@@ -815,30 +815,67 @@ function SiteApp({ reposData, tantuCss }) {
               // attribute ChambaRumalCard's isFlipped prop would drive in a
               // hydrated app (see .tantu-card-rumal in tantu.css). Delegated
               // to the document since the cards are generated per-repo.
-              // Sets --tantu-rumal-ox/oy to the trigger button's own centre
-              // (not the raw click point — a keyboard-activated click has no
-              // meaningful clientX/clientY) so the dye front spreads from
-              // wherever the reader actually pressed.
+              //
+              // The reveal is driven frame by frame against the exact same
+              // capillary uptake curve src/tantu/lib/capillary-bleed.ts's
+              // shader runs — radius(t) = maxRadius * (1 - e^(-K * t)),
+              // K = 3.4 — not a CSS transition-timing-function, which can
+              // only be a bezier or a step function and would only ever
+              // approximate that curve's shape, never actually run it.
               (function() {
+                var K = 3.4; // capillary uptake rate; matches the shader exactly
+                var MAX_R = 150; // percent — clears every corner from any origin
+
+                function growClipPath(el, ox, oy, duration) {
+                  var start = null;
+                  function frame(now) {
+                    if (start === null) start = now;
+                    var t = Math.min(1, (now - start) / duration);
+                    var r = MAX_R * (1 - Math.exp(-K * t));
+                    el.style.clipPath = 'circle(' + r.toFixed(2) + '% at ' + ox + '% ' + oy + '%)';
+                    if (t < 1) {
+                      requestAnimationFrame(frame);
+                    } else {
+                      // The exponential only asymptotically approaches 1
+                      // (96.66% of MAX_R at t=1) — snap the last sliver shut
+                      // so the incoming face is genuinely fully covered.
+                      el.style.clipPath = 'circle(' + MAX_R + '% at ' + ox + '% ' + oy + '%)';
+                    }
+                  }
+                  requestAnimationFrame(frame);
+                }
+
                 document.addEventListener('click', function (event) {
                   var trigger = event.target.closest && event.target.closest('.tantu-rumal-flip');
                   if (!trigger) return;
                   var card = trigger.closest('.tantu-card-rumal');
                   if (!card) return;
 
+                  // Origin is the trigger button's own centre, not the raw
+                  // click point — a keyboard-activated click has no
+                  // meaningful clientX/clientY — so the dye spreads from
+                  // wherever the reader actually pressed either way.
                   var cardBox = card.getBoundingClientRect();
                   var triggerBox = trigger.getBoundingClientRect();
                   var ox = ((triggerBox.left + triggerBox.width / 2 - cardBox.left) / cardBox.width) * 100;
                   var oy = ((triggerBox.top + triggerBox.height / 2 - cardBox.top) / cardBox.height) * 100;
-                  card.style.setProperty('--tantu-rumal-ox', ox + '%');
-                  card.style.setProperty('--tantu-rumal-oy', oy + '%');
 
                   var reversed = card.getAttribute('data-state') === 'reverse';
-                  card.setAttribute('data-state', reversed ? 'obverse' : 'reverse');
+                  var next = reversed ? 'obverse' : 'reverse';
+                  card.setAttribute('data-state', next);
+
                   var obverse = card.querySelector('.tantu-rumal-obverse');
                   var reverse = card.querySelector('.tantu-rumal-reverse');
-                  if (obverse) obverse.setAttribute('aria-hidden', reversed ? 'false' : 'true');
-                  if (reverse) reverse.setAttribute('aria-hidden', reversed ? 'true' : 'false');
+                  var incoming = next === 'reverse' ? reverse : obverse;
+                  var outgoing = next === 'reverse' ? obverse : reverse;
+                  if (incoming) incoming.setAttribute('aria-hidden', 'false');
+                  if (outgoing) outgoing.setAttribute('aria-hidden', 'true');
+
+                  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                  if (incoming) {
+                    incoming.style.clipPath = 'circle(0% at ' + ox + '% ' + oy + '%)';
+                    growClipPath(incoming, ox, oy, reduceMotion ? 1 : 560);
+                  }
                 });
               })();
             `,
