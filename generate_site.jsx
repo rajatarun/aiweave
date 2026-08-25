@@ -329,7 +329,14 @@ function SiteApp({ reposData, tantuCss }) {
               gap: var(--tantu-knot-2);
               padding: var(--tantu-knot-3) var(--tantu-knot-4);
               border-bottom: var(--tantu-gauge-filament) solid var(--tantu-border-embroidery);
-              background: var(--tantu-kora-raw);
+              /* Not --tantu-kora-raw: that's a raw dye primitive, fixed at
+                 #faf7f0 outside both [data-theme] blocks by design (it's the
+                 constant ink used on top of accent-colored surfaces
+                 elsewhere) — using it here pinned the nav to a cream
+                 background no matter the theme, while every sibling chrome
+                 element (.tantu-selvedge-left/right) correctly tracks
+                 --tantu-bg-elevated, which flips with the theme. */
+              background: var(--tantu-bg-elevated);
               margin-bottom: var(--tantu-knot-6);
             }
             .nav-brand {
