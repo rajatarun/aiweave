@@ -9,7 +9,6 @@ import {
   TantuCell,
   TantuCard,
   ChambaRumalCard,
-  TalimThread,
   TantuButton,
   TantuTag,
   TantuMeter,
@@ -226,21 +225,6 @@ function SectionHeader({ id, number, title, style }) {
       </div>
     </TantuCell>
   );
-}
-
-const pad2 = (n) => String(n).padStart(2, "0");
-
-/**
- * Warp/height coordinate for a card at `index` in a repeating row of cards
- * each spanning `span` of the 12-column warp — the same "[W:xx-H:xx]" grid
- * address TantuCard's own talimCode prop renders, computed here instead of
- * invented per-card so it actually reflects each card's real grid position.
- */
-function talimCoord(index, span, rowOffset = 1) {
-  const perRow = Math.max(1, Math.floor(12 / span));
-  const col = (index % perRow) * span + 1;
-  const row = Math.floor(index / perRow) + rowOffset;
-  return `W:${pad2(col)}-H:${pad2(row)}`;
 }
 
 const KASUTI_VIEW_W = 600;
@@ -623,19 +607,19 @@ function SiteApp({ reposData, tantuCss }) {
             </TantuCard>
 
             {/* Stat Band (3-up desktop, stacked mobile) */}
-            <TantuCard warpSpan={4} reliefLevel="kanthi" absorbent talimCode={talimCoord(0, 4)}>
+            <TantuCard warpSpan={4} reliefLevel="kanthi" absorbent>
               <div style={{ textAlign: "center" }}>
                 <span style={{ fontFamily: "var(--font-kasuti)", fontSize: "2.2rem", fontWeight: 700, color: "var(--tantu-accent-primary)" }}>10</span>
                 <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "var(--tantu-knot-1)" }}>OPEN SOURCE TOOLS</div>
               </div>
             </TantuCard>
-            <TantuCard warpSpan={4} reliefLevel="kanthi" absorbent talimCode={talimCoord(1, 4)}>
+            <TantuCard warpSpan={4} reliefLevel="kanthi" absorbent>
               <div style={{ textAlign: "center" }}>
                 <span style={{ fontFamily: "var(--font-kasuti)", fontSize: "2.2rem", fontWeight: 700, color: "var(--tantu-accent-primary)" }}>8+</span>
                 <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "var(--tantu-knot-1)" }}>AWS SERVICES INTEGRATED</div>
               </div>
             </TantuCard>
-            <TantuCard warpSpan={4} reliefLevel="kanthi" absorbent talimCode={talimCoord(2, 4)}>
+            <TantuCard warpSpan={4} reliefLevel="kanthi" absorbent>
               <div style={{ textAlign: "center" }}>
                 <span style={{ fontFamily: "var(--font-kasuti)", fontSize: "2.2rem", fontWeight: 700, color: "var(--tantu-accent-primary)" }}>~52%</span>
                 <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "var(--tantu-knot-1)" }}>COST SAVINGS VS SAGEMAKER</div>
@@ -647,7 +631,7 @@ function SiteApp({ reposData, tantuCss }) {
                 smoothed spline — per the doc's "no diagonals allowed") from
                 each tool's actual primitive count (meta.tech.length), not a
                 fabricated series. */}
-            <TantuCard warpSpan={12} reliefLevel="flat" talimCode={talimCoord(0, 12, 4)}>
+            <TantuCard warpSpan={12} reliefLevel="flat">
               <StaticKasutiChart
                 rows={4}
                 data={reposData.map((repo) => ({
@@ -714,10 +698,7 @@ function SiteApp({ reposData, tantuCss }) {
                   reverse={
                     <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
                       <div>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "var(--tantu-knot-2)" }}>
-                          <h3 className="tantu-heading-kalam" style={{ margin: 0 }}>{repo}</h3>
-                          <TalimThread code={talimCoord(index, 6)} />
-                        </div>
+                        <h3 className="tantu-heading-kalam" style={{ margin: "0 0 var(--tantu-knot-2)" }}>{repo}</h3>
                         <p className="tantu-meta-kasuti" style={{ marginBottom: "var(--tantu-knot-2)" }}>TECHNICAL MANIFEST · {meta.tech.length} PRIMITIVE{meta.tech.length === 1 ? "" : "S"}</p>
                         <ul style={{ listStyle: "none", margin: "0 0 var(--tantu-knot-3)", padding: 0, display: "flex", flexDirection: "column", gap: "var(--tantu-knot-1)" }}>
                           {meta.tech.map((tech) => (
