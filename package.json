@@ -4,9 +4,9 @@
   "description": "AIWeave landing page generator built with native Tantu Design Library components",
   "type": "module",
   "scripts": {
-    "build:capillary": "tsc --target es2020 --module es2020 --lib es2020,dom --noResolve --skipLibCheck --outDir assets src/tantu/lib/capillary-bleed.ts",
+    "build:client-assets": "tsc --target es2020 --module es2020 --lib es2020,dom --noResolve --skipLibCheck --outDir assets src/tantu/lib/capillary-bleed.ts src/tantu/lib/maku-shuttle.ts",
     "build:fonts": "python3 build.py",
-    "build": "npm run build:capillary && tsx generate_site.jsx"
+    "build": "npm run build:client-assets && tsx generate_site.jsx"
   },
   "dependencies": {
     "react": "^19.0.0",

@@ -1630,16 +1630,24 @@ body:has(.tantu-loom-substrate) .tantu-loom {
 
 .tantu-rumal-reverse {
   opacity: 0;
+  /* opacity alone doesn't stop a layer from being hit — with both faces
+     stacked in the same grid cell, the invisible one still intercepted
+     clicks meant for whatever sits underneath it (any interactive element
+     on the visible face, e.g. a flip trigger, was unreachable). Each face
+     only accepts pointer events while it's the one actually shown. */
+  pointer-events: none;
   /* Counter-scale the text so it isn't rendered backwards to the user */
   transform: scaleX(-1);
 }
 
 .tantu-card-rumal[data-state="reverse"] .tantu-rumal-obverse {
   opacity: 0;
+  pointer-events: none;
 }
 
 .tantu-card-rumal[data-state="reverse"] .tantu-rumal-reverse {
   opacity: 1;
+  pointer-events: auto;
 }
 
 /* Negative dye counterparts for the reverse face */
