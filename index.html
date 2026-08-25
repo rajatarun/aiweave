@@ -3594,9 +3594,13 @@ textarea.tantu-maku-focus {
 
               (function () {
                 var svg = document.querySelector(".tantu-maku-plane");
-                var coord = document.querySelector(".tantu-maku-coord");
-                if (!svg || !coord) return;
+                if (!svg) return;
                 var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-                createMakuShuttle(svg, coord, { spatialRouting: true, throwDuration: reduceMotion ? 1 : 180, trailDuration: reduceMotion ? 1 : 520 });
+                // null coordEl: no "[W:xx-H:xx]" chip. The gold weft thread
+                // and spatial routing are the parts worth having here; the
+                // coordinate readout is machine chrome that shows on every
+                // click and sticks around while focused. Left null rather
+                // than hidden in CSS so the shuttle never writes to it.
+                createMakuShuttle(svg, null, { spatialRouting: true, throwDuration: reduceMotion ? 1 : 180, trailDuration: reduceMotion ? 1 : 520 });
               })();
             </script></body></html>

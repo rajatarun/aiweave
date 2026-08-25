@@ -6,8 +6,8 @@
  * alongside useCapillaryBleed. Self-contained (no imports: tsc runs with
  * --noResolve, same as capillary-bleed.ts) and audio-free — the hook's
  * getLoomAudio() sampler is a React-only concern this port doesn't carry,
- * so a static site gets the gold thread and the coordinate readout without
- * unsolicited sound.
+ * so a static site gets the gold thread without unsolicited sound. The
+ * coordinate readout is optional (pass null for coordEl).
  *
  * A focused element never teleports: a gold zari thread draws from the
  * previously focused node to the new one, then fades. Two hops inside
@@ -129,7 +129,12 @@ function coordinateFor(el: HTMLElement, loom: LoomMetrics | null): string {
 
 export function createMakuShuttle(
   svg: SVGSVGElement,
-  coordEl: HTMLElement,
+  /**
+   * The Kasuti grid-coordinate readout. Pass null to run the shuttle
+   * without it — the gold weft thread and spatial routing still work,
+   * there is just no "[W:xx-H:xx]" chip following the focused node.
+   */
+  coordEl: HTMLElement | null,
   options: MakuShuttleOptions = {},
 ): MakuShuttleHandle {
   const { throwDuration = 180, trailDuration = 520, tensionWindow = 260, spatialRouting = true } = options;
@@ -182,9 +187,11 @@ export function createMakuShuttle(
     const rect = target.getBoundingClientRect();
     const landing = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
 
-    coordEl.textContent = coordinate;
-    coordEl.style.transform = `translate(${rect.right - 2}px, ${rect.bottom + 2}px) translateX(-100%)`;
-    coordEl.setAttribute("data-state", "revealed");
+    if (coordEl) {
+      coordEl.textContent = coordinate;
+      coordEl.style.transform = `translate(${rect.right - 2}px, ${rect.bottom + 2}px) translateX(-100%)`;
+      coordEl.setAttribute("data-state", "revealed");
+    }
 
     const now = performance.now();
     const origin = lastPoint;
@@ -213,7 +220,7 @@ export function createMakuShuttle(
         focused?.classList.remove("tantu-maku-focus");
         focused?.removeAttribute("data-maku-coord");
         focused = null;
-        coordEl.setAttribute("data-state", "hidden");
+        if (coordEl) coordEl.setAttribute("data-state", "hidden");
       }
     }, 0);
   }
@@ -273,7 +280,9 @@ export function createMakuShuttle(
   function handleReflow() {
     if (!focused) return;
     const rect = focused.getBoundingClientRect();
-    coordEl.style.transform = `translate(${rect.right - 2}px, ${rect.bottom + 2}px) translateX(-100%)`;
+    if (coordEl) {
+      coordEl.style.transform = `translate(${rect.right - 2}px, ${rect.bottom + 2}px) translateX(-100%)`;
+    }
   }
 
   document.addEventListener("focusin", handleFocusIn, true);
