@@ -34,27 +34,28 @@ export const ChambaRumalCard = forwardRef<HTMLElement, ChambaRumalCardProps>(fun
       data-state={isFlipped ? "reverse" : "obverse"}
       style={style}
     >
+      {/* Each face is two layers: the dye pool (a solid fill clipped to the
+          spreading circle, whose edge the ink-bleed filter tears) and the
+          content above it (clipped to the same circle but unfiltered, so
+          text stays sharp). The filter has to sit on a wrapper *around*
+          the clipped fill rather than on the fill itself — CSS applies
+          `filter` before that same element's own `clip-path`, so a box
+          that is both clipped and filtered gets its uniform interior
+          perturbed and is then cropped by an unaffected clean clip-path.
+          Neither the face nor the filter wrapper may carry a background
+          or a clip-path of its own: either one re-covers or re-crops the
+          torn edge back to a perfect circle. */}
       <div className="tantu-rumal-obverse">
-        {/* The wet rim. CSS applies `filter` to an element BEFORE its own
-            `clip-path` — a solid-colour box clipped and filtered on the
-            SAME element just gets its uniform interior perturbed (nothing
-            for the displacement to grab onto) and then cropped by a
-            perfectly clean clip-path afterwards regardless, so the edge
-            never actually frays. Splitting it across two elements fixes
-            that: the inner div is clipped to a hard-edged circle first,
-            then the outer wrapper's filter distorts that already-rendered
-            edge, which is the only way to get a torn boundary instead of
-            a clean geometric one. */}
         <div className="tantu-rumal-rim-filter" aria-hidden="true">
           <div className="tantu-rumal-rim-fill" />
         </div>
-        {obverse}
+        <div className="tantu-rumal-content">{obverse}</div>
       </div>
       <div className="tantu-rumal-reverse">
         <div className="tantu-rumal-rim-filter" aria-hidden="true">
           <div className="tantu-rumal-rim-fill" />
         </div>
-        {reverse}
+        <div className="tantu-rumal-content">{reverse}</div>
       </div>
     </article>
   );
