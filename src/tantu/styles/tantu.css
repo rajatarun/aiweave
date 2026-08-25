@@ -1630,6 +1630,13 @@ body:has(.tantu-loom-substrate) .tantu-loom {
 
 .tantu-rumal-obverse {
   z-index: 2;
+  /* Must be opaque: without its own background, a flip back to obverse
+     showed the still-open reverse face's indigo bleeding through every
+     gap between text — the growing "obverse" circle wasn't restoring the
+     card's real colour, just clipping a transparent window onto whatever
+     was still visible underneath. Same surface token .tantu-card itself
+     paints with, so the two are indistinguishable once fully open. */
+  background-color: var(--tantu-color-surface);
   clip-path: circle(150% at 50% 50%);
 }
 

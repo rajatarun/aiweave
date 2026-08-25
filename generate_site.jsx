@@ -822,11 +822,16 @@ function SiteApp({ reposData, tantuCss }) {
               // K = 3.4 — not a CSS transition-timing-function, which can
               // only be a bezier or a step function and would only ever
               // approximate that curve's shape, never actually run it.
+              // Duration also matches that module's own default droplet
+              // lifetime (createCapillaryBleed's duration option, default
+              // 1400) rather than an invented value — a slow, deliberate
+              // soak, not a snap-instant swap.
               (function() {
                 var K = 3.4; // capillary uptake rate; matches the shader exactly
                 var MAX_R = 150; // percent — clears every corner from any origin
+                var DURATION = 1400; // ms; matches capillary-bleed.ts's own default
 
-                function growClipPath(el, ox, oy, duration) {
+                function growClipPath(el, ox, oy, duration, onDone) {
                   var start = null;
                   function frame(now) {
                     if (start === null) start = now;
@@ -840,6 +845,7 @@ function SiteApp({ reposData, tantuCss }) {
                       // (96.66% of MAX_R at t=1) — snap the last sliver shut
                       // so the incoming face is genuinely fully covered.
                       el.style.clipPath = 'circle(' + MAX_R + '% at ' + ox + '% ' + oy + '%)';
+                      if (onDone) onDone();
                     }
                   }
                   requestAnimationFrame(frame);
@@ -874,7 +880,15 @@ function SiteApp({ reposData, tantuCss }) {
                   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                   if (incoming) {
                     incoming.style.clipPath = 'circle(0% at ' + ox + '% ' + oy + '%)';
-                    growClipPath(incoming, ox, oy, reduceMotion ? 1 : 560);
+                    growClipPath(incoming, ox, oy, reduceMotion ? 1 : DURATION, function () {
+                      // Return the covered face to its own closed resting
+                      // state once it's fully hidden underneath — otherwise
+                      // it sits there still "open" at its last origin, and
+                      // (before .tantu-rumal-obverse had its own opaque
+                      // background) that stale open reverse face was what
+                      // bled indigo through the very next flip back.
+                      if (outgoing) outgoing.style.clipPath = 'circle(0% at 50% 50%)';
+                    });
                   }
                 });
               })();
