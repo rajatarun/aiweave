@@ -554,7 +554,14 @@ function SiteApp({ reposData, tantuCss }) {
             elsewhere, mounted once here and referenced by the flip script
             below via filter: url(#tantu-rumal-bleed). Static markup, no
             hooks — safe on this hydration-less build. */}
-        <InkBleedFilter id="tantu-rumal-bleed" frequency={0.02} scale={55} soak={2.5} fibreContrast={2.5} edgeFray />
+        {/* These are the values from the isolated test that produced a
+            genuinely organic ink-blot edge. They had been pushed much
+            further (frequency 0.02 / scale 55) while chasing what turned
+            out to be a structural bug — a solid background on the filter
+            wrapper plus a clip-path on the parent face, either of which
+            flattens the tear back to a clean circle no matter the filter
+            settings. With that fixed these read correctly again. */}
+        <InkBleedFilter id="tantu-rumal-bleed" frequency={0.035} scale={22} soak={2} fibreContrast={3.5} edgeFray />
         <TantuLoom viewTalimCode="AIW-HOME-01" shuttle={true}>
             {/* Navigation — only TantuCell/TantuCard/ChambaRumalCard may be a
                 direct child of TantuLoom, so the nav lives inside a cell. */}
@@ -849,8 +856,14 @@ function SiteApp({ reposData, tantuCss }) {
                 // none by default (see tantu.css) and only switched on for
                 // the duration of this call.
                 function growRadius(el, ox, oy, duration, onDone) {
+                  // The rim carries this face's actual colour now, so it is
+                  // always rendered — only its FILTER is toggled, on for the
+                  // duration of the spread and off once the edge has stopped
+                  // moving (the filter's region extends past the element box,
+                  // and left on permanently it spilled faint frayed paint
+                  // outside the card).
                   var rim = el.querySelector('.tantu-rumal-rim-filter');
-                  if (rim) rim.style.display = 'block';
+                  if (rim) rim.style.filter = 'url(#tantu-rumal-bleed)';
                   el.style.setProperty('--tantu-rumal-ox', ox + '%');
                   el.style.setProperty('--tantu-rumal-oy', oy + '%');
                   var start = null;
@@ -866,7 +879,7 @@ function SiteApp({ reposData, tantuCss }) {
                       // (96.66% of MAX_R at t=1) — snap the last sliver shut
                       // so the incoming face is genuinely fully covered.
                       el.style.setProperty('--tantu-rumal-r', MAX_R + '%');
-                      if (rim) rim.style.display = 'none';
+                      if (rim) rim.style.filter = 'none';
                       if (onDone) onDone();
                     }
                   }
@@ -989,10 +1002,14 @@ function SiteApp({ reposData, tantuCss }) {
 
               (function () {
                 var svg = document.querySelector(".tantu-maku-plane");
-                var coord = document.querySelector(".tantu-maku-coord");
-                if (!svg || !coord) return;
+                if (!svg) return;
                 var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-                createMakuShuttle(svg, coord, { spatialRouting: true, throwDuration: reduceMotion ? 1 : 180, trailDuration: reduceMotion ? 1 : 520 });
+                // null coordEl: no "[W:xx-H:xx]" chip. The gold weft thread
+                // and spatial routing are the parts worth having here; the
+                // coordinate readout is machine chrome that shows on every
+                // click and sticks around while focused. Left null rather
+                // than hidden in CSS so the shuttle never writes to it.
+                createMakuShuttle(svg, null, { spatialRouting: true, throwDuration: reduceMotion ? 1 : 180, trailDuration: reduceMotion ? 1 : 520 });
               })();
             `,
           }}

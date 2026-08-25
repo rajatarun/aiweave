@@ -1625,43 +1625,42 @@ body:has(.tantu-loom-substrate) .tantu-loom {
   /* Both layers sit in the exact same grid cell */
   grid-area: 1 / 1 / 2 / 2;
   position: relative;
-  /* overflow:hidden and clip-path on .tantu-card-rumal (two levels up)
-     were not reliably containing the rim's filter output — it kept
-     spilling frayed blobs past the card's own border. Containing it
-     directly on the rim's actual parent is what worked in testing. */
+  /* Contains the rim filter's spill (its SVG region extends past the
+     element box by design). Doing it here, on the rim's actual parent,
+     is what worked — overflow/clip-path on .tantu-card-rumal two levels
+     up did not reliably contain it. */
   overflow: hidden;
-  /* Driven from JS as three custom properties rather than a literal
-     clip-path string, so both this element's own (sharp) clip-path and
-     its ::before rim's (frayed, larger-radius) clip-path recompute from
-     the same numbers every frame with no extra JS work. No `transition`
-     here, deliberately: a CSS transition-timing-function can only ever
-     be a cubic-bezier or a step function, and the loom's capillary
-     uptake is neither — it's the asymptotic wick curve
+  /* Radius/origin live here as custom properties so the frayed rim fill
+     and the crisp content layer below both recompute from one write per
+     frame. Deliberately NO clip-path on this element: a clip-path here
+     clips every descendant, which re-cropped the rim's torn edge back to
+     a mathematically perfect circle — the exact same "re-clip cancels
+     the fray" trap as the filter's own feComposite atop step, just one
+     level up the DOM, and the reason an isolated test frayed correctly
+     while the real card stayed a clean wipe. Also deliberately NO
+     background-color: the rim fill *is* this face's colour now, so a
+     background here would paint over the torn edge with a full-bleed
+     rectangle. No `transition` either — a CSS timing function can only
+     be a cubic-bezier or steps, and the loom's capillary uptake is
+     neither; it's the asymptotic wick curve
      src/tantu/lib/capillary-bleed.ts's shader actually runs,
-     radius(t) = maxRadius * (1 - e^(-3.4 * t)), the same comment there
-     flags as "never a bezier." So whichever face is being revealed has
-     its radius driven frame by frame in JS against the real formula
-     (see the flip script below) instead. */
+     radius(t) = maxRadius * (1 - e^(-3.4 * t)), which that file flags as
+     "never a bezier." The flip script drives it frame by frame instead. */
   --tantu-rumal-ox: 50%;
   --tantu-rumal-oy: 50%;
-  clip-path: circle(var(--tantu-rumal-r) at var(--tantu-rumal-ox) var(--tantu-rumal-oy));
 }
 
 .tantu-rumal-obverse {
   z-index: 2;
-  /* Must be opaque: without its own background, a flip back to obverse
-     showed the still-open reverse face's indigo bleeding through every
-     gap between text — the growing "obverse" circle wasn't restoring the
-     card's real colour, just clipping a transparent window onto whatever
-     was still visible underneath. Same surface token .tantu-card itself
-     paints with, so the two are indistinguishable once fully open. */
-  background-color: var(--tantu-color-surface);
+  /* The dye this face wicks in. Carried by .tantu-rumal-rim-fill rather
+     than as this element's own background — see above. */
+  --tantu-rumal-dye: var(--tantu-color-surface);
   --tantu-rumal-r: 150%;
 }
 
 .tantu-rumal-reverse {
   z-index: 1;
-  background-color: var(--tantu-accent-structural);
+  --tantu-rumal-dye: var(--tantu-accent-structural);
   /* 150% is relative to the box, comfortably clearing every corner from
      any origin the dye front starts at. */
   --tantu-rumal-r: 0%;
@@ -1685,36 +1684,44 @@ body:has(.tantu-loom-substrate) .tantu-loom {
    visibly warped and blurred, unreadable, since a filter distorts
    everything painted inside the filtered element, text included. */
 .tantu-rumal-rim-filter {
-  /* Hidden except while the flip script is actually animating this face
-     (toggled to display:block there): at rest the sharp content's own
-     circle is wide open (150%) with no edge left to fray, but the SVG
-     filter's declared region still extends past the element's own box
-     (x="-10%" ... width="120%" in InkBleedFilter) — and left permanently
-     on, that spilled paint wasn't being clipped by this card's own
-     overflow:hidden, leaving dark frayed blobs sitting in the page
-     background outside the card border indefinitely. Only exists during
-     the ~1.4s the edge is actually moving. */
-  display: none;
   position: absolute;
   inset: 0;
-  /* .tantu-rumal-obverse/-reverse each carry an explicit z-index (they're
-     what stack the two faces), which makes them stacking contexts in their
-     own right — inside one, a positioned z-index:auto child (this rim)
-     paints ABOVE plain in-flow content (the real text) regardless of DOM
-     order. Without this negative z-index the rim sat on top of the
-     manifest text and blotted it out completely rather than sitting
-     behind it. */
-  z-index: -1;
-  background-color: inherit;
-  filter: url(#tantu-rumal-bleed);
+  /* MUST stay transparent. It previously carried `background-color:
+     inherit`, which made it a solid full-bleed rectangle — so the filter
+     was handed a uniform box with no edge anywhere inside it, and a
+     displacement map has nothing to tear in a uniform fill. That, plus
+     the parent's clip-path (removed above), is why the card rendered a
+     clean circle while the same filter frayed correctly in an isolated
+     test. The colour belongs to .tantu-rumal-rim-fill below, whose
+     clipped edge is the thing being torn. */
+  z-index: 0;
+  /* Filter is switched on by the flip script only while this face is
+     actually animating, then cleared: the SVG filter's declared region
+     extends past the element box by design (x="-10%" width="120%" in
+     InkBleedFilter), and leaving it on permanently spilled faint frayed
+     paint outside the card. At rest the radius is either 0% or 150%, so
+     there is no visible edge to fray anyway. */
+  filter: none;
   pointer-events: none;
 }
 
 .tantu-rumal-rim-fill {
   position: absolute;
   inset: 0;
-  background-color: inherit;
-  clip-path: circle(calc(var(--tantu-rumal-r) + 4%) at var(--tantu-rumal-ox) var(--tantu-rumal-oy));
+  /* This layer is the face's colour — the dye pool itself, not a
+     decorative extra on top of an already-coloured face. */
+  background-color: var(--tantu-rumal-dye);
+  clip-path: circle(var(--tantu-rumal-r) at var(--tantu-rumal-ox) var(--tantu-rumal-oy));
+}
+
+/* The crisp half. Clipped to the same circle as the dye pool but with no
+   filter over it, so the manifest text stays perfectly sharp while the
+   pool's boundary behind it tears. Sits above the rim in the same
+   stacking context. */
+.tantu-rumal-content {
+  position: relative;
+  z-index: 1;
+  clip-path: circle(var(--tantu-rumal-r) at var(--tantu-rumal-ox) var(--tantu-rumal-oy));
 }
 
 .tantu-card-rumal[data-state="reverse"] .tantu-rumal-reverse {
