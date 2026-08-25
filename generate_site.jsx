@@ -8,6 +8,8 @@ import {
   TantuLoom,
   TantuCell,
   TantuCard,
+  ChambaRumalCard,
+  TalimThread,
   TantuButton,
   TantuTag,
   TantuMeter,
@@ -223,6 +225,168 @@ function SectionHeader({ id, number, title, style }) {
         <h2 className="section-title-text">{title}</h2>
       </div>
     </TantuCell>
+  );
+}
+
+const pad2 = (n) => String(n).padStart(2, "0");
+
+/**
+ * Warp/height coordinate for a card at `index` in a repeating row of cards
+ * each spanning `span` of the 12-column warp — the same "[W:xx-H:xx]" grid
+ * address TantuCard's own talimCode prop renders, computed here instead of
+ * invented per-card so it actually reflects each card's real grid position.
+ */
+function talimCoord(index, span, rowOffset = 1) {
+  const perRow = Math.max(1, Math.floor(12 / span));
+  const col = (index % perRow) * span + 1;
+  const row = Math.floor(index / perRow) + rowOffset;
+  return `W:${pad2(col)}-H:${pad2(row)}`;
+}
+
+const KASUTI_VIEW_W = 600;
+const KASUTI_VIEW_H = 200;
+
+/**
+ * Static Kasuti Matrix — same markup and CSS classes as the KasutiMatrix
+ * component (src/tantu/components/KasutiMatrix.tsx), so it renders pixel-
+ * identical to the "real" one, but with the whole thread drawn immediately
+ * instead of stitched in on an IntersectionObserver: that component's
+ * progressive reveal is client-state-driven (needs the React runtime this
+ * static build doesn't ship — see the capillary/maku boot scripts below for
+ * how the two stateful effects that DO get ported are handled), and a chart
+ * whose reveal-animation JS never runs would render stuck on its first point.
+ * Kasuti forbids the diagonal and the curve — routing is right-angle only.
+ */
+function StaticKasutiChart({ data, rows = 6, caption }) {
+  const ceiling = Math.max(...data.map((point) => point.value), 1);
+  const stepX = data.length > 1 ? KASUTI_VIEW_W / (data.length - 1) : KASUTI_VIEW_W;
+
+  const snapY = (value) => {
+    const ratio = Math.max(0, Math.min(1, value / ceiling));
+    const row = Math.round(ratio * rows);
+    return KASUTI_VIEW_H - (row / rows) * KASUTI_VIEW_H;
+  };
+
+  const knots = data.map((point, index) => ({ x: Math.round(index * stepX), y: snapY(point.value), point }));
+  const path = knots.map((knot, index) => (index === 0 ? `M ${knot.x} ${knot.y}` : `H ${knot.x} V ${knot.y}`)).join(" ");
+
+  return (
+    <figure className="tantu-kasuti" style={{ margin: 0 }}>
+      {/* .tantu-kasuti-axis lays its labels out with justify-content:
+          space-between and no wrap — comfortable for a handful of short
+          labels, but 12 full repo names squeezed into a phone-width flex
+          item wrap letter-by-letter into an unreadable column. Rather than
+          touch that shared rule (other Kasuti charts elsewhere may have far
+          fewer/shorter labels and be fine as-is), give this specific chart
+          body a floor width and let it scroll horizontally inside its own
+          card instead of destroying the label text — the same
+          overflow-x:auto-on-the-wide-thing pattern as a responsive table. */}
+      <div style={{ overflowX: "auto" }}>
+        <div style={{ minWidth: `${Math.max(KASUTI_VIEW_W, data.length * 90)}px` }}>
+          <svg
+            className="tantu-kasuti-canvas"
+            viewBox={`0 0 ${KASUTI_VIEW_W} ${KASUTI_VIEW_H}`}
+            preserveAspectRatio="none"
+            role="img"
+            aria-label={data.map((point) => `${point.label}: ${point.value}`).join(", ")}
+          >
+            <g className="tantu-kasuti-ground" aria-hidden="true">
+              {Array.from({ length: rows + 1 }, (_, row) => (
+                <line key={`weft-${row}`} x1="0" x2={KASUTI_VIEW_W} y1={(row / rows) * KASUTI_VIEW_H} y2={(row / rows) * KASUTI_VIEW_H} />
+              ))}
+              {knots.map((knot) => (
+                <line key={`warp-${knot.x}`} y1="0" y2={KASUTI_VIEW_H} x1={knot.x} x2={knot.x} />
+              ))}
+            </g>
+            <path className="tantu-kasuti-thread" d={path} />
+            {knots.map((knot) => (
+              <rect
+                key={`knot-${knot.point.label}`}
+                className="tantu-kasuti-knot"
+                x={Math.min(KASUTI_VIEW_W - 7, Math.max(0, knot.x - 4))}
+                y={knot.y - 4}
+                width="8"
+                height="8"
+              >
+                <title>{`${knot.point.label} · ${knot.point.value}`}</title>
+              </rect>
+            ))}
+          </svg>
+          <div className="tantu-kasuti-axis" aria-hidden="true">
+            {data.map((point) => (
+              <span key={point.label}>{point.label}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+      {caption ? <figcaption className="tantu-kasuti-caption">{caption}</figcaption> : null}
+    </figure>
+  );
+}
+
+/**
+ * Sikku Kolam — same markup/classes as SikkuKolamLoader's default "spinning"
+ * state (src/tantu/components/SikkuKolamLoader.tsx), used here as a section
+ * ornament rather than a pending-fetch indicator. Deliberately NOT the
+ * "resolved" state: that state's CSS hides the wound thread entirely and
+ * shows only the taut snap grid (the point being "the mess of loose thread
+ * is gone") — the opposite of what an ornament wants. "spinning" is also
+ * the state whose reveal and wind animations are plain CSS @keyframes with
+ * no JS driving them (the component's own audio/state-transition logic is
+ * what needs React — the animation itself doesn't), so the one continuous
+ * unbroken filament doc DOC-13 describes ("the perfect image of work in
+ * progress") actually renders and keeps winding on this static build.
+ * Purely decorative: aria-hidden, not a status region.
+ */
+function SikkuKolamOrnament({ cols = 8, rows = 2 }) {
+  const PITCH = 24;
+  const MARGIN = 18;
+  const width = MARGIN * 2 + (cols - 1) * PITCH;
+  const height = MARGIN * 2 + (rows - 1) * PITCH;
+
+  const x = (c) => MARGIN + c * PITCH;
+  const y = (r) => MARGIN + r * PITCH;
+  const loop = PITCH * 0.62;
+  let d = `M ${x(0) - loop * 0.5} ${y(0)}`;
+  for (let r = 0; r < rows; r += 1) {
+    const leftToRight = r % 2 === 0;
+    const order = leftToRight
+      ? Array.from({ length: cols }, (_, i) => i)
+      : Array.from({ length: cols }, (_, i) => cols - 1 - i);
+    order.forEach((c, index) => {
+      const sign = index % 2 === 0 ? -1 : 1;
+      d += ` Q ${x(c)} ${y(r) + sign * loop} ${x(c) + (leftToRight ? loop * 0.5 : -loop * 0.5)} ${y(r)}`;
+    });
+    if (r < rows - 1) {
+      const edge = leftToRight ? x(cols - 1) + loop : x(0) - loop;
+      d += ` Q ${edge} ${y(r) + PITCH * 0.5} ${leftToRight ? x(cols - 1) + loop * 0.5 : x(0) - loop * 0.5} ${y(r + 1)}`;
+    }
+  }
+
+  const dots = [];
+  for (let r = 0; r < rows; r += 1) {
+    for (let c = 0; c < cols; c += 1) {
+      dots.push(<rect key={`${r}-${c}`} className="tantu-kolam-bindu" x={MARGIN + c * PITCH - 1} y={MARGIN + r * PITCH - 1} width={2} height={2} />);
+    }
+  }
+
+  return (
+    <div aria-hidden="true" style={{ display: "flex", justifyContent: "center", padding: "var(--tantu-knot-4) 0" }}>
+      <div data-state="spinning" className="tantu-kolam">
+        <svg className="tantu-kolam-field" viewBox={`0 0 ${width} ${height}`} width={width} height={height} aria-hidden="true" focusable="false">
+          <g className="tantu-kolam-matrix">{dots}</g>
+          <path className="tantu-kolam-thread" d={d} />
+          <g className="tantu-kolam-snap">
+            {Array.from({ length: rows }, (_, r) => (
+              <line key={`h-${r}`} x1={0} y1={MARGIN + r * PITCH} x2={width} y2={MARGIN + r * PITCH} />
+            ))}
+            {Array.from({ length: cols }, (_, c) => (
+              <line key={`v-${c}`} x1={MARGIN + c * PITCH} y1={0} x2={MARGIN + c * PITCH} y2={height} />
+            ))}
+          </g>
+        </svg>
+      </div>
+    </div>
   );
 }
 
@@ -459,19 +623,19 @@ function SiteApp({ reposData, tantuCss }) {
             </TantuCard>
 
             {/* Stat Band (3-up desktop, stacked mobile) */}
-            <TantuCard warpSpan={4} reliefLevel="kanthi" absorbent>
+            <TantuCard warpSpan={4} reliefLevel="kanthi" absorbent talimCode={talimCoord(0, 4)}>
               <div style={{ textAlign: "center" }}>
                 <span style={{ fontFamily: "var(--font-kasuti)", fontSize: "2.2rem", fontWeight: 700, color: "var(--tantu-accent-primary)" }}>10</span>
                 <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "var(--tantu-knot-1)" }}>OPEN SOURCE TOOLS</div>
               </div>
             </TantuCard>
-            <TantuCard warpSpan={4} reliefLevel="kanthi" absorbent>
+            <TantuCard warpSpan={4} reliefLevel="kanthi" absorbent talimCode={talimCoord(1, 4)}>
               <div style={{ textAlign: "center" }}>
                 <span style={{ fontFamily: "var(--font-kasuti)", fontSize: "2.2rem", fontWeight: 700, color: "var(--tantu-accent-primary)" }}>8+</span>
                 <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "var(--tantu-knot-1)" }}>AWS SERVICES INTEGRATED</div>
               </div>
             </TantuCard>
-            <TantuCard warpSpan={4} reliefLevel="kanthi" absorbent>
+            <TantuCard warpSpan={4} reliefLevel="kanthi" absorbent talimCode={talimCoord(2, 4)}>
               <div style={{ textAlign: "center" }}>
                 <span style={{ fontFamily: "var(--font-kasuti)", fontSize: "2.2rem", fontWeight: 700, color: "var(--tantu-accent-primary)" }}>~52%</span>
                 <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "var(--tantu-knot-1)" }}>COST SAVINGS VS SAGEMAKER</div>
@@ -479,44 +643,109 @@ function SiteApp({ reposData, tantuCss }) {
               </div>
             </TantuCard>
 
+            {/* Counted-thread chart, drawn Kasuti-style (orthogonal, no
+                smoothed spline — per the doc's "no diagonals allowed") from
+                each tool's actual primitive count (meta.tech.length), not a
+                fabricated series. */}
+            <TantuCard warpSpan={12} reliefLevel="flat" talimCode={talimCoord(0, 12, 4)}>
+              <StaticKasutiChart
+                rows={4}
+                data={reposData.map((repo) => ({
+                  label: repo.replace("Weave", ""),
+                  value: (REPO_META[repo]?.tech ?? []).length,
+                }))}
+                caption="KasutiMatrix — AWS/technology primitives declared per tool, counted-thread style. Series drawn from meta.tech, not estimated."
+              />
+            </TantuCard>
+
             {/* Projects */}
             <SectionHeader id="projects" number="01" title="The Weave Ecosystem" style={{ marginTop: "var(--tantu-knot-6)" }} />
 
-            {reposData.map((repo) => {
+            {reposData.map((repo, index) => {
               const meta = REPO_META[repo] || {
                 icon: "⬢",
                 tagline: "AWS-native AI tool · Open source",
                 tech: ["Python", "AWS", "Open Source"],
                 fallback_desc: "An open-source AWS-native tool from the AIWeave ecosystem.",
               };
+              const flipLabel = `View technical manifest for ${repo}`;
+              const backLabel = `Back to ${repo} overview`;
 
               return (
-                <TantuCard key={repo} warpSpan={6} reliefLevel="kanthi" absorbent>
-                  <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
-                    <div>
-                      <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--tantu-knot-2)", marginBottom: "var(--tantu-knot-2)" }}>
-                        <span style={{ fontSize: "1.6rem", lineHeight: 1, color: "var(--tantu-accent-highlight)" }}>{meta.icon}</span>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <h3 style={{ margin: "0 0 var(--tantu-knot-1)", fontFamily: "var(--font-kalam)", color: "var(--tantu-accent-primary)" }}>{repo}</h3>
-                          <p style={{ margin: 0, fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", fontFamily: "var(--font-talim)" }}>{meta.tagline}</p>
+                // Chamba Rumal Dorukha: a double-sided card (see
+                // .tantu-card-rumal in tantu.css), styled front/back like
+                // Himachal Pradesh's double-satin embroidery — obverse and
+                // reverse both fully worked, not one face and a blank. The
+                // flip button toggles data-state via the plain script below
+                // (this page has no React runtime to drive isFlipped).
+                <ChambaRumalCard
+                  key={repo}
+                  warpSpan={6}
+                  className="tantu-relief-kanthi tantu-substrate-porous"
+                  obverse={
+                    <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
+                      <div>
+                        <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--tantu-knot-2)", marginBottom: "var(--tantu-knot-2)" }}>
+                          <span style={{ fontSize: "1.6rem", lineHeight: 1, color: "var(--tantu-accent-highlight)" }}>{meta.icon}</span>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <h3 style={{ margin: "0 0 var(--tantu-knot-1)", fontFamily: "var(--font-kalam)", color: "var(--tantu-accent-primary)" }}>{repo}</h3>
+                            <p style={{ margin: 0, fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", fontFamily: "var(--font-talim)" }}>{meta.tagline}</p>
+                          </div>
+                        </div>
+                        <p style={{ fontSize: "0.88rem", color: "var(--tantu-ink-primary)", lineHeight: 1.7, marginBottom: "var(--tantu-knot-3)" }}>{meta.fallback_desc}</p>
+                      </div>
+                      <div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--tantu-knot-1)", marginBottom: "var(--tantu-knot-3)" }}>
+                          {meta.tech.map((tech) => (
+                            <TantuTag key={tech} tone="accent">{tech}</TantuTag>
+                          ))}
+                        </div>
+                        <div style={{ display: "flex", gap: "var(--tantu-knot-2)", alignItems: "center", flexWrap: "wrap" }}>
+                          <a href={`https://github.com/${GH_OWNER}/${repo}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                            <TantuButton variant="secondary" bleed={false}>View on GitHub →</TantuButton>
+                          </a>
+                          <button type="button" className="tantu-rumal-flip" aria-label={flipLabel} title={flipLabel} style={{ cursor: "pointer", background: "none", border: "none", color: "var(--tantu-ink-secondary)", fontFamily: "var(--font-kasuti)", fontSize: "11px", letterSpacing: "0.08em", padding: 0 }}>
+                            ⟲ MANIFEST
+                          </button>
                         </div>
                       </div>
-                      <p style={{ fontSize: "0.88rem", color: "var(--tantu-ink-primary)", lineHeight: 1.7, marginBottom: "var(--tantu-knot-3)" }}>{meta.fallback_desc}</p>
                     </div>
-                    <div>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--tantu-knot-1)", marginBottom: "var(--tantu-knot-3)" }}>
-                        {meta.tech.map((tech) => (
-                          <TantuTag key={tech} tone="accent">{tech}</TantuTag>
-                        ))}
+                  }
+                  reverse={
+                    <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
+                      <div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "var(--tantu-knot-2)" }}>
+                          <h3 className="tantu-heading-kalam" style={{ margin: 0 }}>{repo}</h3>
+                          <TalimThread code={talimCoord(index, 6)} />
+                        </div>
+                        <p className="tantu-meta-kasuti" style={{ marginBottom: "var(--tantu-knot-2)" }}>TECHNICAL MANIFEST · {meta.tech.length} PRIMITIVE{meta.tech.length === 1 ? "" : "S"}</p>
+                        <ul style={{ listStyle: "none", margin: "0 0 var(--tantu-knot-3)", padding: 0, display: "flex", flexDirection: "column", gap: "var(--tantu-knot-1)" }}>
+                          {meta.tech.map((tech) => (
+                            <li key={tech} className="tantu-meta-talim" style={{ fontSize: "12px" }}>· {tech}</li>
+                          ))}
+                        </ul>
                       </div>
-                      <a href={`https://github.com/${GH_OWNER}/${repo}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-                        <TantuButton variant="secondary" bleed={false}>View on GitHub →</TantuButton>
-                      </a>
+                      <div style={{ display: "flex", gap: "var(--tantu-knot-2)", alignItems: "center", flexWrap: "wrap" }}>
+                        <a href={`https://github.com/${GH_OWNER}/${repo}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+                          <TantuButton variant="secondary" bleed={false}>View on GitHub →</TantuButton>
+                        </a>
+                        <button type="button" className="tantu-rumal-flip" aria-label={backLabel} title={backLabel} style={{ cursor: "pointer", background: "none", border: "none", color: "var(--tantu-ink-inverted)", fontFamily: "var(--font-kasuti)", fontSize: "11px", letterSpacing: "0.08em", padding: 0 }}>
+                          ⟲ OVERVIEW
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </TantuCard>
+                  }
+                />
               );
             })}
+
+            {/* A Sikku Kolam is traditionally drawn each dawn as one
+                continuous, unbroken loop — used here as a settled section
+                ornament, not a loading state (this build has nothing async
+                to spin it for). */}
+            <TantuCell warpSpan={12}>
+              <SikkuKolamOrnament />
+            </TantuCell>
 
             {/* Architecture Stack */}
             <SectionHeader
@@ -600,11 +829,30 @@ function SiteApp({ reposData, tantuCss }) {
                   btn.textContent = next === 'dark' ? '☀️ LIGHT' : '✱ DARK';
                 });
               })();
+
+              // Chamba Rumal flip: toggles the same data-state="reverse"
+              // attribute ChambaRumalCard's isFlipped prop would drive in a
+              // hydrated app (see .tantu-card-rumal in tantu.css). Delegated
+              // to the document since the cards are generated per-repo.
+              (function() {
+                document.addEventListener('click', function (event) {
+                  var trigger = event.target.closest && event.target.closest('.tantu-rumal-flip');
+                  if (!trigger) return;
+                  var card = trigger.closest('.tantu-card-rumal');
+                  if (!card) return;
+                  var reversed = card.getAttribute('data-state') === 'reverse';
+                  card.setAttribute('data-state', reversed ? 'obverse' : 'reverse');
+                  var obverse = card.querySelector('.tantu-rumal-obverse');
+                  var reverse = card.querySelector('.tantu-rumal-reverse');
+                  if (obverse) obverse.setAttribute('aria-hidden', reversed ? 'false' : 'true');
+                  if (reverse) reverse.setAttribute('aria-hidden', reversed ? 'true' : 'false');
+                });
+              })();
             `,
           }}
         />
         {/* Boots the T2 capillary engine compiled from
-            src/tantu/lib/capillary-bleed.ts (npm run build:capillary) —
+            src/tantu/lib/capillary-bleed.ts (npm run build:client-assets) —
             the same code TantuBleedCanvas's useCapillaryBleed hook drives,
             wired up by hand since this page ships no React runtime.
             Reproduces its global mode exactly: pointerdown always bleeds,
@@ -654,6 +902,31 @@ function SiteApp({ reposData, tantuCss }) {
                     engine.resize();
                   }).observe(canvas);
                 }
+              })();
+            `,
+          }}
+        />
+        {/* Boots the Weaver's Shuttle compiled from
+            src/tantu/lib/maku-shuttle.ts (npm run build:client-assets) — the
+            same DOM logic useMakuShuttle drives (audio omitted; see that
+            file's header), wired up by hand for the same reason the
+            capillary engine above is. TantuLoom already rendered the
+            .tantu-maku-plane SVG and .tantu-maku-coord readout (shuttle
+            prop, default true) — without this script they sit in the DOM
+            inert, exactly like the loom substrate canvas would without the
+            capillary boot above it. */}
+        <script
+          type="module"
+          dangerouslySetInnerHTML={{
+            __html: `
+              import { createMakuShuttle } from "./assets/maku-shuttle.js";
+
+              (function () {
+                var svg = document.querySelector(".tantu-maku-plane");
+                var coord = document.querySelector(".tantu-maku-coord");
+                if (!svg || !coord) return;
+                var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                createMakuShuttle(svg, coord, { spatialRouting: true, throwDuration: reduceMotion ? 1 : 180, trailDuration: reduceMotion ? 1 : 520 });
               })();
             `,
           }}
