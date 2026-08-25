@@ -361,12 +361,20 @@ h3.tantu-heading-kalam {
   color: var(--tantu-ink-secondary);
 }
 
-/* Talim Typography Engine — continuous thread ligatures for metadata */
+/* Talim Typography Engine — continuous thread ligatures for metadata.
+   -0.05em was too light to deliver on its own claim: Talim-Mono's side
+   bearings (~86-126/1000 units per glyph, needed to keep the monospace grid
+   usable for aligning codes/coordinates) leave far more gap than a 5%
+   tracking pull can close, so adjacent glyphs stayed visibly separate
+   rather than "touching." Measured against a render sweep instead of
+   guessing: -0.05em still shows a clear gap in every pair tried, while
+   -0.12em reads as touching/continuous even on the tightest case (M next
+   to M) with no stroke collisions up to -0.17em. */
 .tantu-meta-talim {
   font-family: var(--font-talim);
   font-size: 11px;
   color: var(--tantu-ink-secondary);
-  letter-spacing: -0.05em;
+  letter-spacing: -0.12em;
   font-feature-settings: "kern" 1, "liga" 1, "calt" 1, "ss01" 1;
   white-space: nowrap;
 }
