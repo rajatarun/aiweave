@@ -34,8 +34,28 @@ export const ChambaRumalCard = forwardRef<HTMLElement, ChambaRumalCardProps>(fun
       data-state={isFlipped ? "reverse" : "obverse"}
       style={style}
     >
-      <div className="tantu-rumal-obverse">{obverse}</div>
-      <div className="tantu-rumal-reverse">{reverse}</div>
+      <div className="tantu-rumal-obverse">
+        {/* The wet rim. CSS applies `filter` to an element BEFORE its own
+            `clip-path` — a solid-colour box clipped and filtered on the
+            SAME element just gets its uniform interior perturbed (nothing
+            for the displacement to grab onto) and then cropped by a
+            perfectly clean clip-path afterwards regardless, so the edge
+            never actually frays. Splitting it across two elements fixes
+            that: the inner div is clipped to a hard-edged circle first,
+            then the outer wrapper's filter distorts that already-rendered
+            edge, which is the only way to get a torn boundary instead of
+            a clean geometric one. */}
+        <div className="tantu-rumal-rim-filter" aria-hidden="true">
+          <div className="tantu-rumal-rim-fill" />
+        </div>
+        {obverse}
+      </div>
+      <div className="tantu-rumal-reverse">
+        <div className="tantu-rumal-rim-filter" aria-hidden="true">
+          <div className="tantu-rumal-rim-fill" />
+        </div>
+        {reverse}
+      </div>
     </article>
   );
 });

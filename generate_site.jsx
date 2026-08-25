@@ -13,6 +13,7 @@ import {
   TantuTag,
   TantuMeter,
   TantuStepper,
+  InkBleedFilter,
 } from "./src/tantu/index.ts";
 
 // deploy.yaml serves fonts/ with `cache-control: public, max-age=86400` under
@@ -546,6 +547,14 @@ function SiteApp({ reposData, tantuCss }) {
             module script below (the static build has no React runtime to
             drive the component's own hook). */}
         <canvas aria-hidden="true" className="tantu-loom-substrate" />
+        {/* A clip-path circle alone reads as a plain geometric wipe, not
+            dye bleeding into cloth — real capillary uptake has a soft,
+            fibre-torn edge (turbulent, not a perfect curve). This is the
+            same InkBleedFilter used for .tantu-maku-focus's pooling
+            elsewhere, mounted once here and referenced by the flip script
+            below via filter: url(#tantu-rumal-bleed). Static markup, no
+            hooks — safe on this hydration-less build. */}
+        <InkBleedFilter id="tantu-rumal-bleed" frequency={0.02} scale={55} soak={2.5} fibreContrast={2.5} edgeFray />
         <TantuLoom viewTalimCode="AIW-HOME-01" shuttle={true}>
             {/* Navigation — only TantuCell/TantuCard/ChambaRumalCard may be a
                 direct child of TantuLoom, so the nav lives inside a cell. */}
@@ -831,20 +840,33 @@ function SiteApp({ reposData, tantuCss }) {
                 var MAX_R = 150; // percent — clears every corner from any origin
                 var DURATION = 1400; // ms; matches capillary-bleed.ts's own default
 
-                function growClipPath(el, ox, oy, duration, onDone) {
+                // Sets --tantu-rumal-r/ox/oy, not a literal clip-path: the
+                // face's own crisp clip-path AND its nested rim's larger,
+                // ink-bleed-filtered one (see .tantu-rumal-rim-filter/-fill
+                // in tantu.css) both read the same three custom properties,
+                // so one write drives both — the content stays sharp and
+                // legible while the rim frays. The rim itself is display:
+                // none by default (see tantu.css) and only switched on for
+                // the duration of this call.
+                function growRadius(el, ox, oy, duration, onDone) {
+                  var rim = el.querySelector('.tantu-rumal-rim-filter');
+                  if (rim) rim.style.display = 'block';
+                  el.style.setProperty('--tantu-rumal-ox', ox + '%');
+                  el.style.setProperty('--tantu-rumal-oy', oy + '%');
                   var start = null;
                   function frame(now) {
                     if (start === null) start = now;
                     var t = Math.min(1, (now - start) / duration);
                     var r = MAX_R * (1 - Math.exp(-K * t));
-                    el.style.clipPath = 'circle(' + r.toFixed(2) + '% at ' + ox + '% ' + oy + '%)';
+                    el.style.setProperty('--tantu-rumal-r', r.toFixed(2) + '%');
                     if (t < 1) {
                       requestAnimationFrame(frame);
                     } else {
                       // The exponential only asymptotically approaches 1
                       // (96.66% of MAX_R at t=1) — snap the last sliver shut
                       // so the incoming face is genuinely fully covered.
-                      el.style.clipPath = 'circle(' + MAX_R + '% at ' + ox + '% ' + oy + '%)';
+                      el.style.setProperty('--tantu-rumal-r', MAX_R + '%');
+                      if (rim) rim.style.display = 'none';
                       if (onDone) onDone();
                     }
                   }
@@ -879,15 +901,15 @@ function SiteApp({ reposData, tantuCss }) {
 
                   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                   if (incoming) {
-                    incoming.style.clipPath = 'circle(0% at ' + ox + '% ' + oy + '%)';
-                    growClipPath(incoming, ox, oy, reduceMotion ? 1 : DURATION, function () {
+                    incoming.style.setProperty('--tantu-rumal-r', '0%');
+                    growRadius(incoming, ox, oy, reduceMotion ? 1 : DURATION, function () {
                       // Return the covered face to its own closed resting
                       // state once it's fully hidden underneath — otherwise
                       // it sits there still "open" at its last origin, and
                       // (before .tantu-rumal-obverse had its own opaque
                       // background) that stale open reverse face was what
                       // bled indigo through the very next flip back.
-                      if (outgoing) outgoing.style.clipPath = 'circle(0% at 50% 50%)';
+                      if (outgoing) outgoing.style.setProperty('--tantu-rumal-r', '0%');
                     });
                   }
                 });
