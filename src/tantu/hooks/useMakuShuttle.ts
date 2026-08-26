@@ -63,6 +63,35 @@ function isTextEntry(el: Element | null): boolean {
   return (el as HTMLElement).isContentEditable === true;
 }
 
+/**
+ * Roles and controls whose own keyboard contract owns the arrow keys. The
+ * shuttle's spatial routing must never take them from a widget whose ARIA
+ * pattern requires them — TantuTabs, native radio groups, listboxes, menus,
+ * trees and grids all did lose them while this ran in the capture phase.
+ */
+const ARROW_OWNING_ROLES = new Set([
+  "application", "combobox", "grid", "gridcell", "columnheader", "listbox",
+  "menu", "menubar", "menuitem", "menuitemcheckbox", "menuitemradio",
+  "option", "radio", "radiogroup", "row", "rowheader", "scrollbar",
+  "searchbox", "slider", "spinbutton", "tab", "tablist", "textbox",
+  "toolbar", "tree", "treegrid", "treeitem",
+]);
+
+/** True when `el`, or anything it sits inside, needs the arrow keys itself. */
+function ownsArrowKeys(el: Element | null): boolean {
+  for (let n: Element | null = el; n; n = n.parentElement) {
+    const role = n.getAttribute?.("role");
+    if (role && ARROW_OWNING_ROLES.has(role)) return true;
+    if (n.tagName === "SELECT" || n.tagName === "TEXTAREA") return true;
+    if (n.tagName === "INPUT") {
+      const type = (n as HTMLInputElement).type;
+      if (type === "radio" || type === "range" || TEXT_ENTRY.has(type)) return true;
+    }
+    if ((n as HTMLElement).isContentEditable) return true;
+  }
+  return false;
+}
+
 function isReachable(el: Element): boolean {
   const node = el as HTMLElement;
   if (node.hasAttribute("disabled")) return false;
@@ -298,12 +327,13 @@ export function useMakuShuttle(options: MakuShuttleOptions = {}) {
       if (key !== "ArrowUp" && key !== "ArrowDown" && key !== "ArrowLeft" && key !== "ArrowRight") return;
       if (event.metaKey || event.ctrlKey || event.altKey) return;
 
+      // A component that handled this key already wins — spatial routing now
+      // runs in the bubble phase so component handlers get first refusal.
+      if (event.defaultPrevented) return;
+
       const current = document.activeElement as HTMLElement | null;
       if (!current || !current.matches?.(INTERACTIVE_SELECTOR)) return;
-      // Text entry keeps the caret; the loom does not steal it.
-      if (isTextEntry(current)) return;
-      if (current.tagName === "SELECT") return;
-      if (current.getAttribute("role") === "slider" || current.getAttribute("type") === "range") return;
+      if (ownsArrowKeys(current)) return;
 
       const origin = current.getBoundingClientRect();
       const vertical = key === "ArrowUp" || key === "ArrowDown";
@@ -362,7 +392,9 @@ export function useMakuShuttle(options: MakuShuttleOptions = {}) {
 
     document.addEventListener("focusin", handleFocusIn, true);
     document.addEventListener("focusout", handleFocusOut, true);
-    document.addEventListener("keydown", handleKeyDown, true);
+    // Bubble, not capture: capture ran ahead of every component handler, so
+    // the shuttle silently overrode any widget that owns the arrow keys.
+    document.addEventListener("keydown", handleKeyDown);
     window.addEventListener("scroll", handleReflow, true);
     window.addEventListener("resize", handleReflow);
 
@@ -371,7 +403,7 @@ export function useMakuShuttle(options: MakuShuttleOptions = {}) {
       document.removeEventListener("keydown", primeAudio, true);
       document.removeEventListener("focusin", handleFocusIn, true);
       document.removeEventListener("focusout", handleFocusOut, true);
-      document.removeEventListener("keydown", handleKeyDown, true);
+      document.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("scroll", handleReflow, true);
       window.removeEventListener("resize", handleReflow);
       focusedRef.current?.classList.remove("tantu-maku-focus");

@@ -6,7 +6,11 @@
   "scripts": {
     "build:client-assets": "tsc --target es2020 --module es2020 --lib es2020,dom --noResolve --skipLibCheck --outDir assets src/tantu/lib/capillary-bleed.ts src/tantu/lib/maku-shuttle.ts src/tantu/lib/bleed-bus.ts",
     "build:fonts": "python3 build.py",
-    "build": "npm run build:client-assets && tsx generate_site.jsx"
+    "build": "npm run build:client-assets && tsx generate_site.jsx",
+    "audit:a11y": "node scripts/audit_a11y.mjs",
+    "audit:bleed": "node scripts/verify_bleed_bus.mjs",
+    "audit:fonts": "python3 scripts/verify_style.py",
+    "audit": "npm run audit:a11y && npm run audit:bleed"
   },
   "dependencies": {
     "react": "^19.0.0",

@@ -37,6 +37,42 @@ function isTextEntry(el) {
     }
     return el.isContentEditable === true;
 }
+/**
+ * Roles and controls whose own keyboard contract owns the arrow keys.
+ *
+ * The shuttle's spatial routing is a convenience layered on top of the page;
+ * it must never take arrow keys away from a widget whose ARIA pattern
+ * requires them. Without this the shuttle broke Tantu's own TantuTabs
+ * (ArrowLeft/ArrowRight select a tab, per WAI-ARIA Authoring Practices),
+ * along with native radio groups, listboxes, menus, trees and grids —
+ * because it listened in the capture phase and called preventDefault before
+ * any component handler could run.
+ */
+const ARROW_OWNING_ROLES = new Set([
+    "application", "combobox", "grid", "gridcell", "columnheader", "listbox",
+    "menu", "menubar", "menuitem", "menuitemcheckbox", "menuitemradio",
+    "option", "radio", "radiogroup", "row", "rowheader", "scrollbar",
+    "searchbox", "slider", "spinbutton", "tab", "tablist", "textbox",
+    "toolbar", "tree", "treegrid", "treeitem",
+]);
+/** True when `el`, or anything it sits inside, needs the arrow keys itself. */
+function ownsArrowKeys(el) {
+    for (let n = el; n; n = n.parentElement) {
+        const role = n.getAttribute?.("role");
+        if (role && ARROW_OWNING_ROLES.has(role))
+            return true;
+        if (n.tagName === "SELECT" || n.tagName === "TEXTAREA")
+            return true;
+        if (n.tagName === "INPUT") {
+            const type = n.type;
+            if (type === "radio" || type === "range" || TEXT_ENTRY.has(type))
+                return true;
+        }
+        if (n.isContentEditable)
+            return true;
+    }
+    return false;
+}
 function isReachable(el) {
     const node = el;
     if (node.hasAttribute("disabled"))
@@ -191,14 +227,14 @@ coordEl, options = {}) {
             return;
         if (event.metaKey || event.ctrlKey || event.altKey)
             return;
+        // A component that handled this key already wins — the shuttle now runs
+        // in the bubble phase specifically so component handlers get first refusal.
+        if (event.defaultPrevented)
+            return;
         const current = document.activeElement;
         if (!current || !current.matches?.(INTERACTIVE_SELECTOR))
             return;
-        if (isTextEntry(current))
-            return;
-        if (current.tagName === "SELECT")
-            return;
-        if (current.getAttribute("role") === "slider" || current.getAttribute("type") === "range")
+        if (ownsArrowKeys(current))
             return;
         const origin = current.getBoundingClientRect();
         const vertical = key === "ArrowUp" || key === "ArrowDown";
@@ -251,14 +287,16 @@ coordEl, options = {}) {
     }
     document.addEventListener("focusin", handleFocusIn, true);
     document.addEventListener("focusout", handleFocusOut, true);
-    document.addEventListener("keydown", handleKeyDown, true);
+    // Bubble, not capture: capture fired before every component handler, so the
+    // shuttle silently overrode any widget that owns the arrow keys.
+    document.addEventListener("keydown", handleKeyDown);
     window.addEventListener("scroll", handleReflow, true);
     window.addEventListener("resize", handleReflow);
     return {
         dispose() {
             document.removeEventListener("focusin", handleFocusIn, true);
             document.removeEventListener("focusout", handleFocusOut, true);
-            document.removeEventListener("keydown", handleKeyDown, true);
+            document.removeEventListener("keydown", handleKeyDown);
             window.removeEventListener("scroll", handleReflow, true);
             window.removeEventListener("resize", handleReflow);
             focused?.classList.remove("tantu-maku-focus");

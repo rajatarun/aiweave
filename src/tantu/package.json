@@ -1,0 +1,46 @@
+{
+  "name": "@aiweave/tantu",
+  "version": "0.1.0",
+  "description": "Tantu — a React design system that treats the interface as handloom cloth: token-driven, theme-aware, WCAG AA verified.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./styles.css": "./styles/tantu.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "components",
+    "hooks",
+    "lib",
+    "styles",
+    "index.ts"
+  ],
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react-dom": {
+      "optional": true
+    }
+  },
+  "keywords": [
+    "design-system",
+    "react",
+    "components",
+    "accessibility",
+    "wcag",
+    "design-tokens",
+    "theming",
+    "dark-mode"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

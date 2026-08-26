@@ -43,7 +43,25 @@
   --tantu-state-caution: var(--tantu-genda-rust);
 
   --tantu-grid-thread: rgba(110, 74, 53, 0.25);
-  --tantu-border-embroidery: #c5a059;
+  /* --tantu-grid-thread was doing two jobs with different requirements: the
+     loom's decorative 1px weave (exempt from contrast minima as pure
+     decoration) and the outline that delimits a card. As a boundary it
+     measured 1.46:1, and a card's own background sits at only ~1.1:1 against
+     the page ground, so that hairline is what identifies the component —
+     which puts it squarely under WCAG 1.4.11. Split out at 3.79:1 / 3.50:1;
+     the weave itself is unchanged. */
+  --tantu-border-hairline: rgba(110, 74, 53, 0.75);
+  /* The focus ring is zari gold by design ("reserved for the focus
+     shuttle"), but gold on a cream surface is only 1.89:1 — a keyboard user
+     cannot reliably see it, failing 1.4.11 and 2.4.11. Rather than abandon
+     the brand colour, the indicator is two-tone: this contrast halo rides
+     immediately outside the gold, so the indicator boundary always clears
+     3:1 against whatever it sits on. */
+  --tantu-focus-contrast: var(--tantu-kala-iron);
+  /* Deepened from #c5a059, which met only 2.12:1 against the page ground and
+     1.89:1 against a card — under the 3:1 WCAG 1.4.11 asks of a component
+     boundary. Still zari, just tarnished further. Now 4.24 / 3.77. */
+  --tantu-border-embroidery: #8a6c33;
 
   --tantu-color-surface: #e8e1d0;
   --tantu-color-ink: #12100e;
@@ -109,7 +127,7 @@
   --tantu-accent-structural: #0d233a;
 
   --tantu-grid-thread: rgba(110, 74, 53, 0.25);
-  --tantu-border-embroidery: #c5a059;
+  --tantu-border-embroidery: #8a6c33;
 
   --tantu-color-surface: #e8e1d0;
   --tantu-color-ink: #12100e;
@@ -129,9 +147,14 @@
 
   --tantu-accent-primary: #c5a059;
   --tantu-accent-highlight: #d8b26e;
-  --tantu-accent-structural: #4c7ba6;
+  /* Lightened from #4c7ba6: as a solid fill it carries --tantu-ink-inverted
+     (#12100e) on TantuTag/SectionHeader, and that pairing measured 4.24:1,
+     just under the 4.5 AA needs. Now 5.04. */
+  --tantu-accent-structural: #5688b4;
 
   --tantu-grid-thread: rgba(197, 160, 89, 0.2);
+  --tantu-border-hairline: rgba(214, 190, 140, 0.72);
+  --tantu-focus-contrast: var(--tantu-kora-raw);
   --tantu-border-embroidery: #9e7d3b;
 
   --tantu-color-surface: #1a1714;
@@ -141,12 +164,22 @@
   --tantu-color-metallic: #c5a059;
 }
 
-/* GLOBAL RESET & LOOM SUBSTRATE */
-*,
-*::before,
-*::after {
+/* GLOBAL RESET & LOOM SUBSTRATE
+   Scoped to Tantu's own elements, deliberately. This was `*, *::before,
+   *::after { border-radius: 0 !important }`, which reached every node in the
+   host document — a consuming application had every rounded corner it owned
+   destroyed, third-party widgets and embeds included, with `!important`
+   making it unoverridable. "Curves forbidden on woven structures" is a rule
+   about Tantu's own surfaces, not about the page it is embedded in. The
+   attribute selectors match any element carrying a `tantu-` class token. */
+[class^="tantu-"],
+[class*=" tantu-"],
+[class^="tantu-"]::before,
+[class^="tantu-"]::after,
+[class*=" tantu-"]::before,
+[class*=" tantu-"]::after {
   box-sizing: border-box;
-  border-radius: 0 !important; /* Curves strictly forbidden on woven structures */
+  border-radius: 0;
 }
 
 html,
@@ -387,7 +420,7 @@ h3.tantu-heading-kalam {
   padding: var(--tantu-knot-4);
   position: relative;
   /* Spec V3.1 §3: the basted thread ring, drawn from tokens only. */
-  outline: var(--tantu-gauge-filament) dashed var(--tantu-grid-thread);
+  outline: var(--tantu-gauge-filament) dashed var(--tantu-border-hairline);
   outline-offset: calc(-1 * var(--tantu-knot-1));
 }
 
@@ -400,13 +433,13 @@ h3.tantu-heading-kalam {
 
 .tantu-relief-kanthi {
   border: none;
-  outline: var(--tantu-gauge-filament) dashed var(--tantu-grid-thread);
+  outline: var(--tantu-gauge-filament) dashed var(--tantu-border-hairline);
   outline-offset: -6px;
 }
 
 .tantu-relief-zardozi {
   border: var(--tantu-gauge-cord) solid var(--tantu-border-embroidery);
-  outline: var(--tantu-gauge-ply) solid var(--tantu-grid-thread);
+  outline: var(--tantu-gauge-ply) solid var(--tantu-border-hairline);
   outline-offset: -10px;
 }
 
@@ -1829,6 +1862,8 @@ body:has(.tantu-loom-substrate) .tantu-loom {
   outline: var(--tantu-gauge-cord) solid var(--tantu-zari-pure-gold);
   outline-offset: -4px;
   box-shadow:
+    /* Contrast halo just outside the gold — see --tantu-focus-contrast. */
+    0 0 0 2px var(--tantu-focus-contrast),
     inset 0 0 0 1px var(--tantu-zari-tarnish),
     inset 0 0 0 6px var(--tantu-kala-charcoal);
   position: relative;
