@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type HTMLAttributes } from "react";
 import { getLoomAudio, KNOT_MS, panForX, type LoomVoice } from "../lib/loom-audio";
+import { inlineArrowStep } from "../lib/direction";
 
 type PaletteMode = "strike" | "sustain";
 
@@ -125,13 +126,19 @@ export function TantuAcousticPalette({ label = "Acoustic palette", className, ..
 
   const onKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+      // The inline-axis arrows swap roles in a right-to-left rack; the block
+      // axis (Up/Down) never does.
+      const inline = inlineArrowStep(event.key, event.currentTarget);
+      if (inline !== 0) {
+        event.preventDefault();
+        move(index + inline);
+        return;
+      }
       switch (event.key) {
-        case "ArrowRight":
         case "ArrowDown":
           event.preventDefault();
           move(index + 1);
           break;
-        case "ArrowLeft":
         case "ArrowUp":
           event.preventDefault();
           move(index - 1);

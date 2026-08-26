@@ -2,6 +2,10 @@
 // their own bleed-emitting components into the same arbitration.
 export * from "./lib/bleed-bus";
 
+// Writing direction. Exported so a consumer building its own composite widget
+// can follow the same inline-axis rules the built-in ones do.
+export * from "./lib/direction";
+
 export * from "./components/TantuLoom";
 export * from "./components/TantuCell";
 export * from "./components/TantuCard";

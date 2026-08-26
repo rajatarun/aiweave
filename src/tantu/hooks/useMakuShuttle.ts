@@ -136,21 +136,30 @@ function readLoom(): LoomMetrics | null {
     .map((v) => parseFloat(v))
     .filter((v) => !Number.isNaN(v));
   const gap = parseFloat(style.columnGap) || 1;
-  const padLeft = parseFloat(style.paddingLeft) || 0;
   const padTop = parseFloat(style.paddingTop) || 0;
+
+  // `grid-template-columns` reports its tracks in logical order, but grid
+  // lays the first track at the inline start — the right-hand edge under
+  // `direction: rtl`. Walking from the physical left would then place every
+  // thread on the wrong side of the cloth, so the walk follows the inline
+  // axis and only the recorded positions are physical.
+  const rtl = style.direction === "rtl";
+  const padStart = parseFloat(rtl ? style.paddingRight : style.paddingLeft) || 0;
+  const step = rtl ? -1 : 1;
+  const origin = rtl ? rect.right - padStart : rect.left + padStart;
 
   const columns: number[] = [];
   const gaps: number[] = [];
-  let cursor = rect.left + padLeft;
+  let cursor = origin;
   for (const track of tracks) {
-    columns.push(cursor);
-    cursor += track;
-    gaps.push(cursor + gap / 2);
-    cursor += gap;
+    columns.push(rtl ? cursor - track : cursor);
+    cursor += step * track;
+    gaps.push(cursor + (step * gap) / 2);
+    cursor += step * gap;
   }
 
   return {
-    left: rect.left + padLeft,
+    left: origin,
     top: rect.top + padTop,
     columns,
     columnWidth: tracks[0] ?? 1,

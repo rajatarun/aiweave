@@ -47,6 +47,81 @@ function nightfall(hour: number): number {
   return Math.max(0, Math.min(1, from_noon));
 }
 
+interface MonthBlock {
+  blanks: number;
+  cells: Date[];
+  tail: number;
+}
+
+/** Chunk a month block into weeks of seven, padding both ends with nulls. */
+function weeksOf(block: MonthBlock): Array<Array<Date | null>> {
+  const flat: Array<Date | null> = [
+    ...Array.from({ length: block.blanks }, () => null),
+    ...block.cells,
+    ...Array.from({ length: block.tail }, () => null),
+  ];
+  const weeks: Array<Array<Date | null>> = [];
+  for (let i = 0; i < flat.length; i += 7) weeks.push(flat.slice(i, i + 7));
+  return weeks;
+}
+
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+function DayCell({
+  date,
+  mark,
+  today,
+  selected,
+  onLock,
+}: {
+  date: Date;
+  mark?: string;
+  today: boolean;
+  selected: boolean;
+  onLock: (date: Date, x: number) => void;
+}) {
+  // On screen the numeral is unambiguous — the column says which weekday, the
+  // block heading says which month. Read aloud, "14" is not a date. The full
+  // name carries the weekday, the month and anything bound to that day.
+  const name = [
+    `${DAY_NAMES[date.getDay()]} ${date.getDate()} ${MONTH_NAMES[date.getMonth()]} ${date.getFullYear()}`,
+    today ? "today" : null,
+    mark,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+  return (
+    <span role="gridcell" className="tantu-panchang-cell">
+      <button
+        type="button"
+        className="tantu-panchang-day"
+        aria-label={name}
+        aria-pressed={selected}
+        aria-current={today ? "date" : undefined}
+        data-today={today ? "true" : undefined}
+        data-marked={mark !== undefined ? "true" : undefined}
+        onFocus={(event) => onLock(date, event.currentTarget.getBoundingClientRect().left)}
+        onClick={(event) => onLock(date, event.currentTarget.getBoundingClientRect().left)}
+      >
+        <span className="tantu-panchang-numeral" aria-hidden="true">
+          {date.getDate()}
+        </span>
+        {mark ? (
+          <span className="tantu-panchang-mark" aria-hidden="true">
+            {mark}
+          </span>
+        ) : null}
+      </button>
+    </span>
+  );
+}
+
 /**
  * The Panchang Matrix — a calendar as one continuous woven lattice.
  *
@@ -121,32 +196,34 @@ export function TantuPanchang({
         <section key={block.key} className="tantu-panchang-block" aria-label={block.title}>
           {index > 0 ? <div className="tantu-panchang-fringe" aria-hidden="true" /> : null}
           <h4 className="tantu-panchang-title">{block.title}</h4>
+          {/* A `grid` may only contain rows, and a `gridcell` may only sit in
+              one. Every cell used to be a direct child of the grid, which is
+              the shape screen readers cannot navigate: no row boundaries, so
+              no "week of" context and no vertical arrow movement. The rows
+              carry `display: contents`, so the seven-column weave the CSS
+              lays out is unchanged — this is semantics only. */}
           <div className="tantu-panchang-weave" role="grid" aria-label={block.title}>
-            {Array.from({ length: block.blanks }, (_, i) => (
-              <span key={`warp-${i}`} className="tantu-panchang-blank" aria-hidden="true" />
-            ))}
-            {block.cells.map((date) => {
-              const key = iso(date);
-              const label = marked.get(key);
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  role="gridcell"
-                  className="tantu-panchang-day"
-                  aria-selected={selected === key}
-                  data-today={key === today ? "true" : undefined}
-                  data-marked={marked.has(key) ? "true" : undefined}
-                  onFocus={(event) => lock(date, event.currentTarget.getBoundingClientRect().left)}
-                  onClick={(event) => lock(date, event.currentTarget.getBoundingClientRect().left)}
-                >
-                  <span className="tantu-panchang-numeral">{date.getDate()}</span>
-                  {label ? <span className="tantu-panchang-mark">{label}</span> : null}
-                </button>
-              );
-            })}
-            {Array.from({ length: block.tail }, (_, i) => (
-              <span key={`tail-${i}`} className="tantu-panchang-blank" aria-hidden="true" />
+            {weeksOf(block).map((week, weekIndex) => (
+              <div key={`week-${weekIndex}`} className="tantu-panchang-week" role="row">
+                {week.map((date, dayIndex) =>
+                  date === null ? (
+                    <span
+                      key={`blank-${weekIndex}-${dayIndex}`}
+                      role="gridcell"
+                      className="tantu-panchang-blank"
+                    />
+                  ) : (
+                    <DayCell
+                      key={iso(date)}
+                      date={date}
+                      mark={marked.get(iso(date))}
+                      today={iso(date) === today}
+                      selected={selected === iso(date)}
+                      onLock={lock}
+                    />
+                  ),
+                )}
+              </div>
             ))}
           </div>
         </section>

@@ -181,6 +181,55 @@
   border-radius: 0;
 }
 
+/* ============================================================
+   WRITING MODE — the warp can run either way
+
+   A loom does not care which selvedge you start from, and neither should
+   the system. Every inline-axis rule in this sheet is written with logical
+   properties (inset-inline-*, border-inline-*, margin-inline-*,
+   text-align: start), so a host setting `dir="rtl"` gets a correct mirror
+   with no Tantu-specific work.
+
+   Three classes of rule cannot be expressed logically, and they are the
+   only ones that need this section:
+
+   1. `transform: translateX()` — the transform functions are physical.
+      Multiply by --tantu-flip, which is +1 in LTR and -1 in RTL.
+   2. `background-position` measured from a physical edge.
+   3. `clip-path: inset()`, whose four sides are physical.
+
+   Deliberately NOT mirrored: the ikat and weave gradients (a woven texture
+   has no reading direction), the symmetric jitter keyframes, the
+   centring pair `left: 50% / translateX(-50%)` (symmetric about the
+   midpoint, so mirroring it would move the element rather than leave it
+   centred), and the Darshan lens cloth, whose `left: 0` with
+   `transform-origin: 0 0` is a coordinate-space anchor that the pan/zoom
+   maths in useDarshanLens computes against directly.
+   ============================================================ */
+
+:root {
+  --tantu-flip: 1;
+}
+
+[dir="rtl"] {
+  --tantu-flip: -1;
+}
+
+/* The select chevron is drawn with two gradients pinned to the trailing
+   edge; in RTL the trailing edge is the left one. */
+[dir="rtl"] .tantu-select {
+  background-position: 16px 50%, 11px 50%;
+}
+
+/* The spindle unroll wipes the new value in from the leading edge. */
+[dir="rtl"] .tantu-select[data-unrolling="true"] .tantu-spool-active {
+  animation-name: tantu-spindle-unroll-rtl;
+}
+@keyframes tantu-spindle-unroll-rtl {
+  0% { clip-path: inset(0 0 0 100%); transform: translateX(4px); }
+  100% { clip-path: inset(0 0 0 0); transform: translateX(0); }
+}
+
 html,
 body {
   background-color: var(--tantu-bg-substrate);
@@ -288,19 +337,26 @@ p, h1, h2, h3, h4, h5, h6, li, td, th, span, div, button, label, a, code {
     grid-template-columns: 0 1fr 0;
   }
 
-  .tantu-selvedge-left,
-  .tantu-selvedge-right,
-  .tantu-loom-selvedge-left,
-  .tantu-loom-selvedge-right {
-    display: none !important;
-    width: 0 !important;
-    padding: 0 !important;
+  /* The doubled class is deliberate: these rules have to outrank the
+     unconditional .tantu-selvedge-* and .tantu-cell-warp-* declarations
+     above, and specificity (0,2,0 against 0,1,0) does that without
+     `!important`. A shouted declaration in a library is unanswerable — a
+     consuming application could never legitimately override it. A doubled
+     class is merely firm: any host rule with two classes of its own, or an
+     id, still wins. */
+  .tantu-selvedge-left.tantu-selvedge-left,
+  .tantu-selvedge-right.tantu-selvedge-right,
+  .tantu-loom-selvedge-left.tantu-loom-selvedge-left,
+  .tantu-loom-selvedge-right.tantu-loom-selvedge-right {
+    display: none;
+    width: 0;
+    padding: 0;
     overflow: hidden;
   }
 
-  .tantu-loom-content {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-    padding: var(--tantu-knot-3) !important;
+  .tantu-loom-content.tantu-loom-content {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    padding: var(--tantu-knot-3);
     gap: var(--tantu-knot-3);
   }
 
@@ -313,8 +369,8 @@ p, h1, h2, h3, h4, h5, h6, li, td, th, span, div, button, label, a, code {
      past its explicit 4 columns. That implicit-column overflow is what used
      to collapse unrelated siblings into near-zero-width tracks and render
      their text one letter per line. */
-  .tantu-loom-content > * {
-    grid-column: span 4 !important;
+  .tantu-loom-content.tantu-loom-content > * {
+    grid-column: span 4;
   }
 
   /* Kalam-Rupa is cut down so a single word never exceeds the travel loom. */
@@ -331,8 +387,8 @@ p, h1, h2, h3, h4, h5, h6, li, td, th, span, div, button, label, a, code {
 /* The single-thread loom: on the narrowest frames every pick runs the full
    width of the cloth. */
 @media (max-width: 480px) {
-  .tantu-loom-content > * {
-    grid-column: span 4 !important;
+  .tantu-loom-content.tantu-loom-content > * {
+    grid-column: span 4;
   }
 }
 
@@ -476,7 +532,7 @@ h3.tantu-heading-kalam {
 .tantu-card-talim {
   position: absolute;
   top: var(--tantu-knot-1);
-  right: var(--tantu-knot-2);
+  inset-inline-end: var(--tantu-knot-2);
   font-family: var(--font-kasuti);
   font-size: 10px;
   text-transform: uppercase;
@@ -750,7 +806,7 @@ h3.tantu-heading-kalam {
 }
 .tantu-maku-caret {
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   bottom: calc(var(--tantu-knot-1) + 1px);
   width: var(--tantu-knot-2);
   height: var(--tantu-gauge-cord);
@@ -767,7 +823,7 @@ h3.tantu-heading-kalam {
   visibility: hidden;
   white-space: pre;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   pointer-events: none;
 }
 
@@ -781,7 +837,7 @@ h3.tantu-heading-kalam {
   width: 100%;
   outline: none;
   appearance: none;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   background-image: linear-gradient(45deg, transparent 50%, var(--tantu-ink-secondary) 50%),
     linear-gradient(135deg, var(--tantu-ink-secondary) 50%, transparent 50%);
@@ -807,8 +863,7 @@ h3.tantu-heading-kalam {
 .tantu-spool-rack {
   display: grid;
   grid-template-rows: 0fr;
-  border-left: var(--tantu-gauge-filament) solid transparent;
-  border-right: var(--tantu-gauge-filament) solid transparent;
+  border-inline: var(--tantu-gauge-filament) solid transparent;
   transition: grid-template-rows var(--tantu-motion-batten) steps(4, end);
 }
 .tantu-spool-rack[data-open="true"] {
@@ -829,7 +884,7 @@ h3.tantu-heading-kalam {
   color: var(--tantu-ink-primary);
   font-family: var(--font-talim);
   font-size: 13px;
-  text-align: left;
+  text-align: start;
   padding: var(--tantu-knot-2);
   cursor: pointer;
   position: relative;
@@ -946,7 +1001,7 @@ h3.tantu-heading-kalam {
   content: "";
   position: absolute;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   width: 18px;
   height: 100%;
   background-color: var(--tantu-katha-bark);
@@ -955,7 +1010,7 @@ h3.tantu-heading-kalam {
     background-color 0ms step-end;
 }
 .tantu-toggle input:checked + .tantu-treadle::after {
-  transform: translateX(20px);
+  transform: translateX(calc(20px * var(--tantu-flip)));
   background-color: var(--tantu-madder-root);
 }
 .tantu-toggle input:checked + .tantu-treadle {
@@ -999,14 +1054,14 @@ h3.tantu-heading-kalam {
   gap: var(--tantu-knot-2);
   padding: var(--tantu-knot-3);
   background-color: var(--tantu-bg-elevated);
-  border-left: var(--tantu-gauge-cord) solid var(--tantu-grid-thread);
+  border-inline-start: var(--tantu-gauge-cord) solid var(--tantu-grid-thread);
   font-family: var(--font-talim);
   font-size: 13px;
 }
-.tantu-notice-info { border-left-color: var(--tantu-accent-structural); }
-.tantu-notice-success { border-left-color: var(--tantu-state-success); }
-.tantu-notice-caution { border-left-color: var(--tantu-state-caution); }
-.tantu-notice-critical { border-left-color: var(--tantu-madder-flame); }
+.tantu-notice-info { border-inline-start-color: var(--tantu-accent-structural); }
+.tantu-notice-success { border-inline-start-color: var(--tantu-state-success); }
+.tantu-notice-caution { border-inline-start-color: var(--tantu-state-caution); }
+.tantu-notice-critical { border-inline-start-color: var(--tantu-madder-flame); }
 .tantu-notice-title {
   font-family: var(--font-kasuti);
   font-size: 11px;
@@ -1060,14 +1115,14 @@ h3.tantu-heading-kalam {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--tantu-ink-secondary);
-  text-align: left;
+  text-align: start;
   padding-bottom: var(--tantu-knot-2);
 }
 .tantu-table th,
 .tantu-table td {
   border: var(--tantu-gauge-filament) solid var(--tantu-grid-thread);
   padding: var(--tantu-knot-2);
-  text-align: left;
+  text-align: start;
   vertical-align: top;
 }
 .tantu-table thead th {
@@ -1157,8 +1212,8 @@ h3.tantu-heading-kalam {
   animation: tantu-shuttle-pass 1.1s linear infinite;
 }
 @keyframes tantu-shuttle-pass {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(300%); }
+  from { transform: translateX(calc(-100% * var(--tantu-flip))); }
+  to { transform: translateX(calc(300% * var(--tantu-flip))); }
 }
 
 /* SEAL (avatar) */
@@ -1235,7 +1290,7 @@ h3.tantu-heading-kalam {
 }
 .tantu-cut-vertical {
   border-top: none;
-  border-left: var(--tantu-gauge-filament) solid var(--tantu-grid-thread);
+  border-inline-start: var(--tantu-gauge-filament) solid var(--tantu-grid-thread);
   align-self: stretch;
   margin: 0 var(--tantu-knot-2);
 }
@@ -1355,7 +1410,7 @@ body:has(.tantu-loom-substrate) .tantu-loom {
 .tantu-popover {
   position: absolute;
   top: calc(100% + var(--tantu-knot-1));
-  left: 0;
+  inset-inline-start: 0;
   z-index: 50;
   min-width: 220px;
   max-width: 320px;
@@ -1404,7 +1459,7 @@ body:has(.tantu-loom-substrate) .tantu-loom {
   font: inherit;
   color: inherit;
   cursor: pointer;
-  text-align: left;
+  text-align: start;
 }
 .tantu-stepper-step:disabled { cursor: default; }
 .tantu-stepper-step:focus-visible {
@@ -1577,7 +1632,7 @@ body:has(.tantu-loom-substrate) .tantu-loom {
 .tantu-slider-rail,
 .tantu-slider-fill {
   position: absolute;
-  left: 0;
+  inset-inline-start: 0;
   height: var(--tantu-gauge-ply);
   width: 100%;
   pointer-events: none;
@@ -1616,7 +1671,7 @@ body:has(.tantu-loom-substrate) .tantu-loom {
   align-items: center;
 }
 .tantu-avatar-group-item {
-  margin-right: calc(-1 * var(--tantu-gauge-ply));
+  margin-inline-end: calc(-1 * var(--tantu-gauge-ply));
   border: var(--tantu-gauge-filament) solid var(--tantu-bg-surface-active);
 }
 .tantu-avatar-group-overflow {
@@ -1833,7 +1888,7 @@ body:has(.tantu-loom-substrate) .tantu-loom {
 .tantu-maku-coord {
   position: absolute;
   top: 0;
-  left: 0;
+  inset-inline-start: 0;
   font-family: var(--font-kasuti);
   font-size: 8px;
   line-height: 1;
@@ -2096,7 +2151,7 @@ textarea.tantu-maku-focus {
 
 /* The Weaver's Knot: the frayed warp pulls taut into a rigid line. */
 .tantu-rupture[data-phase="repairing"] .tantu-rupture-severed {
-  filter: none !important;
+  filter: none;
   opacity: 0;
   transition: opacity 120ms linear;
 }
@@ -2306,8 +2361,7 @@ textarea.tantu-maku-focus {
 }
 .tantu-jamdani-readout {
   position: absolute;
-  left: 0;
-  right: 0;
+  inset-inline: 0;
   bottom: var(--tantu-knot-6);
   font-family: var(--font-talim);
   font-size: 11px;
@@ -2397,9 +2451,53 @@ textarea.tantu-maku-focus {
   66% { transform: translateX(-1px); }
   100% { transform: translateX(3px); }
 }
+/* ============================================================
+   THE STILLED LOOM — one unanswerable reduced-motion floor
+
+   Individual components each carry their own `prefers-reduced-motion` rule,
+   and those stay: they are the *considered* reductions, where a component
+   swaps a spin for a slow fade or drops a filter but keeps its meaning. What
+   was missing was a floor beneath them. A component whose author forgot the
+   query — or a keyframe added later — kept animating, and a browser audit
+   found several still turning: the Kolam bindu reveal, its thread, and the
+   ikat drift.
+
+   Two deliberate decisions here:
+
+   1. This is the only `!important` in the stylesheet. A vestibular-safety
+      override has to be unanswerable — if a host rule could outrank it,
+      honouring the user's OS-level setting would depend on the host getting
+      its own specificity right. WCAG 2.3.3 treats this as a user preference
+      the author does not get to negotiate.
+
+   2. It sets a 1ms duration rather than `animation: none`. Many of these
+      keyframes are `forwards` reveals that start from `opacity: 0` or
+      `scale(0)`; cancelling the animation outright would strand the element
+      in its *pre*-animation state and the content would simply never appear.
+      Running it to completion in a single frame is the accessible outcome —
+      the end state, with no motion.
+
+   Scoped to Tantu's own elements, like the rest of the sheet: the host
+   document's motion is the host's business.
+   ============================================================ */
+
 @media (prefers-reduced-motion: reduce) {
-  .tantu-patola-cell {
-    animation: none !important;
+  [class^="tantu-"],
+  [class*=" tantu-"],
+  [class^="tantu-"]::before,
+  [class^="tantu-"]::after,
+  [class*=" tantu-"]::before,
+  [class*=" tantu-"]::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  html:has([class^="tantu-"]),
+  html:has([class*=" tantu-"]) {
+    scroll-behavior: auto;
   }
 }
 
@@ -2537,7 +2635,7 @@ textarea.tantu-maku-focus {
   padding: var(--tantu-knot-2) var(--tantu-knot-3);
   background: none;
   border: 0;
-  text-align: left;
+  text-align: start;
   color: var(--tantu-kora-raw);
   cursor: pointer;
 }
@@ -2628,6 +2726,14 @@ textarea.tantu-maku-focus {
   );
 }
 
+/* The week and cell wrappers exist for `role="row"` / `role="gridcell"`;
+   `display: contents` keeps them out of the layout entirely, so the seven
+   columns above still lay out day buttons directly. */
+.tantu-panchang-week,
+.tantu-panchang-cell {
+  display: contents;
+}
+
 .tantu-panchang-blank {
   background-image: repeating-linear-gradient(
     90deg,
@@ -2646,7 +2752,7 @@ textarea.tantu-maku-focus {
   border: 0;
   background: color-mix(in srgb, var(--tantu-panchang-substrate) 60%, var(--tantu-kala-iron));
   color: var(--tantu-kora-raw);
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   transition: background var(--tantu-motion-batten) steps(2, end);
 }
@@ -2654,7 +2760,7 @@ textarea.tantu-maku-focus {
 .tantu-panchang-day[data-today="true"] {
   background: color-mix(in srgb, var(--tantu-indigo-vat) 70%, var(--tantu-madder-root));
 }
-.tantu-panchang-day[aria-selected="true"] {
+.tantu-panchang-day[aria-pressed="true"] {
   background: var(--tantu-madder-root);
 }
 .tantu-panchang-day[data-marked="true"] .tantu-panchang-numeral {
@@ -3030,7 +3136,7 @@ textarea.tantu-maku-focus {
 
 .tantu-darshan-readout {
   position: absolute;
-  left: var(--tantu-knot-1);
+  inset-inline-start: var(--tantu-knot-1);
   bottom: var(--tantu-knot-1);
   z-index: 3;
   display: flex;
@@ -3190,9 +3296,9 @@ textarea.tantu-maku-focus {
 
 /* The bound card is held by the thread — no glow, no lift: it is simply
    stitched down at its selvedges. */
-[data-trace-bound="true"] {
-  outline: var(--tantu-gauge-ply) solid var(--tantu-madder-root) !important;
-  outline-offset: 0 !important;
+[data-trace-bound="true"][data-trace-bound] {
+  outline: var(--tantu-gauge-ply) solid var(--tantu-madder-root);
+  outline-offset: 0;
   box-shadow: inset 0 0 0 var(--tantu-gauge-filament) var(--tantu-zari-pure-gold);
 }
 
@@ -3327,4 +3433,156 @@ textarea.tantu-maku-focus {
 .tantu-palette-hint {
   margin-top: var(--tantu-knot-1);
   color: var(--tantu-ink-secondary);
+}
+
+/* ============================================================
+   HIGH CONTRAST & FORCED COLORS
+
+   Two different user needs, often conflated:
+
+   `prefers-contrast: more` is a request to keep the design and push its
+   separations further. Tantu answers it at the token layer only — every
+   component keeps its own rules and simply resolves harder colours, so the
+   whole system responds without a per-component branch.
+
+   `forced-colors: active` (Windows High Contrast and its equivalents) is
+   different in kind: the user agent *replaces* the palette with a small
+   system set, drops every `box-shadow`, and flattens most backgrounds. Any
+   meaning Tantu carries in a background fill or a shadow is therefore lost
+   unless it is restated in system colours. That is what the second block
+   does — it does not re-skin the system, it repairs the specific places
+   where state was encoded in a colour the user agent has taken away.
+   ============================================================ */
+
+@media (prefers-contrast: more) {
+  :root,
+  [data-theme="light"] {
+    --tantu-ink-secondary: #2b2622;
+    --tantu-grid-thread: rgba(110, 74, 53, 0.55);
+    --tantu-border-hairline: #4a3122;
+    --tantu-border-embroidery: #5c4620;
+    --tantu-accent-highlight: #82231d;
+    --tantu-state-caution: #8a4d0d;
+    --tantu-state-success: #1c3a26;
+  }
+
+  [data-theme="dark"] {
+    --tantu-ink-secondary: #e8e1d0;
+    --tantu-grid-thread: rgba(233, 214, 166, 0.55);
+    --tantu-border-hairline: #efe4c8;
+    --tantu-border-embroidery: #d9bd76;
+    --tantu-accent-highlight: #ef8a7c;
+    --tantu-state-caution: #f0a94e;
+    --tantu-state-success: #7fc79a;
+  }
+
+  /* Dashed and dotted rules read as noise rather than structure once the
+     contrast is up; a solid line at the same weight reads as a boundary. */
+  .tantu-card,
+  .tantu-relief-kanthi,
+  .tantu-popover,
+  .tantu-dialog {
+    outline-style: solid;
+  }
+}
+
+@media (forced-colors: active) {
+  /* The dye simulations are decorative overlays painted by WebGL and SVG
+     filters. Neither honours the forced palette, so both are withdrawn
+     rather than left to paint arbitrary colour over system-coloured text. */
+  .tantu-bleed-canvas,
+  .tantu-bleed-svg,
+  .tantu-rumal-rim-filter {
+    display: none;
+  }
+
+  /* Component boundaries: the hairline tokens resolve to a translucent
+     colour the user agent flattens away, so state the boundary in a system
+     colour that survives. */
+  .tantu-card,
+  .tantu-notice,
+  .tantu-popover,
+  .tantu-tooltip,
+  .tantu-table th,
+  .tantu-table td,
+  .tantu-input,
+  .tantu-textarea,
+  .tantu-select,
+  .tantu-spool-rack[data-open="true"],
+  .tantu-tag {
+    border-color: CanvasText;
+  }
+
+  /* Fills that ARE the state. `background-color` is flattened to Canvas in
+     this mode, so a filled button, a solid tag, a meter's progress and a
+     slider's travel all become indistinguishable from their track. Restate
+     each in the system's selected-item pair, which forced colours
+     guarantees to be mutually legible. */
+  .tantu-btn-primary,
+  .tantu-tag-solid,
+  .tantu-seal,
+  .tantu-palette-trigger[aria-pressed="true"],
+  .tantu-tab[aria-selected="true"] {
+    background-color: Highlight;
+    color: HighlightText;
+    border-color: Highlight;
+  }
+  .tantu-tag-solid > span {
+    color: HighlightText;
+  }
+
+  .tantu-meter-fill,
+  .tantu-slider-fill {
+    background-color: Highlight;
+    background-image: none;
+  }
+  .tantu-meter,
+  .tantu-slider-rail {
+    background-color: Canvas;
+    outline: 1px solid CanvasText;
+    outline-offset: 0;
+  }
+
+  /* The treadle knob's position already carries the toggle's state; its
+     colour is what disappears. Keep the two states distinguishable by fill
+     as well, so the control does not depend on a 20px offset alone. */
+  .tantu-treadle {
+    border-color: CanvasText;
+  }
+  .tantu-treadle::after {
+    background-color: CanvasText;
+  }
+  .tantu-toggle input:checked + .tantu-treadle {
+    border-color: Highlight;
+  }
+  .tantu-toggle input:checked + .tantu-treadle::after {
+    background-color: Highlight;
+  }
+
+  /* Disabled controls are dimmed with opacity, which forced colours does not
+     touch — GrayText is the signal assistive users and the OS both expect. */
+  .tantu-btn:disabled,
+  .tantu-tab:disabled,
+  .tantu-stepper-step:disabled,
+  .tantu-pagination-page:disabled {
+    color: GrayText;
+    border-color: GrayText;
+  }
+
+  /* Focus: `box-shadow` is dropped in this mode, so the two-tone halo is
+     gone and the outline is all that remains. Give every focus rule the
+     same system-coloured ring at a weight that survives the flattening. */
+  :focus-visible,
+  .tantu-maku-focus:focus-visible {
+    outline: 3px solid Highlight;
+    outline-offset: 1px;
+  }
+
+  /* Where the colour IS the content, opting out is the correct behaviour
+     under the forced-colors spec: an ikat band and a dye swatch are showing
+     the dye, and a flattened one shows nothing at all. */
+  .tantu-patola-cell,
+  .tantu-kasuti-canvas {
+    forced-color-adjust: none;
+  }
 }

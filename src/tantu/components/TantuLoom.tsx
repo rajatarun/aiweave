@@ -36,11 +36,17 @@ export const TantuLoom = forwardRef<HTMLDivElement, TantuLoomProps>(function Tan
 ) {
   return (
     <div {...rest} ref={ref} className={["tantu-loom", className].filter(Boolean).join(" ")}>
-      <aside className="tantu-selvedge-left">
-        <nav aria-label="Primary Loom Navigation">
-          <TalimThread code={viewTalimCode} />
-        </nav>
-      </aside>
+      {/* The selvedges are the cloth's finished edges: a decorative margin
+          carrying the Talim stamp. They were <aside> and <nav>, which made
+          them landmarks — two unnamed `complementary` regions plus a
+          `navigation` region containing no navigation. A screen-reader user
+          cycling landmarks got three stops that hold nothing to act on, and
+          the pair collided on axe's landmark-unique rule. The Talim code is
+          still exposed (TalimThread names it); it just no longer claims to be
+          a region of the page. Real navigation belongs in `children`. */}
+      <div className="tantu-selvedge-left">
+        <TalimThread code={viewTalimCode} />
+      </div>
 
       {darshan ? (
         <TantuDarshanLens talimCode={viewTalimCode}>
@@ -50,9 +56,9 @@ export const TantuLoom = forwardRef<HTMLDivElement, TantuLoomProps>(function Tan
         <main className="tantu-loom-content">{children}</main>
       )}
 
-      <aside className="tantu-selvedge-right">
+      <div className="tantu-selvedge-right">
         <TalimThread code="END-OF-WEAVE" />
-      </aside>
+      </div>
 
       {shuttle ? <TantuMakuShuttle /> : null}
     </div>

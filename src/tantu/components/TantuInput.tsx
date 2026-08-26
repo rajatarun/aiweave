@@ -12,6 +12,7 @@ import {
   type ReactNode,
 } from "react";
 import { getLoomAudio } from "../lib/loom-audio";
+import { inlineFlip, inlineStartPadding } from "../lib/direction";
 
 export interface TantuInputProps extends InputHTMLAttributes<HTMLInputElement> {
   /** Kasuti-stitched field label. */
@@ -78,8 +79,13 @@ export const TantuInput = forwardRef<HTMLInputElement, TantuInputProps>(function
     mirror.style.letterSpacing = style.letterSpacing;
     const caretIndex = node.selectionStart ?? node.value.length;
     mirror.textContent = node.value.slice(0, caretIndex) || "";
-    const padding = parseFloat(style.paddingLeft || "0");
-    setCaret((prev) => ({ ...prev, x: padding + mirror.offsetWidth - node.scrollLeft }));
+    // The caret rides the text advance measured from where text *begins*,
+    // which is the inline start — the right-hand edge in an RTL field. The
+    // element is anchored with `inset-inline-start`, so the transform that
+    // carries it along has to point the other way there too.
+    const padding = inlineStartPadding(style);
+    const advance = padding + mirror.offsetWidth - Math.abs(node.scrollLeft);
+    setCaret((prev) => ({ ...prev, x: advance * inlineFlip(node) }));
   }, [text]);
 
   /** Drain the throw queue: one glyph knots into the lattice every 15ms. */

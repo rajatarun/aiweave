@@ -1,4 +1,5 @@
 import { useCallback, useId, useState, type HTMLAttributes, type ReactNode } from "react";
+import { inlineArrowStep } from "../lib/direction";
 
 export interface TantuTabItem {
   id: string;
@@ -40,11 +41,30 @@ export function TantuTabs({
     [tabId, onTabChange],
   );
 
+  /**
+   * The tablist uses a roving tabindex, so selecting a tab without also
+   * moving focus would strand the keyboard on an element that has just
+   * become `tabindex="-1"` — the next Tab press would then leave the widget
+   * from the wrong place. WAI-ARIA's automatic-activation tablist requires
+   * focus and selection to travel together.
+   */
+  const selectAndFocus = (id: string) => {
+    select(id);
+    document.getElementById(`${base}-tab-${id}`)?.focus();
+  };
+
   const move = (delta: number) => {
     const enabled = items.filter((i) => !i.disabled);
     const index = enabled.findIndex((i) => i.id === active);
     const next = enabled[(index + delta + enabled.length) % enabled.length];
-    if (next) select(next.id);
+    if (next) selectAndFocus(next.id);
+  };
+
+  /** Jump to an absolute position; -1 means the last enabled tab. */
+  const moveTo = (position: number) => {
+    const enabled = items.filter((i) => !i.disabled);
+    const next = position < 0 ? enabled[enabled.length - 1] : enabled[position];
+    if (next) selectAndFocus(next.id);
   };
 
   return (
@@ -53,13 +73,21 @@ export function TantuTabs({
         role="tablist"
         className="tantu-tabs-list"
         onKeyDown={(event) => {
-          if (event.key === "ArrowRight") {
+          // In a right-to-left tablist the arrows swap roles, per the
+          // WAI-ARIA Authoring Practices; inlineArrowStep resolves that from
+          // the list's own computed direction.
+          const step = inlineArrowStep(event.key, event.currentTarget);
+          if (step !== 0) {
             event.preventDefault();
-            move(1);
+            move(step);
           }
-          if (event.key === "ArrowLeft") {
+          if (event.key === "Home") {
             event.preventDefault();
-            move(-1);
+            moveTo(0);
+          }
+          if (event.key === "End") {
+            event.preventDefault();
+            moveTo(-1);
           }
         }}
       >

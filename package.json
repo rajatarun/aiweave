@@ -4,23 +4,36 @@
   "description": "AIWeave landing page generator built with native Tantu Design Library components",
   "type": "module",
   "scripts": {
-    "build:client-assets": "tsc --target es2020 --module es2020 --lib es2020,dom --noResolve --skipLibCheck --outDir assets src/tantu/lib/capillary-bleed.ts src/tantu/lib/maku-shuttle.ts src/tantu/lib/bleed-bus.ts",
-    "build:fonts": "python3 build.py",
-    "build": "npm run build:client-assets && tsx generate_site.jsx",
+    "audit": "npm run audit:a11y && npm run audit:bleed && npm run test",
     "audit:a11y": "node scripts/audit_a11y.mjs",
     "audit:bleed": "node scripts/verify_bleed_bus.mjs",
+    "audit:browser": "node scripts/verify_browser.mjs",
     "audit:fonts": "python3 scripts/verify_style.py",
-    "audit": "npm run audit:a11y && npm run audit:bleed"
+    "build": "npm run build:client-assets && tsx generate_site.jsx",
+    "build:client-assets": "tsc --target es2020 --module es2020 --lib es2020,dom --noResolve --skipLibCheck --outDir assets src/tantu/lib/capillary-bleed.ts src/tantu/lib/maku-shuttle.ts src/tantu/lib/bleed-bus.ts src/tantu/lib/direction.ts",
+    "build:fonts": "python3 build.py",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
+    "verify": "npm run typecheck && npm run test && npm run audit:a11y && npm run audit:bleed && npm run build && npm run audit:browser"
   },
   "dependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.6",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "axe-core": "^4.13.0",
+    "jsdom": "^30.0.1",
+    "playwright": "^1.62.1",
     "tsx": "^4.19.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.11"
   }
 }
