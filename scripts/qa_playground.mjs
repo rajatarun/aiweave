@@ -11,10 +11,10 @@
  *
  * Run: node scripts/qa_playground.mjs
  */
-import { chromium } from "playwright";
 import http from "node:http";
 import path from "node:path";
 import fs from "node:fs";
+import { launchChromium } from "./chromium.mjs";
 
 const ROOT = path.resolve("playground/dist");
 if (!fs.existsSync(path.join(ROOT, "index.html"))) {
@@ -64,10 +64,7 @@ const server = await new Promise((resolve) => {
 });
 const BASE = `http://127.0.0.1:${server.address().port}`;
 
-const browser = await chromium.launch({
-  executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
-  args: ["--use-gl=swiftshader", "--enable-unsafe-swiftshader", "--no-sandbox"],
-});
+const browser = await launchChromium();
 
 const AXE_SOURCE = fs.readFileSync(path.resolve("node_modules/axe-core/axe.min.js"), "utf8");
 
