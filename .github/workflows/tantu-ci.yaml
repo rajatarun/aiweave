@@ -23,7 +23,14 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          # jsdom 30's undici dependency calls node:worker_threads'
+          # markAsUncloneable from its webidl module (see
+          # node_modules/undici/lib/web/webidl/index.js) — an API Node 20
+          # never shipped, so `webidl.util.markAsUncloneable` resolves to
+          # undefined and every jsdom-backed test file fails to start with
+          # "webidl.util.markAsUncloneable is not a function". Node 20 also
+          # reached end-of-life in April 2026, so no patch will add it.
+          node-version: "22"
           cache: "npm"
 
       - run: npm ci
