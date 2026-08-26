@@ -115,6 +115,28 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
 
 ### Fixed
 
+- **Text on a dyed card face sat flush against the dye's edge**, and the dye
+  filled an inset rectangle rather than the card. Both faces of
+  `ChambaRumalCard` began at the card's padding edge, so the first glyph
+  started at exactly the same x as the coloured box. Invisible while the
+  resting dye matched the card's own colour, and obvious the moment a
+  different dye arrived — an undyed frame, and words touching the colour's
+  boundary on every side with long lines running out past it. The padding
+  moved down one level: the dye now fills the card edge to edge and the text
+  floats inside it.
+- **The reverse face's text measured 1.19:1 against its own dye** — near-black
+  ink on near-black indigo, effectively invisible. Every dye now declares the
+  ink that reads on it (14.88 light, 5.04 dark). It went unmeasured because
+  every sweep rendered that card at rest showing only its obverse; there is
+  now a story for the dyed face, and the pairing is in the token audit.
+- **`isFlipped` rendered a blank card without the page-level flip script.**
+  The prop flipped `data-state` and raised the reverse face, but its radii
+  stayed at 0. Each state now has a static resting shape in CSS, so the
+  component is correct on its own and the script still owns the motion.
+- **The basted ring is drawn per face rather than as the card's outline**, so
+  it takes the face's ink and reads on either dye instead of being a brown
+  dashed line that only shows on cream. It carries the same clip as the dye,
+  so the stitch arrives with the cloth.
 - **Two rules referenced `--tantu-font-talim`, a token that has never
   existed**, so they had always silently rendered in their inline fallback
   rather than the intended face. Folded into the rename.

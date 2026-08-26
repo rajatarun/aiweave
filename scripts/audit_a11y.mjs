@@ -141,6 +141,14 @@ const PAIRS = [
   ["--tantu-ink-inverted", "--tantu-state-success", 4.5, "solid success tag label"],
   ["--tantu-ink-inverted", "--tantu-state-caution", 4.5, "solid caution tag label"],
   ["--tantu-ink-inverted", "--tantu-ink-zari", 4.5, "solid zari tag label"],
+  // Text sitting on a dyed surface. The Chamba rumal's reverse face fills
+  // itself with the structural accent and put --tantu-ink-primary on top:
+  // 1.19:1 in the light theme, near-black on near-black. Nothing caught it
+  // because every sweep rendered that card at rest, showing only its
+  // obverse — the pairing was never on screen. Both faces now declare a dye
+  // and the ink that reads on it, and both are checked here.
+  ["--tantu-ink-primary", "--tantu-color-surface", 4.5, "rumal obverse text on its dye"],
+  ["--tantu-ink-inverted", "--tantu-accent-structural", 4.5, "rumal reverse text on its dye"],
   // Non-text: borders, rules, focus (1.4.11 -> 3.0)
   ["--tantu-border-embroidery", "--tantu-bg-substrate", 3.0, "card border vs ground"],
   ["--tantu-border-embroidery", "--tantu-color-surface", 3.0, "card border vs card"],
