@@ -12,9 +12,21 @@ dye wicks through cotton — on the Lucas–Washburn law, not an easing curve.
 47 components. Every one of them verified against WCAG 2.1 AA in both themes
 and both writing directions, on every commit.
 
+**In production on [aiweave.org](https://aiweave.org).** The loom, the cells,
+both card variants, the buttons, tags, meters, stepper and the ink-bleed
+engine render that site, server-side, out of this source tree rather than a
+fork or an internal copy — `generate_site.jsx` imports them the way you would.
+One real production user is one more than most new design systems have, and it
+means Tantu's defects are the maintainer's defects first.
+
 ```
 npm install @aiweave/tantu
 ```
+
+**Try it before you install it:**
+[tantu-playground.netlify.app](https://tantu-playground.netlify.app) is a
+working application built on Tantu — a loom's shift record, not a component
+gallery — with theme and writing-direction switches in its own chrome.
 
 ```tsx
 import { TantuLoom, TantuCard, TantuButton } from "@aiweave/tantu";
@@ -151,7 +163,7 @@ What is verified, on every commit, and how:
 
 | | |
 |---|---|
-| Colour contrast | 58 real component pairings computed from the resolved tokens in both themes, against 4.5 (body), 3.0 (large and non-text). Alpha is flattened onto the actual backdrop first. `scripts/audit_a11y.mjs`. |
+| Colour contrast | 66 real component pairings computed from the resolved tokens in both themes, against 4.5 (body), 3.0 (large and non-text). Alpha is flattened onto the actual backdrop first. `scripts/audit_a11y.mjs`. |
 | Markup | axe-core over all 47 components × 2 themes × 2 directions. |
 | Keyboard | The WAI-ARIA composite-widget patterns, including the RTL arrow reversal, and a regression guard that the page-level shuttle never takes a key a component wanted. |
 | Modals | Focus containment, accessible name, and focus restoration. |
@@ -159,7 +171,8 @@ What is verified, on every commit, and how:
 | Forced colours | Every fill that carries state is restated in system colours; decorative dye layers withdraw. |
 | High contrast | `prefers-contrast: more` resolves harder tokens system-wide. |
 | Rendered contrast | axe measured against real pixels across every story in both themes, in Chromium. This is separate from the token audit and catches what it cannot: a pairing nobody wrote down. Eight defects reached this repository past a green token audit. |
-| Target size | Every interactive element in every story measured against WCAG 2.2's 24×24 CSS px. |
+| Target size | Every interactive element in every story measured against WCAG 2.2's 24×24 CSS px, plus the pan/zoom lens measured again at the phone width where it actually engages. |
+| Pointer alternatives | The one component driven by a drag and a pinch is driven in Chromium by single clicks instead, and the cloth is measured to have moved (WCAG 2.5.7, 2.5.1). |
 | Reflow / text spacing / zoom | At the criteria's real thresholds — 320 CSS px for reflow, the four prescribed spacing overrides, 200% zoom. |
 
 What is **not** claimed: no screen-reader testing with JAWS, NVDA or VoiceOver
@@ -170,10 +183,10 @@ statement.
 [**ACCESSIBILITY-CONFORMANCE-REPORT.md**](./ACCESSIBILITY-CONFORMANCE-REPORT.md)
 is the full VPAT 2.5Rev INT self-assessment — every WCAG 2.1 and 2.2 A/AA
 criterion, who determines the outcome (the library, the consumer, or both), and
-what was actually measured. Four known defects are named there rather than left
-to be discovered: dragging has no alternative in the pan/zoom lens, component
-text does not scale under text-only enlargement, there is no in-page control to
-stop animation, and status changes are not consistently announced.
+what was actually measured. Three known defects are named there rather than
+left to be discovered: component text does not scale under text-only
+enlargement, there is no in-page control to stop animation, and status changes
+are not consistently announced. There is no longer a *Does Not Support* row.
 
 ## Motion
 
@@ -203,10 +216,10 @@ npm run playground    # a working app built with Tantu
 npm run test:watch
 ```
 
-`npm run verify` is exactly what CI runs — typecheck, 213 tests, the token
-export, 58 contrast pairings, the bleed matrix, the site build, 20 browser
-checks, and a render of all 110 story/theme combinations with contrast and
-target size measured on real pixels. A change is ready when it passes.
+`npm run verify` is exactly what CI runs — typecheck, 237 tests, the token
+export, 66 contrast pairings, the bleed matrix, the site build, 27 browser
+checks, and a render of every story/theme combination with contrast and target
+size measured on real pixels. A change is ready when it passes.
 
 The typefaces are generated, not committed by hand:
 

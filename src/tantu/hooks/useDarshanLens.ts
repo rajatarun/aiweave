@@ -32,6 +32,16 @@ const MIN_FLICK = 0.12;
 // beyond this the cloth is left exactly where the hand released it.
 const SNAP_RADIUS = 160;
 
+// One press of a pan control moves the glass by a little over a quarter of the
+// aperture: far enough to be worth the press, short enough that the reader
+// keeps their place in the weave. The floor covers a very short aperture,
+// where a proportional step would be a few pixels.
+const PAN_STEP_RATIO = 0.28;
+const PAN_STEP_MIN = 48;
+// One press of a magnification control. Four presses cross the whole 1–4
+// range, so the buttons reach every zoom a pinch can.
+const ZOOM_STEP = 1.45;
+
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
@@ -219,6 +229,67 @@ export function useDarshanLens(options: UseDarshanLensOptions = {}) {
     [apply, bound, maxZoom, minZoom],
   );
 
+  /** Kill any glide in flight so a discrete command lands where it was aimed. */
+  const halt = useCallback(() => {
+    if (raf.current !== null) {
+      cancelAnimationFrame(raf.current);
+      raf.current = null;
+    }
+    velocity.current = { x: 0, y: 0 };
+    setGliding(false);
+  }, []);
+
+  /**
+   * Move the glass one step. Each argument is -1, 0 or +1 and says where the
+   * *lens* travels over the cloth, so +1 on x reveals what lies to the right.
+   *
+   * This is the non-path, single-pointer alternative to the drag (WCAG 2.5.7,
+   * 2.5.1): every position reachable by dragging the cloth is reachable by
+   * repeated presses, with no path to trace and no second pointer. It is also
+   * what the arrow keys drive, which is 2.1.1 for the same code.
+   *
+   * There is no snap afterwards. Anchorage is the right ending for a released
+   * flick, where the hand has stopped somewhere approximate; it is the wrong
+   * ending for a deliberate press, which would then not go where it was aimed.
+   */
+  const panStep = useCallback(
+    (ix: number, iy: number) => {
+      const frame = frameRef.current;
+      const stepX = Math.max(PAN_STEP_MIN, (frame?.clientWidth ?? 0) * PAN_STEP_RATIO);
+      const stepY = Math.max(PAN_STEP_MIN, (frame?.clientHeight ?? 0) * PAN_STEP_RATIO);
+      halt();
+      apply(
+        bound({
+          ...tRef.current,
+          x: tRef.current.x - ix * stepX,
+          y: tRef.current.y - iy * stepY,
+        }),
+      );
+    },
+    [apply, bound, halt],
+  );
+
+  /** Thread Expansion by a discrete step, anchored on the centre of the glass. */
+  const zoomStep = useCallback(
+    (direction: 1 | -1) => {
+      const frame = frameRef.current;
+      halt();
+      zoomAt(
+        (frame?.clientWidth ?? 0) / 2,
+        (frame?.clientHeight ?? 0) / 2,
+        direction > 0 ? ZOOM_STEP : 1 / ZOOM_STEP,
+      );
+    },
+    [halt, zoomAt],
+  );
+
+  /** Lift the glass: the whole cloth, unmagnified, from its leading corner. */
+  const reset = useCallback(() => {
+    halt();
+    setSeated(null);
+    apply(bound({ x: 0, y: 0, zoom: minZoom }));
+  }, [apply, bound, halt, minZoom]);
+
   useEffect(() => {
     const frame = frameNode;
     if (!frame) return;
@@ -371,5 +442,18 @@ export function useDarshanLens(options: UseDarshanLensOptions = {}) {
     };
   }, [acoustic, apply, bound, frameNode, glide, macroSnap, maxZoom, minZoom, nodeSelector, zoomAt]);
 
-  return { frameRef: attachFrame, planeRef, transform, dragging, gliding, seated, macroSnap, snap, zoomAt };
+  return {
+    frameRef: attachFrame,
+    planeRef,
+    transform,
+    dragging,
+    gliding,
+    seated,
+    macroSnap,
+    snap,
+    zoomAt,
+    panStep,
+    zoomStep,
+    reset,
+  };
 }

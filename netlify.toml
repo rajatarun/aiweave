@@ -1,0 +1,42 @@
+# Netlify hosts the Tantu playground, and only the playground.
+#
+# aiweave.org itself is built by generate_site.jsx and published to S3 by
+# .github/workflows/deploy.yaml — that is unaffected by anything in this file.
+# What lives here is the evaluation copy: a working application built on
+# @aiweave/tantu that someone can open and click before deciding whether to
+# clone the repository.
+#
+# `base` is what makes a root-level config deploy a subdirectory: the build
+# runs inside playground/, so `publish` and `command` are both relative to it.
+
+[build]
+  base = "playground"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# A single-page app served from static hosting: every path has to fall back to
+# the one document, or a reload on any route but "/" is a 404.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# The build fingerprints every asset filename, so they can be cached hard.
+# index.html must not be — it is the file that names the new fingerprints.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    cache-control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.woff2"
+  [headers.values]
+    cache-control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    cache-control = "public, max-age=0, must-revalidate"

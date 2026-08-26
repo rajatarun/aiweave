@@ -149,6 +149,14 @@ const PAIRS = [
   // and the ink that reads on it, and both are checked here.
   ["--tantu-ink-primary", "--tantu-color-surface", 4.5, "rumal obverse text on its dye"],
   ["--tantu-ink-inverted", "--tantu-accent-structural", 4.5, "rumal reverse text on its dye"],
+  // The Darshan lens's own chrome — readout and keypad — is deliberately
+  // theme-invariant: the glass is machined from one dark brass body whichever
+  // theme the document under it is in. That makes these primitives rather
+  // than semantic tokens, and it is exactly the shape of mistake that put a
+  // fixed white label on a solid tag, so both pairs are measured here rather
+  // than assumed to be fine because the ground is "obviously" dark.
+  ["--tantu-zari-pure-gold", "--tantu-kala-iron", 4.5, "lens readout and keypad glyph"],
+  ["--tantu-zari-tarnish", "--tantu-kala-iron", 4.5, "lens talim code and key boundary"],
   // Non-text: borders, rules, focus (1.4.11 -> 3.0)
   ["--tantu-border-embroidery", "--tantu-bg-substrate", 3.0, "card border vs ground"],
   ["--tantu-border-embroidery", "--tantu-color-surface", 3.0, "card border vs card"],

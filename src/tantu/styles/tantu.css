@@ -3412,6 +3412,15 @@ textarea.tantu-maku-focus {
   pointer-events: none;
 }
 
+/* The readout's ground is theme-invariant brass-on-iron, so the Talim code
+   inside it cannot keep the theme-aware ink it wears everywhere else: in the
+   light theme that is a near-black on a near-black plate, 2.18:1. Exactly the
+   mistake the reverse rumal face made, found the same way — by rendering the
+   thing at the size it exists at and measuring the pixels. */
+.tantu-darshan-readout .tantu-meta-talim {
+  color: var(--tantu-zari-tarnish);
+}
+
 .tantu-darshan-coord {
   font-family: var(--tantu-font-mono);
   font-size: 10px;
@@ -3419,9 +3428,88 @@ textarea.tantu-maku-focus {
   color: var(--tantu-zari-pure-gold);
 }
 
+/* The keypad — the alternative to the hand.
+   WCAG 2.5.7 and 2.5.1 will not accept a drag or a pinch as the only way to
+   reach a position, so every one of them is reachable here by pressing a
+   single key once. Machined into the same brass as the bezel rather than
+   floated over the cloth: it is part of the instrument, not an overlay
+   apologising for it. The 1px lattice gaps are the mount showing through.
+
+   Note the deliberate theme invariance. Everything under the glass follows
+   the document's theme; the instrument holding it does not, because the
+   lens frame is always the dark charcoal body it is machined from. */
+.tantu-darshan-keypad {
+  position: absolute;
+  inset-inline-end: var(--tantu-knot-2);
+  bottom: var(--tantu-knot-2);
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(3, 40px);
+  gap: 1px;
+  padding: 1px;
+  background-color: var(--tantu-zari-tarnish);
+  border: 1px solid var(--tantu-zari-tarnish);
+  box-shadow: 0 2px var(--tantu-knot-1) rgb(0 0 0 / 0.55);
+}
+
+.tantu-darshan-keypad button {
+  display: grid;
+  place-items: center;
+  /* 40 against the 24 that SC 2.5.8 asks for. This is the control a reader
+     who cannot drag has to use for every movement, so it is sized for
+     repeated pressing rather than for the minimum. */
+  inline-size: 40px;
+  block-size: 40px;
+  padding: 0;
+  border: 0;
+  background-color: var(--tantu-kala-iron);
+  color: var(--tantu-zari-pure-gold);
+  cursor: pointer;
+}
+
+/* The pad is a plus, not a block: the corners below the arrows are mount. */
+.tantu-darshan-keypad button[data-key="down"] {
+  grid-column: 2;
+}
+
+.tantu-darshan-keypad button:hover {
+  background-color: var(--tantu-kala-charcoal);
+}
+
+.tantu-darshan-keypad button:active {
+  background-color: var(--tantu-zari-tarnish);
+  color: var(--tantu-kala-iron);
+}
+
+/* Inset, because the keys butt against each other across a 1px gap and an
+   outset ring would read as belonging to the neighbour. */
+.tantu-darshan-keypad button:focus-visible {
+  outline: var(--tantu-gauge-ply) solid var(--tantu-zari-pure-gold);
+  outline-offset: -4px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tantu-darshan:not([data-dragging]) .tantu-darshan-cloth {
     transition-duration: 1ms;
+  }
+}
+
+@media (forced-colors: active) {
+  /* The brass is gone in this mode; the keys have to read as buttons. */
+  .tantu-darshan-keypad {
+    background-color: ButtonBorder;
+    border-color: ButtonBorder;
+  }
+
+  .tantu-darshan-keypad button {
+    background-color: ButtonFace;
+    color: ButtonText;
+  }
+
+  .tantu-darshan-keypad button:hover,
+  .tantu-darshan-keypad button:active {
+    background-color: Highlight;
+    color: HighlightText;
   }
 }
 
