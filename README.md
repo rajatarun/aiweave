@@ -77,6 +77,25 @@ const release = holdAmbientBleed();   // ambient layers stay dry
 // ...call release() when the front stops moving.
 ```
 
+### The wick law
+
+How far the wet front has travelled is one shared function, `wickProgress`,
+used by both the CSS-driven fronts and the GLSL shader so they cannot drift.
+
+Dye advancing through a porous medium follows the **Lucas–Washburn law**,
+L ∝ √t. The system previously grew fronts as `1 − e^(−kt)`, which is a
+*saturation* curve — right for how wet one point becomes as dye pools there,
+wrong for where the front has reached. Driving a radius with it stalls the
+edge: measured against its own peak speed, an exponential front is 92%
+stopped by t=0.75 and 95% by t=0.90, so the back half of the animation is
+dead air. Washburn holds ~22% of peak speed all the way to the end, which is
+the gradual, still-travelling slowdown real cloth shows.
+
+`WICK_T0` regularises the start (pure Washburn has infinite speed at t=0;
+cloth has an inertial regime first). `WICK_ANISOTROPY` stretches the front
+along warp and weft, because cloth conducts along its threads faster than on
+the bias — so fronts are ellipses, not circles.
+
 `shouldBleed` is also the single reduced-motion gate, so every responder
 honours it identically. It is policy only — it never touches the shader;
 `capillary-bleed.ts` stays pure mechanism (one shared WebGL context for the

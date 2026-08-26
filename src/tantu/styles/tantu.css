@@ -1655,15 +1655,16 @@ body:has(.tantu-loom-substrate) .tantu-loom {
   /* The dye this face wicks in. Carried by .tantu-rumal-rim-fill rather
      than as this element's own background — see above. */
   --tantu-rumal-dye: var(--tantu-color-surface);
-  --tantu-rumal-r: 150%;
+  /* Fully open at rest: large enough to clear any card. */
+  --tantu-rumal-rx: 9999px;
+  --tantu-rumal-ry: 9999px;
 }
 
 .tantu-rumal-reverse {
   z-index: 1;
   --tantu-rumal-dye: var(--tantu-accent-structural);
-  /* 150% is relative to the box, comfortably clearing every corner from
-     any origin the dye front starts at. */
-  --tantu-rumal-r: 0%;
+  --tantu-rumal-rx: 0px;
+  --tantu-rumal-ry: 0px;
   pointer-events: none;
 }
 
@@ -1711,7 +1712,7 @@ body:has(.tantu-loom-substrate) .tantu-loom {
   /* This layer is the face's colour — the dye pool itself, not a
      decorative extra on top of an already-coloured face. */
   background-color: var(--tantu-rumal-dye);
-  clip-path: circle(var(--tantu-rumal-r) at var(--tantu-rumal-ox) var(--tantu-rumal-oy));
+  clip-path: ellipse(var(--tantu-rumal-rx) var(--tantu-rumal-ry) at var(--tantu-rumal-ox) var(--tantu-rumal-oy));
 }
 
 /* The crisp half. Clipped to the same circle as the dye pool but with no
@@ -1721,7 +1722,7 @@ body:has(.tantu-loom-substrate) .tantu-loom {
 .tantu-rumal-content {
   position: relative;
   z-index: 1;
-  clip-path: circle(var(--tantu-rumal-r) at var(--tantu-rumal-ox) var(--tantu-rumal-oy));
+  clip-path: ellipse(var(--tantu-rumal-rx) var(--tantu-rumal-ry) at var(--tantu-rumal-ox) var(--tantu-rumal-oy));
 }
 
 .tantu-card-rumal[data-state="reverse"] .tantu-rumal-reverse {

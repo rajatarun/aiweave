@@ -55,6 +55,72 @@
  * touches the shader. capillary-bleed.ts stays pure mechanism.
  */
 
+/* ------------------------------------------------------------------ */
+/* THE WICK LAW — how far the wet front has travelled, 0..1.           */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Crossover from the inertial regime into the viscous one, as a fraction of
+ * the droplet's lifetime. Pure Washburn has infinite front speed at t=0;
+ * real cloth does not, because inertia dominates the first instant before
+ * viscous drag takes over. Regularising with a small t0 keeps the start
+ * quick but finite.
+ */
+export const WICK_T0 = 0.04;
+
+/**
+ * Fabric conducts along warp and weft faster than on the bias, so a real
+ * wicking front is not a circle — it stretches along the thread axes. Same
+ * constant the shader applies in capillary-bleed.ts, kept here so the CSS
+ * and GLSL paths cannot drift apart.
+ */
+export const WICK_ANISOTROPY = 0.18;
+
+/**
+ * Lucas–Washburn wicking, normalised so wickProgress(1) === 1.
+ *
+ * Dye advancing through a porous medium follows L ∝ sqrt(t) — the classic
+ * result for capillary flow in fabric. This system previously grew the front
+ * as 1 - e^(-kt), which is a *saturation* curve: correct for how wet a given
+ * point becomes as dye accumulates there, but not for where the front has
+ * reached. Applied to a radius it dies far too early — measured against its
+ * own peak speed, an exponential front is 92% stopped at t=0.75 and 95% at
+ * t=0.90, so the last half of the animation is a stall. Washburn holds ~22%
+ * of peak speed all the way to the end, which is the gradual, still-moving
+ * slowdown real cloth shows.
+ */
+export function wickProgress(t: number, t0: number = WICK_T0): number {
+  if (!(t > 0)) return 0;
+  if (t >= 1) return 1;
+  const s0 = Math.sqrt(t0);
+  return (Math.sqrt(t + t0) - s0) / (Math.sqrt(1 + t0) - s0);
+}
+
+/**
+ * Radii for an anisotropic wet front at progress `p` (0..1), given the
+ * radius that would just cover the cloth along the weft axis. Returns px.
+ */
+export function wickRadii(coverRy: number, p: number): { rx: number; ry: number } {
+  const ry = coverRy * p;
+  return { rx: ry * (1 + WICK_ANISOTROPY * p), ry };
+}
+
+/**
+ * The weft-axis radius at which the front, stretched by WICK_ANISOTROPY,
+ * just reaches every corner of a w x h box from (cx, cy).
+ */
+export function wickCoverRadius(w: number, h: number, cx: number, cy: number): number {
+  const k = 1 + WICK_ANISOTROPY;
+  let max = 0;
+  for (const [x, y] of [[0, 0], [w, 0], [0, h], [w, h]] as Array<[number, number]>) {
+    const dx = (x - cx) / k;
+    const dy = y - cy;
+    const d = Math.sqrt(dx * dx + dy * dy);
+    if (d > max) max = d;
+  }
+  return max;
+}
+
 export type BleedLayer = "substrate" | "surface" | "control" | "narrative";
 
 const LAYER_RANK: { [K in BleedLayer]: number } = {
