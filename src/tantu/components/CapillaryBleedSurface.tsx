@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import { createCapillaryBleed, type CapillaryBleedHandle } from "../lib/capillary-bleed";
+import { registerBleedNode, shouldBleed } from "../lib/bleed-bus";
 import { resolveDye } from "../lib/dye";
 import { InkBleedFilter } from "./InkBleedFilter";
 
@@ -61,6 +62,13 @@ export const CapillaryBleedSurface = forwardRef<CapillaryBleedSurfaceHandle, Cap
   ) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const engineRef = useRef<CapillaryBleedHandle | null>(null);
+    const hostRef = useRef<HTMLDivElement | null>(null);
+
+    // Declare this region as the "surface" owner of gestures inside it, so the
+    // loom substrate underneath stands down rather than blooming through the
+    // same press — and so a control nested in here (which outranks a surface)
+    // can in turn take the gesture from this surface. See lib/bleed-bus.
+    useEffect(() => registerBleedNode(hostRef.current, "surface"), []);
 
     useEffect(() => {
       const canvas = canvasRef.current;
@@ -91,6 +99,7 @@ export const CapillaryBleedSurface = forwardRef<CapillaryBleedSurfaceHandle, Cap
         onPointerDown?.(event);
         const canvas = canvasRef.current;
         if (!canvas) return;
+        if (!shouldBleed(event.nativeEvent, "surface")) return;
         const rect = canvas.getBoundingClientRect();
         engineRef.current?.bleed(event.clientX - rect.left, event.clientY - rect.top);
       },
@@ -100,6 +109,7 @@ export const CapillaryBleedSurface = forwardRef<CapillaryBleedSurfaceHandle, Cap
     return (
       <div
         {...rest}
+        ref={hostRef}
         className={["tantu-bleed-host", className].filter(Boolean).join(" ")}
         onPointerDown={handlePointerDown}
       >

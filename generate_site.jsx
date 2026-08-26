@@ -814,8 +814,20 @@ function SiteApp({ reposData, tantuCss }) {
             </TantuCell>
         </TantuLoom>
         <script
+          type="module"
           dangerouslySetInnerHTML={{
             __html: `
+              import { registerBleedSelector, holdAmbientBleed } from "./assets/bleed-bus.js";
+
+              // The flip trigger owns its gesture at the "narrative" layer:
+              // the card answers a press with its own dye front, so nothing
+              // ambient should bloom from that same press. Registered by
+              // selector because the cards are generated per repo. Declaring
+              // it here rather than teaching the substrate about this class is
+              // the whole point of the bus — the substrate needs no knowledge
+              // of what a Rumal card is.
+              registerBleedSelector('.tantu-rumal-flip', 'narrative');
+
               (function() {
                 var btn = document.getElementById('theme-toggle');
                 if (!btn) return;
@@ -890,11 +902,11 @@ function SiteApp({ reposData, tantuCss }) {
                 // so one write drives both — the content stays sharp and
                 // legible while the rim frays.
                 function growRadius(el, ox, oy, duration, onDone) {
-                  // Published so the ambient substrate bleed can hold off
-                  // while this card answers for itself — see the capillary
-                  // boot script below. A counter, not a boolean, so two
-                  // overlapping flips can't clear it early.
-                  window.__tantuRumalFilling = (window.__tantuRumalFilling || 0) + 1;
+                  // Ambient responders stand down for as long as this fill is
+                  // spreading, so a pointer trail during the ~1.4s cannot
+                  // bloom over it. The bus counts holds, so overlapping flips
+                  // cannot release each other early.
+                  var releaseAmbient = holdAmbientBleed();
                   var rim = el.querySelector('.tantu-rumal-rim-filter');
                   if (rim) rim.style.filter = 'url(#tantu-rumal-bleed)';
                   el.style.setProperty('--tantu-rumal-ox', ox + '%');
@@ -935,7 +947,7 @@ function SiteApp({ reposData, tantuCss }) {
                       if (rim) rim.style.filter = 'none';
                       if (disp) disp.setAttribute('scale', BASE_SCALE);
                       if (blur) blur.setAttribute('stdDeviation', BASE_SOAK);
-                      window.__tantuRumalFilling = Math.max(0, (window.__tantuRumalFilling || 1) - 1);
+                      releaseAmbient();
                       if (onDone) onDone();
                     }
                   }
@@ -998,6 +1010,7 @@ function SiteApp({ reposData, tantuCss }) {
           dangerouslySetInnerHTML={{
             __html: `
               import { createCapillaryBleed } from "./assets/capillary-bleed.js";
+              import { shouldBleed } from "./assets/bleed-bus.js";
 
               (function () {
                 var canvas = document.querySelector(".tantu-loom-substrate");
@@ -1016,24 +1029,15 @@ function SiteApp({ reposData, tantuCss }) {
                 var trailInterval = 90;
                 var lastTrail = 0;
 
-                // One gesture should wick dye once. A flip trigger already
-                // answers with the card's own dye front, so letting the
-                // substrate bloom from that same press put a ~420px cloud
-                // across the page gaps at the exact moment the card was
-                // filling — bigger than the card's own spread and outlasting
-                // it (2600ms vs 1400ms), so the ambient effect read as the
-                // main event and the card fill as a side note. The substrate
-                // now stays out of the way whenever a card is answering for
-                // itself: not from the press that starts a flip, and not
-                // while one is still spreading.
-                function ownedByACard(event) {
-                  if ((window.__tantuRumalFilling || 0) > 0) return true;
-                  var t = event.target;
-                  return !!(t && t.closest && t.closest(".tantu-rumal-flip"));
-                }
-
+                // The substrate is the lowest bleed layer: it answers only the
+                // gestures no more specific responder owns. shouldBleed also
+                // keeps it quiet while a narrative bleed (a card fill) is
+                // still spreading. This replaces a hand-rolled check against
+                // one card class — the bus generalises it to any responder
+                // that registers itself, which is what keeps new bleed-enabled
+                // components from having to be special-cased here.
                 function emit(event) {
-                  if (ownedByACard(event)) return;
+                  if (!shouldBleed(event, "substrate")) return;
                   var rect = canvas.getBoundingClientRect();
                   engine.bleed(event.clientX - rect.left, event.clientY - rect.top);
                 }

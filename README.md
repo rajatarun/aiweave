@@ -37,3 +37,54 @@ output (same as `assets/capillary-bleed.js` and `index.html` itself) —
 because it needs Python, not just Node; re-run it by hand whenever a
 glyph changes, then `npm run build` to regenerate the site against the
 new files.
+
+## Bleed architecture
+
+Several Tantu components wick dye, and each one used to answer pointer
+gestures on its own. Composed, they multiplied: a bleeding `TantuButton`
+inside a `CapillaryBleedSurface` over the loom substrate is three dye fronts
+for one press, none aware of the others — and the largest, longest one wins
+the eye, which is backwards, since the innermost is what actually answers
+the press. `src/tantu/lib/bleed-bus.ts` arbitrates so that **one gesture
+produces one dye front**.
+
+Responders declare a **layer**. The innermost registered owner of whatever
+was touched answers; everything else stands down for that gesture.
+
+| Layer | Who | Answers |
+| --- | --- | --- |
+| `substrate` | loom ground (`TantuBleedCanvas`) | only gestures nothing else owns |
+| `surface` | `CapillaryBleedSurface` | presses inside its own region |
+| `control` | `TantuButton` | presses on the control itself |
+| `narrative` | `ChambaRumalCard` flip | the action it *is* the response to; also mutes ambient while it runs |
+
+Ownership is by **registration, not listener order** — which matters because
+the participants do not all listen to the same event (the substrate reacts to
+`pointerdown`, a card flip starts on `click`), so an ordering-based scheme
+would let the substrate fire before the card could claim the gesture.
+
+```tsx
+// A component that dyes on its own behalf:
+useEffect(() => registerBleedNode(hostRef.current, "surface"), []);
+// ...then, before emitting:
+if (!shouldBleed(event.nativeEvent, "surface")) return;
+
+// Static markup / many instances:
+registerBleedSelector(".tantu-rumal-flip", "narrative");
+
+// A bleed that owns the moment while it plays:
+const release = holdAmbientBleed();   // ambient layers stay dry
+// ...call release() when the front stops moving.
+```
+
+`shouldBleed` is also the single reduced-motion gate, so every responder
+honours it identically. It is policy only — it never touches the shader;
+`capillary-bleed.ts` stays pure mechanism (one shared WebGL context for the
+whole page, see its header).
+
+Adding a bleed-enabled component means registering it at a layer. Nothing
+else in the system needs to learn about it.
+
+```
+node scripts/verify_bleed_bus.mjs   # arbitration matrix, runs on the built asset
+```

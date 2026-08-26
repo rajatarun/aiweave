@@ -1,6 +1,7 @@
 import { forwardRef, useCallback, useRef, type ButtonHTMLAttributes, type PointerEvent as ReactPointerEvent } from "react";
 
 import { createCapillaryBleed, type CapillaryBleedHandle } from "../lib/capillary-bleed";
+import { registerBleedNode, shouldBleed } from "../lib/bleed-bus";
 import { resolveDye, type TantuDye } from "../lib/dye";
 import { useEffect } from "react";
 
@@ -33,6 +34,26 @@ export const TantuButton = forwardRef<HTMLButtonElement, TantuButtonProps>(funct
 ) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<CapillaryBleedHandle | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+
+  // Keep the forwarded ref working while still holding our own handle.
+  const attachButton = useCallback(
+    (node: HTMLButtonElement | null) => {
+      buttonRef.current = node;
+      if (typeof ref === "function") ref(node);
+      else if (ref) (ref as { current: HTMLButtonElement | null }).current = node;
+    },
+    [ref],
+  );
+
+  // A control outranks the surface and substrate beneath it: pressing a button
+  // should read as the button answering, not as three dye fronts at once. The
+  // registration is what makes that true even for responders that listen to a
+  // different event than this one. See lib/bleed-bus.
+  useEffect(() => {
+    if (!bleed) return;
+    return registerBleedNode(buttonRef.current, "control");
+  }, [bleed]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -56,6 +77,7 @@ export const TantuButton = forwardRef<HTMLButtonElement, TantuButtonProps>(funct
       onPointerDown?.(event);
       const canvas = canvasRef.current;
       if (!canvas) return;
+      if (!shouldBleed(event.nativeEvent, "control")) return;
       const rect = canvas.getBoundingClientRect();
       engineRef.current?.bleed(event.clientX - rect.left, event.clientY - rect.top);
     },
@@ -65,7 +87,7 @@ export const TantuButton = forwardRef<HTMLButtonElement, TantuButtonProps>(funct
   return (
     <button
       {...rest}
-      ref={ref}
+      ref={attachButton}
       onPointerDown={handlePointerDown}
       className={["tantu-btn", `tantu-btn-${variant}`, "tantu-btn-strike", className].filter(Boolean).join(" ")}
     >
