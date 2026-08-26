@@ -3510,6 +3510,11 @@ textarea.tantu-maku-focus {
                 // so one write drives both — the content stays sharp and
                 // legible while the rim frays.
                 function growRadius(el, ox, oy, duration, onDone) {
+                  // Published so the ambient substrate bleed can hold off
+                  // while this card answers for itself — see the capillary
+                  // boot script below. A counter, not a boolean, so two
+                  // overlapping flips can't clear it early.
+                  window.__tantuRumalFilling = (window.__tantuRumalFilling || 0) + 1;
                   var rim = el.querySelector('.tantu-rumal-rim-filter');
                   if (rim) rim.style.filter = 'url(#tantu-rumal-bleed)';
                   el.style.setProperty('--tantu-rumal-ox', ox + '%');
@@ -3550,6 +3555,7 @@ textarea.tantu-maku-focus {
                       if (rim) rim.style.filter = 'none';
                       if (disp) disp.setAttribute('scale', BASE_SCALE);
                       if (blur) blur.setAttribute('stdDeviation', BASE_SOAK);
+                      window.__tantuRumalFilling = Math.max(0, (window.__tantuRumalFilling || 1) - 1);
                       if (onDone) onDone();
                     }
                   }
@@ -3617,7 +3623,24 @@ textarea.tantu-maku-focus {
                 var trailInterval = 90;
                 var lastTrail = 0;
 
+                // One gesture should wick dye once. A flip trigger already
+                // answers with the card's own dye front, so letting the
+                // substrate bloom from that same press put a ~420px cloud
+                // across the page gaps at the exact moment the card was
+                // filling — bigger than the card's own spread and outlasting
+                // it (2600ms vs 1400ms), so the ambient effect read as the
+                // main event and the card fill as a side note. The substrate
+                // now stays out of the way whenever a card is answering for
+                // itself: not from the press that starts a flip, and not
+                // while one is still spreading.
+                function ownedByACard(event) {
+                  if ((window.__tantuRumalFilling || 0) > 0) return true;
+                  var t = event.target;
+                  return !!(t && t.closest && t.closest(".tantu-rumal-flip"));
+                }
+
                 function emit(event) {
+                  if (ownedByACard(event)) return;
                   var rect = canvas.getBoundingClientRect();
                   engine.bleed(event.clientX - rect.left, event.clientY - rect.top);
                 }
