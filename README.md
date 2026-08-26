@@ -37,3 +37,73 @@ output (same as `assets/capillary-bleed.js` and `index.html` itself) —
 because it needs Python, not just Node; re-run it by hand whenever a
 glyph changes, then `npm run build` to regenerate the site against the
 new files.
+
+## Bleed architecture
+
+Several Tantu components wick dye, and each one used to answer pointer
+gestures on its own. Composed, they multiplied: a bleeding `TantuButton`
+inside a `CapillaryBleedSurface` over the loom substrate is three dye fronts
+for one press, none aware of the others — and the largest, longest one wins
+the eye, which is backwards, since the innermost is what actually answers
+the press. `src/tantu/lib/bleed-bus.ts` arbitrates so that **one gesture
+produces one dye front**.
+
+Responders declare a **layer**. The innermost registered owner of whatever
+was touched answers; everything else stands down for that gesture.
+
+| Layer | Who | Answers |
+| --- | --- | --- |
+| `substrate` | loom ground (`TantuBleedCanvas`) | only gestures nothing else owns |
+| `surface` | `CapillaryBleedSurface` | presses inside its own region |
+| `control` | `TantuButton` | presses on the control itself |
+| `narrative` | `ChambaRumalCard` flip | the action it *is* the response to; also mutes ambient while it runs |
+
+Ownership is by **registration, not listener order** — which matters because
+the participants do not all listen to the same event (the substrate reacts to
+`pointerdown`, a card flip starts on `click`), so an ordering-based scheme
+would let the substrate fire before the card could claim the gesture.
+
+```tsx
+// A component that dyes on its own behalf:
+useEffect(() => registerBleedNode(hostRef.current, "surface"), []);
+// ...then, before emitting:
+if (!shouldBleed(event.nativeEvent, "surface")) return;
+
+// Static markup / many instances:
+registerBleedSelector(".tantu-rumal-flip", "narrative");
+
+// A bleed that owns the moment while it plays:
+const release = holdAmbientBleed();   // ambient layers stay dry
+// ...call release() when the front stops moving.
+```
+
+### The wick law
+
+How far the wet front has travelled is one shared function, `wickProgress`,
+used by both the CSS-driven fronts and the GLSL shader so they cannot drift.
+
+Dye advancing through a porous medium follows the **Lucas–Washburn law**,
+L ∝ √t. The system previously grew fronts as `1 − e^(−kt)`, which is a
+*saturation* curve — right for how wet one point becomes as dye pools there,
+wrong for where the front has reached. Driving a radius with it stalls the
+edge: measured against its own peak speed, an exponential front is 92%
+stopped by t=0.75 and 95% by t=0.90, so the back half of the animation is
+dead air. Washburn holds ~22% of peak speed all the way to the end, which is
+the gradual, still-travelling slowdown real cloth shows.
+
+`WICK_T0` regularises the start (pure Washburn has infinite speed at t=0;
+cloth has an inertial regime first). `WICK_ANISOTROPY` stretches the front
+along warp and weft, because cloth conducts along its threads faster than on
+the bias — so fronts are ellipses, not circles.
+
+`shouldBleed` is also the single reduced-motion gate, so every responder
+honours it identically. It is policy only — it never touches the shader;
+`capillary-bleed.ts` stays pure mechanism (one shared WebGL context for the
+whole page, see its header).
+
+Adding a bleed-enabled component means registering it at a layer. Nothing
+else in the system needs to learn about it.
+
+```
+node scripts/verify_bleed_bus.mjs   # arbitration matrix, runs on the built asset
+```

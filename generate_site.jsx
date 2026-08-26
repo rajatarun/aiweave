@@ -814,8 +814,20 @@ function SiteApp({ reposData, tantuCss }) {
             </TantuCell>
         </TantuLoom>
         <script
+          type="module"
           dangerouslySetInnerHTML={{
             __html: `
+              import { registerBleedSelector, holdAmbientBleed, wickProgress, wickRadii, wickCoverRadius } from "./assets/bleed-bus.js";
+
+              // The flip trigger owns its gesture at the "narrative" layer:
+              // the card answers a press with its own dye front, so nothing
+              // ambient should bloom from that same press. Registered by
+              // selector because the cards are generated per repo. Declaring
+              // it here rather than teaching the substrate about this class is
+              // the whole point of the bus — the substrate needs no knowledge
+              // of what a Rumal card is.
+              registerBleedSelector('.tantu-rumal-flip', 'narrative');
+
               (function() {
                 var btn = document.getElementById('theme-toggle');
                 if (!btn) return;
@@ -843,9 +855,12 @@ function SiteApp({ reposData, tantuCss }) {
               // 1400) rather than an invented value — a slow, deliberate
               // soak, not a snap-instant swap.
               (function() {
-                var K = 3.4; // capillary uptake rate; matches the shader exactly
-                var DURATION = 1400; // ms; matches capillary-bleed.ts's own default
-                var REST_R = 150; // percent — the settled "fully open" resting radius
+                // Longer than the shader's 1400ms default: under the Washburn
+                // law the front is still visibly travelling at the end rather
+                // than parked, so the extra time reads as an unhurried soak
+                // instead of dead air.
+                var DURATION = 1900;
+                var REST_R = 9999; // px — the settled "fully open" resting radius
 
                 // The displacement primitive inside #tantu-rumal-bleed. Its
                 // scale is eased to 0 across the spread so the wet edge stops
@@ -866,22 +881,12 @@ function SiteApp({ reposData, tantuCss }) {
                 var blur = document.querySelector('#tantu-rumal-bleed feGaussianBlur');
                 var BASE_SOAK = blur ? (parseFloat(blur.getAttribute('stdDeviation')) || 0) : 0;
 
-                // Radius (in clip-path percent) at which a circle centred on
-                // (ox, oy) covers the element's farthest corner. CSS resolves
-                // a circle() percentage against sqrt(w^2 + h^2) / sqrt(2), so
-                // convert through that same reference.
-                function coverRadiusPct(el, oxPct, oyPct) {
-                  var w = el.offsetWidth, h = el.offsetHeight;
-                  if (!w || !h) return REST_R;
-                  var cx = w * oxPct / 100, cy = h * oyPct / 100;
-                  var far = Math.max(
-                    Math.sqrt(cx * cx + cy * cy),
-                    Math.sqrt((w - cx) * (w - cx) + cy * cy),
-                    Math.sqrt(cx * cx + (h - cy) * (h - cy)),
-                    Math.sqrt((w - cx) * (w - cx) + (h - cy) * (h - cy))
-                  );
-                  return far / (Math.sqrt(w * w + h * h) / Math.SQRT2) * 100;
-                }
+                // Geometry is done in px against an ellipse rather than a
+                // percentage circle: cloth wicks along warp and weft faster
+                // than on the bias, so a real wet front is stretched along the
+                // thread axes. wickCoverRadius/wickRadii apply the same
+                // WICK_ANISOTROPY the shader uses, so the CSS and GLSL fronts
+                // have the same shape as well as the same growth law.
 
                 // Sets --tantu-rumal-r/ox/oy, not a literal clip-path: the
                 // face's own crisp clip-path AND its nested rim's
@@ -890,52 +895,52 @@ function SiteApp({ reposData, tantuCss }) {
                 // so one write drives both — the content stays sharp and
                 // legible while the rim frays.
                 function growRadius(el, ox, oy, duration, onDone) {
-                  // Published so the ambient substrate bleed can hold off
-                  // while this card answers for itself — see the capillary
-                  // boot script below. A counter, not a boolean, so two
-                  // overlapping flips can't clear it early.
-                  window.__tantuRumalFilling = (window.__tantuRumalFilling || 0) + 1;
+                  // Ambient responders stand down for as long as this fill is
+                  // spreading, so a pointer trail during the ~1.4s cannot
+                  // bloom over it. The bus counts holds, so overlapping flips
+                  // cannot release each other early.
+                  var releaseAmbient = holdAmbientBleed();
                   var rim = el.querySelector('.tantu-rumal-rim-filter');
                   if (rim) rim.style.filter = 'url(#tantu-rumal-bleed)';
                   el.style.setProperty('--tantu-rumal-ox', ox + '%');
                   el.style.setProperty('--tantu-rumal-oy', oy + '%');
 
-                  // Pick the droplet's maximum spread radius so the front
-                  // reaches the farthest corner exactly as the droplet's
-                  // lifetime ends. A fixed 150% meant the curve cleared the
-                  // card at ~26% of the duration and spent the remaining ~74%
-                  // growing off-card where nothing changes — the fill looked
-                  // like it stalled just short of the borders, then completed
-                  // in a jump. Same exponential, same K: only maxRadius is
-                  // chosen from the geometry instead of guessed.
-                  var cover = coverRadiusPct(el, ox, oy);
-                  var maxR = cover / (1 - Math.exp(-K));
+                  // The front reaches the farthest corner exactly as the
+                  // droplet's lifetime ends, so the whole duration is visible
+                  // travel rather than off-card growth.
+                  var w = el.offsetWidth, h = el.offsetHeight;
+                  var coverRy = wickCoverRadius(w, h, w * ox / 100, h * oy / 100);
 
                   var start = null;
                   function frame(now) {
                     if (start === null) start = now;
                     var t = Math.min(1, (now - start) / duration);
-                    var r = maxR * (1 - Math.exp(-K * t));
-                    el.style.setProperty('--tantu-rumal-r', r.toFixed(2) + '%');
-                    // Fray amplitude follows the wet front: full while the dye
-                    // is climbing, zero once it has saturated, so the border
-                    // resolves smoothly instead of popping when the filter
-                    // comes off.
-                    var wetness = 1 - t * t;
+                    var p = wickProgress(t);
+                    var radii = wickRadii(coverRy, p);
+                    el.style.setProperty('--tantu-rumal-rx', radii.rx.toFixed(2) + 'px');
+                    el.style.setProperty('--tantu-rumal-ry', radii.ry.toFixed(2) + 'px');
+                    // Fray holds almost full strength while the front is
+                    // travelling and only settles right at the end. A gentler
+                    // 1 - t^2 taper faded the ragged edge out through the
+                    // middle of the spread, which is when cloth actually looks
+                    // most torn; ^6 keeps it alive and still lands at exactly
+                    // 0, which is what stops the filter's removal from popping.
+                    var wetness = 1 - Math.pow(t, 6);
                     if (disp) disp.setAttribute('scale', (BASE_SCALE * wetness).toFixed(2));
                     if (blur) blur.setAttribute('stdDeviation', (BASE_SOAK * wetness).toFixed(3));
                     if (t < 1) {
                       requestAnimationFrame(frame);
                     } else {
-                      // Park at the resting radius. r(1) already equals the
-                      // cover radius, so this is off-card and invisible — it
-                      // just leaves the face in the same settled state the
-                      // stylesheet declares.
-                      el.style.setProperty('--tantu-rumal-r', REST_R + '%');
+                      // Park fully open. The front already covers the cloth at
+                      // p == 1, so this is off-card and invisible — it just
+                      // leaves the face in the resting state the stylesheet
+                      // declares.
+                      el.style.setProperty('--tantu-rumal-rx', REST_R + 'px');
+                      el.style.setProperty('--tantu-rumal-ry', REST_R + 'px');
                       if (rim) rim.style.filter = 'none';
                       if (disp) disp.setAttribute('scale', BASE_SCALE);
                       if (blur) blur.setAttribute('stdDeviation', BASE_SOAK);
-                      window.__tantuRumalFilling = Math.max(0, (window.__tantuRumalFilling || 1) - 1);
+                      releaseAmbient();
                       if (onDone) onDone();
                     }
                   }
@@ -970,7 +975,8 @@ function SiteApp({ reposData, tantuCss }) {
 
                   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                   if (incoming) {
-                    incoming.style.setProperty('--tantu-rumal-r', '0%');
+                    incoming.style.setProperty('--tantu-rumal-rx', '0px');
+                    incoming.style.setProperty('--tantu-rumal-ry', '0px');
                     growRadius(incoming, ox, oy, reduceMotion ? 1 : DURATION, function () {
                       // Return the covered face to its own closed resting
                       // state once it's fully hidden underneath — otherwise
@@ -978,7 +984,10 @@ function SiteApp({ reposData, tantuCss }) {
                       // (before .tantu-rumal-obverse had its own opaque
                       // background) that stale open reverse face was what
                       // bled indigo through the very next flip back.
-                      if (outgoing) outgoing.style.setProperty('--tantu-rumal-r', '0%');
+                      if (outgoing) {
+                        outgoing.style.setProperty('--tantu-rumal-rx', '0px');
+                        outgoing.style.setProperty('--tantu-rumal-ry', '0px');
+                      }
                     });
                   }
                 });
@@ -998,6 +1007,7 @@ function SiteApp({ reposData, tantuCss }) {
           dangerouslySetInnerHTML={{
             __html: `
               import { createCapillaryBleed } from "./assets/capillary-bleed.js";
+              import { shouldBleed } from "./assets/bleed-bus.js";
 
               (function () {
                 var canvas = document.querySelector(".tantu-loom-substrate");
@@ -1016,24 +1026,15 @@ function SiteApp({ reposData, tantuCss }) {
                 var trailInterval = 90;
                 var lastTrail = 0;
 
-                // One gesture should wick dye once. A flip trigger already
-                // answers with the card's own dye front, so letting the
-                // substrate bloom from that same press put a ~420px cloud
-                // across the page gaps at the exact moment the card was
-                // filling — bigger than the card's own spread and outlasting
-                // it (2600ms vs 1400ms), so the ambient effect read as the
-                // main event and the card fill as a side note. The substrate
-                // now stays out of the way whenever a card is answering for
-                // itself: not from the press that starts a flip, and not
-                // while one is still spreading.
-                function ownedByACard(event) {
-                  if ((window.__tantuRumalFilling || 0) > 0) return true;
-                  var t = event.target;
-                  return !!(t && t.closest && t.closest(".tantu-rumal-flip"));
-                }
-
+                // The substrate is the lowest bleed layer: it answers only the
+                // gestures no more specific responder owns. shouldBleed also
+                // keeps it quiet while a narrative bleed (a card fill) is
+                // still spreading. This replaces a hand-rolled check against
+                // one card class — the bus generalises it to any responder
+                // that registers itself, which is what keeps new bleed-enabled
+                // components from having to be special-cased here.
                 function emit(event) {
-                  if (ownedByACard(event)) return;
+                  if (!shouldBleed(event, "substrate")) return;
                   var rect = canvas.getBoundingClientRect();
                   engine.bleed(event.clientX - rect.left, event.clientY - rect.top);
                 }

@@ -6,9 +6,10 @@
  * substrate with an organic, fibre-torn edge produced by domain-warped
  * value noise (an FBM stand-in for SVG turbulence displacement).
  *
- * No geometric easing: growth follows a capillary saturation curve
- * r(t) = R * (1 - e^(-k t)), the same asymptotic uptake a dye front shows
- * climbing untreated cotton.
+ * No geometric easing: the front follows the Lucas-Washburn wicking law
+ * L ∝ sqrt(t) (regularised at t=0), the distance a dye front actually
+ * travels through untreated cotton. Shared with the CSS-driven fronts via
+ * wickProgress() in bleed-bus.ts.
  *
  * CONTEXT POOLING — Safari (WebKit) hard-caps live WebGL contexts per page
  * (historically 16) and silently drops the oldest once the cap is passed,
@@ -87,8 +88,20 @@ void main() {
 
     float t = age / u_duration;
 
-    // Capillary uptake: fast wick, asymptotic settle. Never a bezier.
-    float growth = 1.0 - exp(-3.4 * t);
+    // Lucas-Washburn wicking: the wet front through a porous medium travels
+    // as sqrt(t). Regularised with T0 because pure Washburn has infinite
+    // speed at t=0 and cloth does not — inertia rules the first instant,
+    // then viscous drag takes over. Normalised so growth(1) == 1.
+    //
+    // This was 1.0 - exp(-3.4 * t), which is a *saturation* curve: right for
+    // how wet one point becomes as dye pools there, wrong for where the
+    // front has reached. Driving a radius with it stalls the edge — against
+    // its own peak speed an exponential front is 92% stopped by t=0.75,
+    // where Washburn still holds ~24%. Kept in step with wickProgress() in
+    // bleed-bus.ts so the CSS and GLSL fronts cannot drift apart.
+    float T0 = 0.04;
+    float s0 = sqrt(T0);
+    float growth = (sqrt(t + T0) - s0) / (sqrt(1.0 + T0) - s0);
     float radius = u_maxRadius * growth;
 
     vec2 d = threadWarp(p - b.xy, b.w);

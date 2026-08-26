@@ -5,6 +5,7 @@ import {
   type CapillaryBleedHandle,
   type CapillaryBleedOptions,
 } from "../lib/capillary-bleed";
+import { shouldBleed, type BleedLayer } from "../lib/bleed-bus";
 
 export interface UseCapillaryBleedOptions extends CapillaryBleedOptions {
   /**
@@ -27,6 +28,13 @@ export interface UseCapillaryBleedOptions extends CapillaryBleedOptions {
    * none canvas sitting behind the whole UI.
    */
   global?: boolean;
+  /**
+   * Which bleed layer this surface answers at (see lib/bleed-bus). Defaults to
+   * "substrate" in global mode and "surface" otherwise, which is what the loom
+   * ground and a region surface respectively want. Raise it for a surface that
+   * should outrank a plain region.
+   */
+  layer?: BleedLayer;
 }
 
 export interface UseCapillaryBleedResult {
@@ -65,12 +73,15 @@ export function useCapillaryBleed(options: UseCapillaryBleedOptions = {}): UseCa
     trailInterval = 0,
     inert = false,
     global: listenGlobally = false,
+    layer,
     dye,
     duration,
     maxRadius,
     fray,
     saturation,
   } = options;
+
+  const bleedLayer: BleedLayer = layer ?? (listenGlobally ? "substrate" : "surface");
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<CapillaryBleedHandle | null>(null);
@@ -100,7 +111,12 @@ export function useCapillaryBleed(options: UseCapillaryBleedOptions = {}): UseCa
     const onResize = () => engine.resize();
     window.addEventListener("resize", onResize);
 
+    // One gesture, one dye front: the bus yields to whichever responder most
+    // specifically owns what was touched, and keeps ambient layers quiet while
+    // a narrative bleed is spreading. It also centralises the reduced-motion
+    // check, which this hook previously did not make at all.
     const emit = (event: PointerEvent) => {
+      if (!shouldBleed(event, bleedLayer)) return;
       const rect = canvas.getBoundingClientRect();
       engine.bleed(event.clientX - rect.left, event.clientY - rect.top);
     };
@@ -129,7 +145,7 @@ export function useCapillaryBleed(options: UseCapillaryBleedOptions = {}): UseCa
       engine.dispose();
       engineRef.current = null;
     };
-  }, [target, onContact, trailInterval, inert, listenGlobally, dye, duration, maxRadius, fray, saturation]);
+  }, [target, onContact, trailInterval, inert, listenGlobally, bleedLayer, dye, duration, maxRadius, fray, saturation]);
 
   return { canvasRef, bleed, bleedAt };
 }

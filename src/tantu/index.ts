@@ -1,3 +1,7 @@
+// Cross-component dye coordination. Exported so consumers can register
+// their own bleed-emitting components into the same arbitration.
+export * from "./lib/bleed-bus";
+
 export * from "./components/TantuLoom";
 export * from "./components/TantuCell";
 export * from "./components/TantuCard";
