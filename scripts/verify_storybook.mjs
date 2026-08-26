@@ -8,10 +8,10 @@
  *
  * Run: npm run build:storybook && node scripts/verify_storybook.mjs
  */
-import { chromium } from "playwright";
 import http from "node:http";
 import path from "node:path";
 import fs from "node:fs";
+import { launchChromium } from "./chromium.mjs";
 
 const ROOT = path.resolve("storybook-static");
 if (!fs.existsSync(path.join(ROOT, "index.json"))) {
@@ -56,10 +56,7 @@ const MODES = [
   { theme: "dark", direction: "rtl" },
 ];
 
-const browser = await chromium.launch({
-  executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
-  args: ["--use-gl=swiftshader", "--enable-unsafe-swiftshader", "--no-sandbox"],
-});
+const browser = await launchChromium();
 
 const AXE_SOURCE = fs.readFileSync(
   path.resolve("node_modules/axe-core/axe.min.js"),

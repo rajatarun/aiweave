@@ -9,10 +9,10 @@
  * Run: node scripts/verify_browser.mjs
  * Exits non-zero on the first failed check.
  */
-import { chromium } from "playwright";
 import http from "node:http";
 import path from "node:path";
 import fs from "node:fs";
+import { launchChromium } from "./chromium.mjs";
 
 const failures = [];
 
@@ -58,10 +58,7 @@ if (!fs.existsSync("index.html")) {
 const server = await serve(path.resolve("."));
 const PAGE = `http://127.0.0.1:${server.address().port}/index.html`;
 
-const browser = await chromium.launch({
-  executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
-  args: ["--use-gl=swiftshader", "--enable-unsafe-swiftshader", "--no-sandbox"],
-});
+const browser = await launchChromium();
 
 try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
