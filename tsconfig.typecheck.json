@@ -1,0 +1,18 @@
+{
+  // The root tsconfig describes how the *site generator* is executed: tsx runs
+  // generate_site.jsx under NodeNext resolution. The library and its tests are
+  // consumed by a bundler (vitest, and whatever build a consumer brings), so
+  // they resolve extensionless specifiers. Typechecking them under NodeNext
+  // reports several hundred "needs an explicit .js extension" errors that say
+  // nothing about the code — hence a second, narrower project.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": false,
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["src/tantu/**/*.ts", "src/tantu/**/*.tsx", "tests/**/*.ts", "tests/**/*.tsx"]
+}

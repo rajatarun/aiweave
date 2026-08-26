@@ -1,0 +1,28 @@
+<!-- Manual/CI harness for the Maku shuttle's arrow-key contract.
+     Serve the repo root and open /scripts/keyboard-harness.html.
+     Expected: ArrowRight in the tablist reaches the tablist handler and
+     focuses tab 2; ArrowDown in the radio group moves the native
+     selection to r2; ArrowRight on the plain buttons still performs the
+     shuttle's spatial routing (b1 -> b2). Regression guard for the bug
+     where the shuttle listened in capture phase and preventDefault'd
+     arrow keys away from every ARIA composite widget. -->
+<!doctype html><meta charset=utf8>
+<div class="tantu-loom"><div class="tantu-loom-content">
+  <div role="tablist" id="tl">
+    <button role="tab" id="t1" aria-selected="true">One</button>
+    <button role="tab" id="t2" aria-selected="false">Two</button>
+  </div>
+  <fieldset><input type="radio" name="r" id="r1" checked><input type="radio" name="r" id="r2"></fieldset>
+  <button id="b1">Alpha</button><button id="b2">Beta</button>
+</div></div>
+<svg class="tantu-maku-plane"></svg>
+<script type="module">
+import { createMakuShuttle } from '/assets/maku-shuttle.js';
+createMakuShuttle(document.querySelector('.tantu-maku-plane'), null, {});
+// A real tablist handles arrows itself and calls preventDefault.
+window.tabHandled = false;
+document.getElementById('tl').addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') { window.tabHandled = true; e.preventDefault();
+    document.getElementById('t2').focus(); }
+});
+</script>

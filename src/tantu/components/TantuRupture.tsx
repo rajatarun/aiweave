@@ -116,7 +116,15 @@ export const TantuRupture = React.forwardRef<HTMLDivElement, TantuRuptureProps>(
 
         <div className="tantu-rupture-core">
           {/* Typographic detachment: Talim ligatures break, glyphs isolate. */}
-          <p className="tantu-rupture-code" aria-label={code}>
+          {/* The glyphs are individually hidden so the detachment animation
+              does not read as letter-by-letter noise, and the intact code is
+              restated for assistive technology. That restatement used to be
+              an `aria-label` on the <p>, which ARIA prohibits on an element
+              with no role — user agents are free to ignore it, and some do,
+              leaving the error code inaudible. A visually-hidden span always
+              reads. */}
+          <p className="tantu-rupture-code">
+            <span className="tantu-visually-hidden">{code}</span>
             <span aria-hidden="true">[</span>
             {code.split("").map((glyph, index) => (
               <span

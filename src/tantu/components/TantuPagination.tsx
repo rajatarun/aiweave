@@ -35,6 +35,12 @@ export const TantuPagination = forwardRef<HTMLDivElement, TantuPaginationProps>(
         disabled={currentPage <= 1}
         onClick={() => onChange?.(currentPage - 1)}
       />
+      {/* `role="list"` may only contain `listitem` children. Buttons sat
+          directly inside it, which axe reports as aria-required-children and
+          which makes the whole list opaque to a screen reader — it announces
+          neither "list of 7" nor "item 3 of 7". Each page gets its own
+          listitem wrapper rather than dropping the role, because that count
+          is the only thing telling a non-visual user how far the run goes. */}
       <div className="tantu-pagination-list" role="list">
         {pages.map((page, index) =>
           page === "ellipsis" ? (
@@ -42,12 +48,14 @@ export const TantuPagination = forwardRef<HTMLDivElement, TantuPaginationProps>(
               …
             </span>
           ) : (
-            <PageButton
-              key={page}
-              page={page}
-              active={page === currentPage}
-              onClick={() => onChange?.(page)}
-            />
+            <span key={page} role="listitem" className="tantu-pagination-item">
+              <PageButton
+                page={page}
+                total={totalPages}
+                active={page === currentPage}
+                onClick={() => onChange?.(page)}
+              />
+            </span>
           ),
         )}
       </div>
@@ -62,16 +70,28 @@ export const TantuPagination = forwardRef<HTMLDivElement, TantuPaginationProps>(
 
 function PageButton({
   page,
+  total,
   active,
   disabled,
   onClick,
 }: {
   page: number | "Previous" | "Next";
+  /** Present for numbered pages, so the control can announce "Page 3 of 7". */
+  total?: number;
   active?: boolean;
   disabled?: boolean;
   onClick?: () => void;
 }) {
-  const label = typeof page === "number" ? String(page) : page;
+  const numbered = typeof page === "number";
+  const label = numbered ? String(page) : page;
+  // Visually a bare numeral is unambiguous next to its siblings. Read out of
+  // context by a screen reader it is just "3", so the accessible name says
+  // what the 3 means.
+  const accessibleName = numbered
+    ? total === undefined
+      ? `Page ${page}`
+      : `Page ${page} of ${total}`
+    : undefined;
   return (
     <button
       type="button"
@@ -80,6 +100,7 @@ function PageButton({
         active ? "tantu-pagination-page-active" : null,
         disabled ? "tantu-pagination-page-disabled" : null,
       ].filter(Boolean).join(" ")}
+      aria-label={accessibleName}
       aria-current={active ? "page" : undefined}
       disabled={disabled}
       onClick={onClick}

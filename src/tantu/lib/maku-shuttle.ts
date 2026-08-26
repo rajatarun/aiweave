@@ -55,6 +55,40 @@ function isTextEntry(el: Element | null): boolean {
   return (el as HTMLElement).isContentEditable === true;
 }
 
+/**
+ * Roles and controls whose own keyboard contract owns the arrow keys.
+ *
+ * The shuttle's spatial routing is a convenience layered on top of the page;
+ * it must never take arrow keys away from a widget whose ARIA pattern
+ * requires them. Without this the shuttle broke Tantu's own TantuTabs
+ * (ArrowLeft/ArrowRight select a tab, per WAI-ARIA Authoring Practices),
+ * along with native radio groups, listboxes, menus, trees and grids —
+ * because it listened in the capture phase and called preventDefault before
+ * any component handler could run.
+ */
+const ARROW_OWNING_ROLES = new Set([
+  "application", "combobox", "grid", "gridcell", "columnheader", "listbox",
+  "menu", "menubar", "menuitem", "menuitemcheckbox", "menuitemradio",
+  "option", "radio", "radiogroup", "row", "rowheader", "scrollbar",
+  "searchbox", "slider", "spinbutton", "tab", "tablist", "textbox",
+  "toolbar", "tree", "treegrid", "treeitem",
+]);
+
+/** True when `el`, or anything it sits inside, needs the arrow keys itself. */
+function ownsArrowKeys(el: Element | null): boolean {
+  for (let n: Element | null = el; n; n = n.parentElement) {
+    const role = n.getAttribute?.("role");
+    if (role && ARROW_OWNING_ROLES.has(role)) return true;
+    if (n.tagName === "SELECT" || n.tagName === "TEXTAREA") return true;
+    if (n.tagName === "INPUT") {
+      const type = (n as HTMLInputElement).type;
+      if (type === "radio" || type === "range" || TEXT_ENTRY.has(type)) return true;
+    }
+    if ((n as HTMLElement).isContentEditable) return true;
+  }
+  return false;
+}
+
 function isReachable(el: Element): boolean {
   const node = el as HTMLElement;
   if (node.hasAttribute("disabled")) return false;
@@ -97,19 +131,28 @@ function readLoom(): LoomMetrics | null {
     .map((v) => parseFloat(v))
     .filter((v) => !Number.isNaN(v));
   const gap = parseFloat(style.columnGap) || 1;
-  const padLeft = parseFloat(style.paddingLeft) || 0;
   const padTop = parseFloat(style.paddingTop) || 0;
 
+  // `grid-template-columns` reports its tracks in logical order, but grid
+  // lays the first track at the inline start — the right-hand edge under
+  // `direction: rtl`. Walking from the physical left would then place every
+  // thread on the wrong side of the cloth, so the walk follows the inline
+  // axis and only the recorded positions are physical.
+  const rtl = style.direction === "rtl";
+  const padStart = parseFloat(rtl ? style.paddingRight : style.paddingLeft) || 0;
+  const step = rtl ? -1 : 1;
+  const origin = rtl ? rect.right - padStart : rect.left + padStart;
+
   const gaps: number[] = [];
-  let cursor = rect.left + padLeft;
+  let cursor = origin;
   for (const track of tracks) {
-    cursor += track;
-    gaps.push(cursor + gap / 2);
-    cursor += gap;
+    cursor += step * track;
+    gaps.push(cursor + (step * gap) / 2);
+    cursor += step * gap;
   }
 
   return {
-    left: rect.left + padLeft,
+    left: origin,
     top: rect.top + padTop,
     columnWidth: tracks[0] ?? 1,
     rowHeight: 48,
@@ -231,11 +274,13 @@ export function createMakuShuttle(
     if (key !== "ArrowUp" && key !== "ArrowDown" && key !== "ArrowLeft" && key !== "ArrowRight") return;
     if (event.metaKey || event.ctrlKey || event.altKey) return;
 
+    // A component that handled this key already wins — the shuttle now runs
+    // in the bubble phase specifically so component handlers get first refusal.
+    if (event.defaultPrevented) return;
+
     const current = document.activeElement as HTMLElement | null;
     if (!current || !current.matches?.(INTERACTIVE_SELECTOR)) return;
-    if (isTextEntry(current)) return;
-    if (current.tagName === "SELECT") return;
-    if (current.getAttribute("role") === "slider" || current.getAttribute("type") === "range") return;
+    if (ownsArrowKeys(current)) return;
 
     const origin = current.getBoundingClientRect();
     const vertical = key === "ArrowUp" || key === "ArrowDown";
@@ -287,7 +332,9 @@ export function createMakuShuttle(
 
   document.addEventListener("focusin", handleFocusIn, true);
   document.addEventListener("focusout", handleFocusOut, true);
-  document.addEventListener("keydown", handleKeyDown, true);
+  // Bubble, not capture: capture fired before every component handler, so the
+  // shuttle silently overrode any widget that owns the arrow keys.
+  document.addEventListener("keydown", handleKeyDown);
   window.addEventListener("scroll", handleReflow, true);
   window.addEventListener("resize", handleReflow);
 
@@ -295,7 +342,7 @@ export function createMakuShuttle(
     dispose() {
       document.removeEventListener("focusin", handleFocusIn, true);
       document.removeEventListener("focusout", handleFocusOut, true);
-      document.removeEventListener("keydown", handleKeyDown, true);
+      document.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("scroll", handleReflow, true);
       window.removeEventListener("resize", handleReflow);
       focused?.classList.remove("tantu-maku-focus");
