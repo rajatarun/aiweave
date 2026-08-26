@@ -178,6 +178,39 @@ describe("user preferences", () => {
   });
 });
 
+describe("typography", () => {
+  it("names a prose voice that is none of the three display faces", () => {
+    expect(CSS).toMatch(/--font-body:/);
+    const body = CSS.slice(CSS.indexOf("--font-body:"), CSS.indexOf("--font-body:") + 260);
+    expect(body).not.toContain("Talim-Mono");
+    expect(body).not.toContain("Kalam-Rupa");
+    expect(body).not.toContain("Kasuti-Gauze");
+  });
+
+  it("ends every font stack in a generic keyword", () => {
+    // The Tantu faces cover Latin only. A stack that does not end in a
+    // generic family leaves a reader whose script is missing with whatever
+    // the browser picks, rather than the face their system chose for them.
+    for (const token of ["--font-talim", "--font-kalam", "--font-kasuti", "--font-body"]) {
+      const at = CSS.indexOf(`${token}:`);
+      expect(at, `${token} is not declared`).toBeGreaterThan(-1);
+      const value = CSS.slice(at + token.length + 1, CSS.indexOf(";", at));
+      expect(
+        value.trim().split(",").pop()!.trim(),
+        `${token} does not end in a generic family`,
+      ).toMatch(/^(serif|sans-serif|monospace|system-ui|cursive|fantasy)$/);
+    }
+  });
+
+  it("does not set the machine voice under every paragraph", () => {
+    const at = CSS.indexOf("html,\nbody {");
+    expect(at).toBeGreaterThan(-1);
+    const rule = CSS.slice(at, CSS.indexOf("}", at));
+    expect(rule).toContain("var(--font-body)");
+    expect(rule).not.toContain("var(--font-talim)");
+  });
+});
+
 describe("token contrast", () => {
   it("passes every real pairing in both themes", () => {
     // One definition of the thresholds, in the script CI runs.

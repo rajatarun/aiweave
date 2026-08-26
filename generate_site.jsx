@@ -429,21 +429,16 @@ function SiteApp({ reposData, tantuCss }) {
               font-style: normal;
               font-display: swap;
             }
-            /* Not var(--font-talim): tantu.css's own typography comment is
-               explicit that Talim is "machine voice only — codes, counts,
-               coordinates, captions, code blocks. Never body copy," and
-               Kalam is scoped to "display and headings," not prose either.
-               Neither of Tantu's two prose-adjacent faces is meant to carry
-               ordinary paragraph text, so the page default has to come from
-               somewhere else — a plain system stack, not a third custom
-               voice the design system doesn't define. Every paragraph in
-               this page inherits this rule unless it opts into a specific
-               Tantu voice (the .tantu-heading-kalam headings do; the small
-               kasuti/talim taglines set their own font-family already). */
+            /* The prose stack used to be spelled out here, inline, because
+               the design system did not name one: Talim is machine voice
+               only and Kalam is display only, so neither carries a
+               paragraph. That gap is closed — Tantu now defines
+               --font-body — and this page reads the token like everything
+               else rather than keeping a private copy that could drift. */
             body {
               background-color: var(--tantu-bg-substrate);
               color: var(--tantu-ink-primary);
-              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+              font-family: var(--font-body);
               margin: 0;
               padding: 0;
               transition: background-color var(--tantu-motion-unspool) ease,

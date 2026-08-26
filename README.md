@@ -107,3 +107,68 @@ else in the system needs to learn about it.
 ```
 node scripts/verify_bleed_bus.mjs   # arbitration matrix, runs on the built asset
 ```
+
+## Verification
+
+`npm run verify` is the whole chain, and it is exactly what CI runs on every
+push and pull request:
+
+```
+npm run verify
+```
+
+| Step | What it establishes |
+| --- | --- |
+| `npm run typecheck` | The library and its tests compile under bundler resolution. |
+| `npm run test` | 204 tests — see below. |
+| `npm run audit:a11y` | 36 real component colour pairings against WCAG 1.4.3 / 1.4.11, computed from the resolved tokens in both themes. |
+| `npm run audit:bleed` | The bleed arbitration matrix, run against the *compiled* browser asset. |
+| `npm run build` | The site renders under `renderToStaticMarkup` with real content. |
+| `npm run audit:browser` | 16 checks that need a real engine — layout, cascade, forced colours, reduced motion, WebGL context count. |
+
+`npm run audit:fonts` is separate because it needs Python; CI runs it in its
+own job, alongside a check that the committed `fonts/` still match what
+`build.py` produces.
+
+### The test suite
+
+`tests/fixtures.tsx` holds one realistic specimen of every exported component,
+and `tests/surface.test.ts` fails if the two lists ever diverge — so adding a
+component to `index.ts` without adding a specimen is a test failure, not a
+silent gap in coverage. Everything else sweeps that one list:
+
+- **`a11y.test.tsx`** — axe-core over all 47 components × 2 themes × 2
+  writing directions. Page-level rules are disabled (the harness is not a
+  page); colour contrast is disabled here and audited properly in
+  `audit_a11y.mjs`, because jsdom has no cascade to resolve a real colour
+  from.
+- **`ssr.test.tsx`** — every component rendered with `window`, `document` and
+  `navigator` genuinely deleted, not merely undefined, so a `typeof window`
+  guard passes and a `window?.foo` guard does not.
+- **`keyboard.test.tsx`** — the WAI-ARIA composite-widget contract, including
+  the RTL arrow reversal, plus a guard that the page-level Maku shuttle never
+  takes a key a component wanted.
+- **`dialog.test.tsx`** — focus containment, accessible name, focus
+  restoration.
+- **`bleed.test.ts`** — that `wickProgress` really is Lucas–Washburn and not a
+  curve that merely starts at 0 and ends at 1.
+- **`stylesheet.test.ts`** — lint-style guards: no physical inline-axis
+  property, no `!important` outside the reduced-motion floor, no universal
+  selector reaching into the host document, every font stack ending in a
+  generic family.
+
+## Writing direction
+
+Tantu mirrors for `dir="rtl"` with no consumer work: every inline-axis rule is
+logical, and the components resolve arrow-key direction from their own
+computed direction. The full contract, including what the typefaces do and do
+not cover for non-Latin scripts, is in
+[`src/tantu/README.md`](src/tantu/README.md#right-to-left).
+
+## The library as a package
+
+Tantu is published from `src/tantu/` as `@aiweave/tantu`. Its
+[README](src/tantu/README.md), [changelog](src/tantu/CHANGELOG.md) and
+[versioning contract](src/tantu/VERSIONING.md) live there. The versioning
+document is worth reading before changing a token name or a component's DOM —
+both are part of the public API, not just the TypeScript signatures.

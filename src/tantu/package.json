@@ -1,7 +1,7 @@
 {
   "name": "@aiweave/tantu",
   "version": "0.1.0",
-  "description": "Tantu — a React design system that treats the interface as handloom cloth: token-driven, theme-aware, WCAG AA verified.",
+  "description": "Tantu \u2014 a React design system that treats the interface as handloom cloth: token-driven, theme-aware, WCAG AA verified.",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": [
@@ -19,7 +19,10 @@
     "hooks",
     "lib",
     "styles",
-    "index.ts"
+    "index.ts",
+    "README.md",
+    "CHANGELOG.md",
+    "VERSIONING.md"
   ],
   "peerDependencies": {
     "react": ">=18",
@@ -38,9 +41,20 @@
     "wcag",
     "design-tokens",
     "theming",
-    "dark-mode"
+    "dark-mode",
+    "rtl",
+    "internationalization"
   ],
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rajatarun/aiweave.git",
+    "directory": "src/tantu"
+  },
+  "homepage": "https://github.com/rajatarun/aiweave/tree/main/src/tantu#readme",
+  "bugs": {
+    "url": "https://github.com/rajatarun/aiweave/issues"
   }
 }

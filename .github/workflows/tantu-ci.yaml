@@ -1,0 +1,88 @@
+name: Tantu
+
+# Everything a contributor can run locally with `npm run verify`, run on every
+# change. A design system that other teams depend on has to be able to say
+# which commit was green; this is what makes that answerable.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: typecheck, tests, audits
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Typecheck the library and its tests
+        run: npm run typecheck
+
+      - name: Test suite
+        run: npm run test
+
+      - name: Token contrast (WCAG 1.4.3 / 1.4.11, both themes)
+        run: npm run audit:a11y
+
+      - name: Bleed arbitration matrix
+        run: npm run audit:bleed
+
+      # The site build is what proves the components still render under
+      # renderToStaticMarkup with the real content, and it produces the
+      # index.html the browser checks then measure.
+      - name: Build the site
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run build
+
+      - name: Install Chromium for the browser checks
+        run: npx playwright install --with-deps chromium
+
+      # Layout, cascade, forced colours, reduced motion and WebGL context
+      # count — none of which jsdom can answer.
+      - name: Browser checks
+        run: npm run audit:browser
+
+  fonts:
+    name: typeface build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements-fonts.txt
+
+      # The committed fonts/ are build output. Regenerating them here catches
+      # a skeleton edit that was never compiled, and a build.py change that
+      # breaks compilation — either of which would ship a stale typeface.
+      - name: Rebuild the typefaces
+        run: npm run build:fonts
+
+      - name: Glyph geometry checks
+        run: npm run audit:fonts
+
+      - name: Fail if the committed fonts are stale
+        run: |
+          if ! git diff --quiet -- fonts/; then
+            echo "fonts/ differs from what build.py produces — run 'npm run build:fonts' and commit the result:"
+            git diff --stat -- fonts/
+            exit 1
+          fi
+          echo "committed typefaces match build.py"

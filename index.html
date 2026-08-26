@@ -89,12 +89,44 @@
   --tantu-gauge-cord: 4px;
   --tantu-gauge-braid: 6px;
 
-  /* 5. TYPOGRAPHIC SPECIFICATIONS */
-  /* Primary brand fonts must be loaded by the consumer application.
-     IBM Plex serves as the on-screen fallback until the brand files are supplied. */
+  /* 5. TYPOGRAPHIC SPECIFICATIONS
+     Primary brand fonts must be loaded by the consumer application.
+     IBM Plex serves as the on-screen fallback until the brand files are
+     supplied.
+
+     SCRIPT COVERAGE — read this before shipping a non-Latin product.
+     The three Tantu faces are drawn from a single stroke skeleton per glyph
+     and cover Latin, digits and punctuation only: 88 mapped codepoints, and
+     no lowercase forms of their own (lowercase is drawn as the capital
+     squashed to x-height — the faces are unicase by design, not by
+     omission). Set Arabic, Devanagari, Hebrew, Thai or CJK in any of them
+     and every character falls through to the next family in the stack.
+     That is the intended behaviour and the reason each stack ends in a
+     generic keyword: the fallback has to be a face the *reader's system*
+     chose, because it is the only one guaranteed to have their script.
+     A product in those scripts gets Tantu's structure, spacing, colour and
+     motion; it does not get Tantu's letterforms. */
   --font-talim: "Talim-Mono", "IBM Plex Mono", "Courier New", monospace;
   --font-kalam: "Kalam-Rupa", "IBM Plex Serif", Georgia, serif;
   --font-kasuti: "Kasuti-Gauze", "IBM Plex Mono", "Lucida Console", monospace;
+
+  /* The prose voice, and deliberately not one of the three above. Tantu's
+     own typographic rules reserve Talim for machine voice — codes, counts,
+     coordinates, captions — and Kalam for display and headings; neither is
+     meant to carry a paragraph, and a unicase face should not try. Rather
+     than leave every consuming application to invent its own body stack (and
+     the aiweave site did exactly that, inline), the system names one. It is
+     a platform stack on purpose: the reader's own UI font already has their
+     script, already has the weights, and is already cached. */
+  --font-body:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Noto Sans",
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
 
   --tantu-font-size-base: 14px;
   --tantu-line-height-base: 1.5;
@@ -235,7 +267,10 @@ html,
 body {
   background-color: var(--tantu-bg-substrate);
   color: var(--tantu-ink-primary);
-  font-family: var(--font-talim);
+  /* Was var(--font-talim), which put the machine voice under every
+     paragraph on the page — the opposite of what Tantu's own typographic
+     rules say Talim is for, and unreadable at length in a unicase face. */
+  font-family: var(--font-body);
   font-size: var(--tantu-font-size-base);
   line-height: var(--tantu-line-height-base);
   margin: 0;
@@ -3624,21 +3659,16 @@ textarea.tantu-maku-focus {
               font-style: normal;
               font-display: swap;
             }
-            /* Not var(--font-talim): tantu.css's own typography comment is
-               explicit that Talim is "machine voice only — codes, counts,
-               coordinates, captions, code blocks. Never body copy," and
-               Kalam is scoped to "display and headings," not prose either.
-               Neither of Tantu's two prose-adjacent faces is meant to carry
-               ordinary paragraph text, so the page default has to come from
-               somewhere else — a plain system stack, not a third custom
-               voice the design system doesn't define. Every paragraph in
-               this page inherits this rule unless it opts into a specific
-               Tantu voice (the .tantu-heading-kalam headings do; the small
-               kasuti/talim taglines set their own font-family already). */
+            /* The prose stack used to be spelled out here, inline, because
+               the design system did not name one: Talim is machine voice
+               only and Kalam is display only, so neither carries a
+               paragraph. That gap is closed — Tantu now defines
+               --font-body — and this page reads the token like everything
+               else rather than keeping a private copy that could drift. */
             body {
               background-color: var(--tantu-bg-substrate);
               color: var(--tantu-ink-primary);
-              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+              font-family: var(--font-body);
               margin: 0;
               padding: 0;
               transition: background-color var(--tantu-motion-unspool) ease,
