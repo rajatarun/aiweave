@@ -342,6 +342,115 @@ try {
   });
   console.log(`note  text-only enlargement at root 200% — ${scaling}`);
 
+  /* ---- Fonts are decoupled from the system ----------------------------- */
+  //
+  // The claim: Tantu works with no typefaces. Asserting that in a unit test
+  // only proves the stylesheet does not *name* a face; proving the page still
+  // stands when the files are genuinely unavailable needs a browser with the
+  // requests blocked.
+  {
+    const bare = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    // Every font request fails, which is what a reader on a flaky network, a
+    // blocked CDN, or a deploy that forgot to upload fonts/ actually sees.
+    //
+    // A regex, not a glob. `**/*.{woff,woff2,ttf}` looks right and matches
+    // nothing here, because the page cache-busts its fonts with `?v=<hash>`
+    // and the glob anchors on the extension at the end of the URL. The check
+    // passed for a while against a page that had loaded all three fonts
+    // normally — a blocked-fonts test that does not block the fonts asserts
+    // nothing at all.
+    await bare.route(/\.(?:woff2?|ttf)(?:[?#]|$)/, (route) => route.abort());
+    const bPage = await bare.newPage();
+    const bareErrors = [];
+    bPage.on("pageerror", (e) => bareErrors.push(String(e)));
+    await bPage.goto(PAGE, { waitUntil: "networkidle" });
+    await bPage.waitForTimeout(300);
+
+    const bare1280 = await bPage.evaluate(() => ({
+      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      // A resolved family that is still one of the Tantu faces would mean the
+      // browser is holding a name it cannot draw.
+      body: getComputedStyle(document.body).fontFamily,
+      heading: (() => {
+        const h = document.querySelector("h1, h2, .tantu-heading-kalam");
+        return h ? getComputedStyle(h).fontFamily : "";
+      })(),
+      // Nothing should have collapsed: the page still has its content.
+      text: document.body.innerText.trim().length,
+    }));
+
+    check(
+      "the page renders with every font request blocked",
+      bareErrors.length === 0 && bare1280.text > 500,
+      `${bare1280.text} chars of text, ${bareErrors.length} script error(s)`,
+    );
+    check(
+      "no horizontal overflow with fonts unavailable",
+      bare1280.overflow <= 1,
+      `${bare1280.overflow}px`,
+    );
+    check(
+      "type roles still resolve to a real stack without the brand files",
+      /serif|sans-serif|monospace|system-ui/.test(bare1280.body) &&
+        /serif|sans-serif|monospace|system-ui/.test(bare1280.heading),
+      // The declared stack still *names* the brand faces — the @font-face rules
+    // are in the CSS, the files just never arrive — so report the generic the
+    // browser actually falls through to rather than the first name in the list.
+    `body falls through to ${bare1280.body.split(",").pop().trim()}, ` +
+      `heading to ${bare1280.heading.split(",").pop().trim()}`,
+    );
+
+    await bare.close();
+  }
+
+  /* ---- unicode-range keeps a Tantu face off text it cannot set ---------- */
+  const ranged = await page.evaluate(async () => {
+    await document.fonts.ready;
+
+    // `document.fonts.check()` is the wrong instrument here: it answers "can
+    // this text be rendered without loading anything more", counting
+    // fallbacks, so it says yes for every script. The question is narrower —
+    // *was the Tantu face selected for these characters* — and the way to ask
+    // it is to measure. If a string set in `"Kalam-Rupa", serif` is exactly
+    // as wide as the same string in `serif` alone, Kalam was not used for it.
+    const measure = (text, family) => {
+      const el = document.createElement("span");
+      el.textContent = text;
+      el.style.cssText =
+        `position:absolute;visibility:hidden;white-space:pre;font-size:64px;font-family:${family}`;
+      document.body.appendChild(el);
+      const w = el.getBoundingClientRect().width;
+      el.remove();
+      return w;
+    };
+
+    const usedFor = (text, face) => {
+      const withFace = measure(text, `"${face}", serif`);
+      const without = measure(text, "serif");
+      // A tolerance rather than equality: sub-pixel layout differs slightly
+      // even when the same font is used for every glyph.
+      return Math.abs(withFace - without) > 0.5;
+    };
+
+    return {
+      latin: { kalam: usedFor("Warp", "Kalam-Rupa"), talim: usedFor("Warp", "Talim-Mono") },
+      devanagari: { kalam: usedFor("ताना", "Kalam-Rupa"), talim: usedFor("ताना", "Talim-Mono") },
+      arabic: { kalam: usedFor("سدى", "Kalam-Rupa"), talim: usedFor("سدى", "Talim-Mono") },
+      cjk: { kalam: usedFor("経糸", "Kalam-Rupa"), talim: usedFor("経糸", "Talim-Mono") },
+    };
+  });
+  check(
+    "a Tantu face IS used for Latin",
+    ranged.latin.kalam && ranged.latin.talim,
+    `kalam=${ranged.latin.kalam} talim=${ranged.latin.talim}`,
+  );
+  check(
+    "no Tantu face is used for a script it has no glyphs for",
+    !ranged.devanagari.kalam && !ranged.arabic.kalam && !ranged.cjk.kalam &&
+      !ranged.devanagari.talim && !ranged.arabic.talim && !ranged.cjk.talim,
+    `devanagari=${ranged.devanagari.kalam} arabic=${ranged.arabic.kalam} cjk=${ranged.cjk.kalam}`,
+  );
+
   /* ---- WCAG 1.4.12 Text Spacing ---------------------------------------- */
   // The criterion names four exact overrides. Applying them and checking that
   // nothing is clipped is the whole test — the usual failure is a fixed-height

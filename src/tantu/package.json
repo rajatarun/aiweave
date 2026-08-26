@@ -12,6 +12,7 @@
   "exports": {
     ".": "./index.ts",
     "./styles.css": "./styles/tantu.css",
+    "./fonts.css": "./styles/fonts.css",
     "./package.json": "./package.json"
   },
   "files": [
@@ -20,6 +21,7 @@
     "lib",
     "styles",
     "tokens",
+    "fonts",
     "index.ts",
     "README.md",
     "CHANGELOG.md",

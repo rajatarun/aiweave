@@ -21,6 +21,7 @@ export default defineConfig({
     dedupe: ["react", "react-dom"],
     alias: {
       "@aiweave/tantu/styles.css": path.resolve(__dirname, "../src/tantu/styles/tantu.css"),
+      "@aiweave/tantu/fonts.css": path.resolve(__dirname, "../src/tantu/styles/fonts.css"),
       "@aiweave/tantu": path.resolve(__dirname, "../src/tantu/index.ts"),
     },
   },

@@ -21,7 +21,7 @@ npm run tokens
 | `tantu.tokens.json` | [W3C Design Tokens Community Group](https://tr.designtokens.org/format/) draft | Figma Variables importers, Style Dictionary 4, Terrazzo, most modern build tooling |
 | `tokens-studio.json` | [Tokens Studio for Figma](https://tokens.studio) | The Tokens Studio plugin, which is still how most teams actually get tokens into a Figma library |
 
-56 tokens per theme; the dark theme redefines 18 of them.
+61 tokens per theme; the dark theme redefines 21 of them.
 
 ## Getting them into Figma
 
@@ -52,6 +52,20 @@ therefore flattened to a literal. The structure is not lost: each token carries
 `$extensions.tantu.aliasOf` naming the primitive it was built from, so a
 designer can still see that the accent is madder root.
 
+**The type tokens are roles, not typefaces.** `tantu/font/display`,
+`tantu/font/mono`, `tantu/font/meta` and `tantu/font/body` name the *job*, not
+the file. Bind a text style to the role and it follows whatever face the
+product later settles on. The deprecated typeface-named tokens
+(`--font-kalam` and friends) are deliberately excluded from these exports —
+importing them would put the coupling back into Figma, where it is far harder
+to find and undo than in CSS.
+
+The exported values are the *fallback* stacks, because that is what the system
+resolves to on its own. If your product opts into the Tantu faces, install the
+three `.woff2` files from the package's `fonts/` directory locally and put the
+brand face in front of the stack in the Figma text style — otherwise the
+library will silently show a system serif where the product shows Kalam-Rupa.
+
 **The dye primitives are in there, and should not be used directly.** They are
 theme-invariant — that is what makes them primitives — so a layer bound to
 `tantu/kora/raw` will be cream in dark mode too. Every contrast defect this
@@ -68,10 +82,11 @@ these are the pieces a Tantu library needs in roughly this order:
 
 1. **Variable collection with two modes**, light and dark, from the import
    above. Nothing else works until this does.
-2. **Text styles** for the four typographic roles — Kalam for display, Talim
-   for machine voice, Kasuti for counted-thread metadata, and the body stack for
-   prose. Install the three `.woff2` files from `fonts/` locally, or the styles
-   will silently fall back and the library will look nothing like the product.
+2. **Text styles for the four roles** — display, mono, meta, body. If the
+   product opts into the Tantu faces, install the three `.woff2` files from the
+   package's `fonts/` directory locally first; otherwise the styles fall back
+   silently and the library looks nothing like the product. If it does not opt
+   in, the exported fallback stacks are already correct as-is.
 3. **A spacing grid on the base-6 lattice** — 6, 12, 18, 24, 36, 48, 72. The
    gaps at 5 and 7 are deliberate; do not add them.
 4. **The twelve-thread loom as a layout grid**, dropping to four below 768px.

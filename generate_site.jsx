@@ -39,6 +39,38 @@ const fontSrc = (family) => {
                    url("fonts/${family}.woff${q(w1)}") format("woff")`;
 };
 
+/**
+ * The generated brand layer, with its URLs rewritten for this host.
+ *
+ * build.py writes src/tantu/styles/fonts.css: the @font-face rules for the
+ * three Tantu faces, each carrying a `unicode-range` derived from its real
+ * cmap. Those rules are correct and should not be re-typed here — but their
+ * URLs are relative to the published package, and this page serves the same
+ * files from S3 under a long max-age, so each `url(...)` is swapped for a
+ * content-hashed one.
+ *
+ * If the file is absent — a fresh checkout where `npm run build:fonts` has
+ * not run — the page simply ships without it and every role falls back to the
+ * stack the reader's machine already has. That is the point of the split: a
+ * missing typeface is a different-looking page, never a broken one.
+ */
+const brandLayerCss = (() => {
+  const path = "src/tantu/styles/fonts.css";
+  if (!fs.existsSync(path)) {
+    console.warn(`[WARN] ${path} not found — building without the Tantu typefaces.`);
+    return "/* brand layer absent; type roles use their fallback stacks */";
+  }
+  return fs
+    .readFileSync(path, "utf8")
+    .replace(
+      /url\("\.\.\/fonts\/([A-Za-z-]+)\.(woff2?)"\)/g,
+      (_match, family, ext) => {
+        const rev = fontRev(`${family}.${ext}`);
+        return `url("fonts/${family}.${ext}${rev ? `?v=${rev}` : ""}")`;
+      },
+    );
+})();
+
 const GH_OWNER = "rajatarun";
 const GH_GRAPHQL_URL = "https://api.github.com/graphql";
 
@@ -396,39 +428,26 @@ function SiteApp({ reposData, tantuCss }) {
         <style
           dangerouslySetInnerHTML={{
             __html: `
-            /* Tantu's own stylesheet deliberately ships no @font-face rules
-               (see the "TYPOGRAPHIC SPECIFICATIONS" comment in tantu.css) —
-               loading the brand font files is a consumer concern, since the
-               design system has no way to know where this page will host
-               them. This is that wiring: build.py (npm run build:fonts, not
-               yet part of the default build — run it once after a fresh
-               checkout, or whenever a glyph changes) writes fonts/*.woff2
-               and .woff, and the --font-talim/--font-kalam/--font-kasuti
-               tokens above already name these families first in their
-               stacks, so once registered here the browser prefers them
-               over the IBM Plex fallback automatically — no other change
-               needed. */
-            @font-face {
-              font-family: "Kasuti-Gauze";
-              src: ${fontSrc("Kasuti-Gauze")};
-              font-weight: 400;
-              font-style: normal;
-              font-display: swap;
-            }
-            @font-face {
-              font-family: "Talim-Mono";
-              src: ${fontSrc("Talim-Mono")};
-              font-weight: 400;
-              font-style: normal;
-              font-display: swap;
-            }
-            @font-face {
-              font-family: "Kalam-Rupa";
-              src: ${fontSrc("Kalam-Rupa")};
-              font-weight: 400;
-              font-style: normal;
-              font-display: swap;
-            }
+            /* THE BRAND LAYER, opted into.
+
+               Tantu's stylesheet names no typeface: its components bind to
+               roles (display / mono / meta / body) that resolve to stacks
+               every machine already has, so the design system works with no
+               font files at all. This page opts into the three Tantu faces,
+               which is a choice it makes rather than one the system makes
+               for it.
+
+               The rules are not hand-written here. build.py generates
+               src/tantu/styles/fonts.css, and this reuses it verbatim apart
+               from rewriting the relative URLs to content-hashed ones for
+               S3's long max-age. That matters for one declaration in
+               particular: the unicode-range, computed from each font's real
+               cmap, without which the browser would try a Tantu face for
+               every codepoint and fall back per glyph — a line of Devanagari
+               with a Latin word in it rendering in two typefaces at two
+               optical sizes. Keeping a second, hand-maintained copy here is
+               how that declaration would quietly go missing. */
+${brandLayerCss}
             /* The prose stack used to be spelled out here, inline, because
                the design system did not name one: Talim is machine voice
                only and Kalam is display only, so neither carries a
@@ -438,7 +457,7 @@ function SiteApp({ reposData, tantuCss }) {
             body {
               background-color: var(--tantu-bg-substrate);
               color: var(--tantu-ink-primary);
-              font-family: var(--font-body);
+              font-family: var(--tantu-font-body);
               margin: 0;
               padding: 0;
               transition: background-color var(--tantu-motion-unspool) ease,
@@ -492,13 +511,13 @@ function SiteApp({ reposData, tantuCss }) {
               text-decoration: none;
               color: var(--tantu-accent-primary);
               font-weight: 700;
-              font-family: var(--font-kasuti);
+              font-family: var(--tantu-font-meta);
             }
             .hero-warp {
               text-align: center;
             }
             .hero-title {
-              font-family: var(--font-kalam);
+              font-family: var(--tantu-font-display);
               font-size: clamp(2.5rem, 6vw, 4.5rem);
               color: var(--tantu-accent-primary);
               margin: 0 0 var(--tantu-knot-3);
@@ -513,7 +532,7 @@ function SiteApp({ reposData, tantuCss }) {
               gap: var(--tantu-knot-2);
             }
             .section-title-text {
-              font-family: var(--font-kalam);
+              font-family: var(--tantu-font-display);
               font-size: 1.8rem;
               color: var(--tantu-accent-primary);
               margin: 0;
@@ -584,7 +603,7 @@ function SiteApp({ reposData, tantuCss }) {
                 <a href="#about" style={{ textDecoration: "none" }}>
                   <TantuButton variant="ghost" bleed={false}>ABOUT</TantuButton>
                 </a>
-                <button id="theme-toggle" className="tantu-btn tantu-btn-ghost" type="button" style={{ cursor: "pointer", fontFamily: "var(--font-kasuti)", fontSize: "11px" }}>
+                <button id="theme-toggle" className="tantu-btn tantu-btn-ghost" type="button" style={{ cursor: "pointer", fontFamily: "var(--tantu-font-meta)", fontSize: "11px" }}>
                   ✱ DARK
                 </button>
                 <a href={`https://github.com/${GH_OWNER}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
@@ -600,7 +619,7 @@ function SiteApp({ reposData, tantuCss }) {
               <div style={{ padding: "var(--tantu-knot-2) 0" }}>
                 <TantuTag tone="accent" solid={false}>TANTU DESIGN SYSTEM (REACT NATIVE ENGINE)</TantuTag>
                 <h1 className="hero-title" style={{ marginTop: "var(--tantu-knot-3)" }}>AIWeave Infrastructure</h1>
-                <p style={{ fontFamily: "var(--font-kasuti)", color: "var(--tantu-zari-pure-gold)", fontSize: "1.1rem" }}>
+                <p style={{ fontFamily: "var(--tantu-font-meta)", color: "var(--tantu-zari-pure-gold)", fontSize: "1.1rem" }}>
                   [ BUILD · FINE-TUNE · ORCHESTRATE · DEPLOY ]
                 </p>
                 <p style={{ maxWidth: "680px", margin: "0 auto var(--tantu-knot-4)", fontSize: "0.95rem", color: "var(--tantu-ink-secondary)", lineHeight: 1.8 }}>
@@ -620,20 +639,20 @@ function SiteApp({ reposData, tantuCss }) {
             {/* Stat Band (3-up desktop, stacked mobile) */}
             <TantuCard warpSpan={4} reliefLevel="kanthi" absorbent>
               <div style={{ textAlign: "center" }}>
-                <span style={{ fontFamily: "var(--font-kasuti)", fontSize: "2.2rem", fontWeight: 700, color: "var(--tantu-accent-primary)" }}>10</span>
-                <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "var(--tantu-knot-1)" }}>OPEN SOURCE TOOLS</div>
+                <span style={{ fontFamily: "var(--tantu-font-meta)", fontSize: "2.2rem", fontWeight: 700, color: "var(--tantu-accent-primary)" }}>10</span>
+                <div style={{ fontFamily: "var(--tantu-font-meta)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "var(--tantu-knot-1)" }}>OPEN SOURCE TOOLS</div>
               </div>
             </TantuCard>
             <TantuCard warpSpan={4} reliefLevel="kanthi" absorbent>
               <div style={{ textAlign: "center" }}>
-                <span style={{ fontFamily: "var(--font-kasuti)", fontSize: "2.2rem", fontWeight: 700, color: "var(--tantu-accent-primary)" }}>8+</span>
-                <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "var(--tantu-knot-1)" }}>AWS SERVICES INTEGRATED</div>
+                <span style={{ fontFamily: "var(--tantu-font-meta)", fontSize: "2.2rem", fontWeight: 700, color: "var(--tantu-accent-primary)" }}>8+</span>
+                <div style={{ fontFamily: "var(--tantu-font-meta)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "var(--tantu-knot-1)" }}>AWS SERVICES INTEGRATED</div>
               </div>
             </TantuCard>
             <TantuCard warpSpan={4} reliefLevel="kanthi" absorbent>
               <div style={{ textAlign: "center" }}>
-                <span style={{ fontFamily: "var(--font-kasuti)", fontSize: "2.2rem", fontWeight: 700, color: "var(--tantu-accent-primary)" }}>~52%</span>
-                <div style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "var(--tantu-knot-1)" }}>COST SAVINGS VS SAGEMAKER</div>
+                <span style={{ fontFamily: "var(--tantu-font-meta)", fontSize: "2.2rem", fontWeight: 700, color: "var(--tantu-accent-primary)" }}>~52%</span>
+                <div style={{ fontFamily: "var(--tantu-font-meta)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "var(--tantu-knot-1)" }}>COST SAVINGS VS SAGEMAKER</div>
                 <TantuMeter value={52} label="Cost savings vs SageMaker" style={{ marginTop: "var(--tantu-knot-2)" }} />
               </div>
             </TantuCard>
@@ -683,8 +702,8 @@ function SiteApp({ reposData, tantuCss }) {
                         <div style={{ display: "flex", alignItems: "flex-start", gap: "var(--tantu-knot-2)", marginBottom: "var(--tantu-knot-2)" }}>
                           <span style={{ fontSize: "1.6rem", lineHeight: 1, color: "var(--tantu-accent-highlight)" }}>{meta.icon}</span>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <h3 style={{ margin: "0 0 var(--tantu-knot-1)", fontFamily: "var(--font-kalam)", color: "var(--tantu-accent-primary)" }}>{repo}</h3>
-                            <p style={{ margin: 0, fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", fontFamily: "var(--font-talim)" }}>{meta.tagline}</p>
+                            <h3 style={{ margin: "0 0 var(--tantu-knot-1)", fontFamily: "var(--tantu-font-display)", color: "var(--tantu-accent-primary)" }}>{repo}</h3>
+                            <p style={{ margin: 0, fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", fontFamily: "var(--tantu-font-mono)" }}>{meta.tagline}</p>
                           </div>
                         </div>
                         <p style={{ fontSize: "0.88rem", color: "var(--tantu-ink-primary)", lineHeight: 1.7, marginBottom: "var(--tantu-knot-3)" }}>{meta.fallback_desc}</p>
@@ -699,7 +718,7 @@ function SiteApp({ reposData, tantuCss }) {
                           <a href={`https://github.com/${GH_OWNER}/${repo}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
                             <TantuButton variant="secondary" bleed={false}>View on GitHub →</TantuButton>
                           </a>
-                          <button type="button" className="tantu-rumal-flip" aria-label={flipLabel} title={flipLabel} style={{ cursor: "pointer", background: "none", border: "none", color: "var(--tantu-ink-secondary)", fontFamily: "var(--font-kasuti)", fontSize: "11px", letterSpacing: "0.08em", padding: 0 }}>
+                          <button type="button" className="tantu-rumal-flip" aria-label={flipLabel} title={flipLabel} style={{ cursor: "pointer", background: "none", border: "none", color: "var(--tantu-ink-secondary)", fontFamily: "var(--tantu-font-meta)", fontSize: "11px", letterSpacing: "0.08em", padding: 0 }}>
                             ⟲ MANIFEST
                           </button>
                         </div>
@@ -721,7 +740,7 @@ function SiteApp({ reposData, tantuCss }) {
                         <a href={`https://github.com/${GH_OWNER}/${repo}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
                           <TantuButton variant="secondary" bleed={false}>View on GitHub →</TantuButton>
                         </a>
-                        <button type="button" className="tantu-rumal-flip" aria-label={backLabel} title={backLabel} style={{ cursor: "pointer", background: "none", border: "none", color: "var(--tantu-ink-inverted)", fontFamily: "var(--font-kasuti)", fontSize: "11px", letterSpacing: "0.08em", padding: 0 }}>
+                        <button type="button" className="tantu-rumal-flip" aria-label={backLabel} title={backLabel} style={{ cursor: "pointer", background: "none", border: "none", color: "var(--tantu-ink-inverted)", fontFamily: "var(--tantu-font-meta)", fontSize: "11px", letterSpacing: "0.08em", padding: 0 }}>
                           ⟲ OVERVIEW
                         </button>
                       </div>
@@ -759,7 +778,7 @@ function SiteApp({ reposData, tantuCss }) {
               <TantuCard key={layer.label} warpSpan={12} reliefLevel="kanthi" absorbent>
                 <div style={{ display: "flex", alignItems: "center", gap: "var(--tantu-knot-3)", flexWrap: "wrap" }}>
                   <span style={{ fontSize: "1.3rem", color: "var(--tantu-accent-highlight)" }}>{layer.icon}</span>
-                  <span style={{ fontFamily: "var(--font-kasuti)", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.12em", color: "var(--tantu-accent-primary)", minWidth: "180px" }}>
+                  <span style={{ fontFamily: "var(--tantu-font-meta)", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.12em", color: "var(--tantu-accent-primary)", minWidth: "180px" }}>
                     {layer.label}
                   </span>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--tantu-knot-1)" }}>
@@ -776,7 +795,7 @@ function SiteApp({ reposData, tantuCss }) {
 
             {STORY_PANELS.map((panel) => (
               <TantuCard key={panel.step} warpSpan={3} reliefLevel="kanthi" absorbent>
-                <h3 style={{ fontFamily: "var(--font-kalam)", fontSize: "1.2rem", color: "var(--tantu-accent-primary)", marginBottom: "var(--tantu-knot-2)" }}>{panel.title}</h3>
+                <h3 style={{ fontFamily: "var(--tantu-font-display)", fontSize: "1.2rem", color: "var(--tantu-accent-primary)", marginBottom: "var(--tantu-knot-2)" }}>{panel.title}</h3>
                 <p style={{ fontSize: "0.85rem", color: "var(--tantu-ink-primary)", lineHeight: 1.6, margin: 0 }}>{panel.body}</p>
               </TantuCard>
             ))}

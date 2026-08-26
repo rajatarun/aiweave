@@ -117,11 +117,11 @@ function Swatch({ name }: { name: string }) {
     <div style={{ border: "1px solid var(--tantu-border-hairline)", display: "flex", flexDirection: "column" }}>
       <div style={{ background: value, height: "3.5rem", borderBottom: "1px solid var(--tantu-border-hairline)" }} />
       <div style={{ padding: "0.5rem 0.6rem", display: "grid", gap: "0.15rem" }}>
-        <code style={{ fontFamily: "var(--font-talim)", fontSize: 11, wordBreak: "break-all" }}>{name}</code>
-        <code style={{ fontFamily: "var(--font-talim)", fontSize: 11, color: "var(--tantu-ink-secondary)" }}>
+        <code style={{ fontFamily: "var(--tantu-font-mono)", fontSize: 11, wordBreak: "break-all" }}>{name}</code>
+        <code style={{ fontFamily: "var(--tantu-font-mono)", fontSize: 11, color: "var(--tantu-ink-secondary)" }}>
           {value || "unset"}
         </code>
-        <span style={{ fontFamily: "var(--font-kasuti)", fontSize: 10, color: "var(--tantu-ink-secondary)" }}>
+        <span style={{ fontFamily: "var(--tantu-font-meta)", fontSize: 10, color: "var(--tantu-ink-secondary)" }}>
           {fmt(onGround)} ground · {fmt(onCard)} card
         </span>
       </div>
@@ -134,7 +134,7 @@ export const Colour: Story = {
     <div style={{ display: "grid", gap: "2rem" }}>
       {GROUPS.map((group) => (
         <section key={group.heading}>
-          <h3 style={{ fontFamily: "var(--font-kalam)", margin: "0 0 0.25rem", color: "var(--tantu-ink-primary)" }}>
+          <h3 style={{ fontFamily: "var(--tantu-font-display)", margin: "0 0 0.25rem", color: "var(--tantu-ink-primary)" }}>
             {group.heading}
           </h3>
           <p style={{ margin: "0 0 0.9rem", maxWidth: "60ch", color: "var(--tantu-ink-secondary)", fontSize: 13 }}>
@@ -162,31 +162,48 @@ export const Typography: Story = {
     docs: {
       description: {
         story:
-          "Three faces with strict jobs, and a fourth stack that is deliberately not one of " +
-          "them. Talim is machine voice — codes, counts, coordinates, captions. Kalam is " +
-          "display. Kasuti is counted-thread metadata. None of them sets a paragraph, so " +
-          "`--font-body` names a platform stack: the reader's own UI font already has their " +
-          "script, which matters because the three Tantu faces cover Latin only.",
+          "**Four roles, not four typefaces.** These tokens name the job, not the file that " +
+          "does it — which is what lets the system ship with no font files at all. Out of the " +
+          "box every role resolves to a stack the reader's machine already has.\n\n" +
+          "This Storybook opts into the three Tantu faces (it imports " +
+          "`@aiweave/tantu/fonts.css`), so what you see below is the branded rendering. A " +
+          "consuming application that skips that import gets the same system in the reader's " +
+          "own faces, and rebinding a role — `--tantu-font-display: \"Playfair Display\", " +
+          "serif` — swaps it everywhere at once.\n\n" +
+          "Without the brand layer, `display` is the only role with a distinct voice: `mono` " +
+          "and `meta` share a stack. That is deliberate — inventing a difference the reader's " +
+          "machine cannot supply would be worse — and the two stay distinguishable by the " +
+          "size, case and letter-spacing components set.",
       },
     },
   },
   render: () => (
     <div style={{ display: "grid", gap: "1.5rem" }}>
       {[
-        ["--font-kalam", "Display and headings", "Warp and Weft"],
-        ["--font-talim", "Machine voice", "T-0421 · 48 PICKS/IN · 9N"],
-        ["--font-kasuti", "Counted-thread metadata", "[W:04-H:02]"],
-        ["--font-body", "Prose", "Forty-eight picks to the inch, held at nine newtons."],
+        ["--tantu-font-display", "Display and headings", "Warp and Weft"],
+        ["--tantu-font-mono", "Machine voice — codes, counts, coordinates", "T-0421 · 48 PICKS/IN · 9N"],
+        ["--tantu-font-meta", "Counted-thread metadata", "[W:04-H:02]"],
+        ["--tantu-font-body", "Prose", "Forty-eight picks to the inch, held at nine newtons."],
       ].map(([token, role, sample]) => (
         <div key={token} style={{ borderTop: "1px solid var(--tantu-border-hairline)", paddingTop: "0.8rem" }}>
           <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginBottom: "0.4rem" }}>
-            <code style={{ fontFamily: "var(--font-talim)", fontSize: 11 }}>{token}</code>
-            <span style={{ fontFamily: "var(--font-kasuti)", fontSize: 10, color: "var(--tantu-ink-secondary)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+            <code style={{ fontFamily: "var(--tantu-font-mono)", fontSize: 11 }}>{token}</code>
+            <span style={{ fontFamily: "var(--tantu-font-meta)", fontSize: 10, color: "var(--tantu-ink-secondary)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
               {role}
             </span>
           </div>
           <p style={{ fontFamily: `var(${token})`, fontSize: 24, margin: 0, color: "var(--tantu-ink-primary)" }}>
             {sample}
+          </p>
+          <p
+            style={{
+              fontFamily: "var(--tantu-font-mono)",
+              fontSize: 10,
+              margin: "0.35rem 0 0",
+              color: "var(--tantu-ink-secondary)",
+            }}
+          >
+            resolves to {readToken(token) || "—"}
           </p>
         </div>
       ))}
@@ -208,9 +225,9 @@ export const Spacing: Story = {
     <div style={{ display: "grid", gap: "0.5rem" }}>
       {["1", "2", "3", "4", "6", "8", "12"].map((n) => (
         <div key={n} style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <code style={{ fontFamily: "var(--font-talim)", fontSize: 11, width: "9rem" }}>--tantu-knot-{n}</code>
+          <code style={{ fontFamily: "var(--tantu-font-mono)", fontSize: 11, width: "9rem" }}>--tantu-knot-{n}</code>
           <div style={{ background: "var(--tantu-accent-primary)", height: 12, width: `var(--tantu-knot-${n})` }} />
-          <span style={{ fontFamily: "var(--font-kasuti)", fontSize: 10, color: "var(--tantu-ink-secondary)" }}>
+          <span style={{ fontFamily: "var(--tantu-font-meta)", fontSize: 10, color: "var(--tantu-ink-secondary)" }}>
             {readToken(`--tantu-knot-${n}`)}
           </span>
         </div>

@@ -54,11 +54,29 @@ The token *values* are not part of the contract in the same way — see below.
   minor, not patch.
 - Documentation, comments, and internals with no observable effect.
 
+## Typography is a role, not a typeface
+
+The four type tokens — `--tantu-font-display`, `--tantu-font-mono`,
+`--tantu-font-meta`, `--tantu-font-body` — are public API. The *values* they
+resolve to are not: the fallback stacks may change to track platform fonts
+without a major, in the same way a token colour may move to meet a contrast
+minimum.
+
+`@aiweave/tantu/fonts.css` is a separate export on purpose, and it stays one.
+Folding the brand typefaces into `styles.css` would be a breaking change even
+though nothing about the API moved, because importing the design system would
+begin fetching three font files a consumer never asked for.
+
 ## Deprecation
 
 Anything slated for removal is marked `@deprecated` in its JSDoc with the
 replacement named, kept working for at least one minor release, and listed
 under *Deprecated* in the changelog. It is removed only in a major.
+
+Currently deprecated: `--font-kalam`, `--font-talim`, `--font-kasuti` and
+`--font-body`. They name typefaces where the system now names roles, and they
+alias the roles until the next major. Nothing inside the system binds to them,
+which a test enforces — a deprecation the library still depends on is not one.
 
 ## Pre-1.0
 
