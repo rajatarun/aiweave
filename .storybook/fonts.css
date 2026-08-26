@@ -1,45 +1,24 @@
 /**
- * Tantu's stylesheet deliberately ships no @font-face rules — loading the
- * brand font files is a consumer concern, since the design system cannot know
- * where a host will serve them from. Storybook is a consumer, so this is its
- * wiring, mirroring what generate_site.jsx does for the site.
+ * Storybook is a consumer, and it opts into the brand typefaces the way any
+ * consumer does — by importing the generated layer alongside the stylesheet.
  *
- * Run `npm run build:fonts` once after a fresh checkout; without the files
- * these rules simply fail to load and every stack falls back to IBM Plex,
- * which is exactly what a consumer who has not wired the fonts would see.
+ * This file used to hand-write the three @font-face rules. That was a second
+ * copy of something build.py already emits, and it was missing the one
+ * declaration that cannot be written by hand: the unicode-range derived from
+ * each font's real cmap.
+ *
+ * If `npm run build:fonts` has not been run, ../src/tantu/styles/fonts.css
+ * does not exist and this import fails the Storybook build loudly — which is
+ * the right outcome for a workspace whose whole job is showing the system.
+ * A consuming application simply omits the import and gets the fallback
+ * stacks.
  */
-
-@font-face {
-  font-family: "Kasuti-Gauze";
-  src: url("../fonts/Kasuti-Gauze.woff2") format("woff2"),
-       url("../fonts/Kasuti-Gauze.woff") format("woff");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Talim-Mono";
-  src: url("../fonts/Talim-Mono.woff2") format("woff2"),
-       url("../fonts/Talim-Mono.woff") format("woff");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Kalam-Rupa";
-  src: url("../fonts/Kalam-Rupa.woff2") format("woff2"),
-       url("../fonts/Kalam-Rupa.woff") format("woff");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
+@import "../src/tantu/styles/fonts.css";
 
 /* Storybook's own canvas, so a story sits on the theme's ground rather than
    on the manager's white. */
 body {
   background: var(--tantu-bg-substrate);
   color: var(--tantu-ink-primary);
-  font-family: var(--font-body);
+  font-family: var(--tantu-font-body);
 }

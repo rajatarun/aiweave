@@ -243,6 +243,42 @@
         }
       },
       "font": {
+        "display": {
+          "$value": "ui-serif, Georgia, \"Times New Roman\", Times, serif",
+          "$type": "fontFamily",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--tantu-font-display-fallback"
+            }
+          }
+        },
+        "mono": {
+          "$value": "ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, Consolas, \"Liberation Mono\", monospace",
+          "$type": "fontFamily",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--tantu-font-mono-fallback"
+            }
+          }
+        },
+        "meta": {
+          "$value": "ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, Consolas, \"Liberation Mono\", monospace",
+          "$type": "fontFamily",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--tantu-font-meta-fallback"
+            }
+          }
+        },
+        "body": {
+          "$value": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Noto Sans\", \"Helvetica Neue\", Arial, sans-serif",
+          "$type": "fontFamily",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--tantu-font-body-fallback"
+            }
+          }
+        },
         "size": {
           "base": {
             "$value": "14px",
@@ -275,24 +311,6 @@
           "$value": "240ms",
           "$type": "duration"
         }
-      }
-    },
-    "font": {
-      "talim": {
-        "$value": "\"Talim-Mono\", \"IBM Plex Mono\", \"Courier New\", monospace",
-        "$type": "fontFamily"
-      },
-      "kalam": {
-        "$value": "\"Kalam-Rupa\", \"IBM Plex Serif\", Georgia, serif",
-        "$type": "fontFamily"
-      },
-      "kasuti": {
-        "$value": "\"Kasuti-Gauze\", \"IBM Plex Mono\", \"Lucida Console\", monospace",
-        "$type": "fontFamily"
-      },
-      "body": {
-        "$value": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Noto Sans\", \"Helvetica Neue\", Arial, sans-serif",
-        "$type": "fontFamily"
       }
     }
   },
@@ -540,6 +558,42 @@
         }
       },
       "font": {
+        "display": {
+          "$value": "ui-serif, Georgia, \"Times New Roman\", Times, serif",
+          "$type": "fontFamily",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--tantu-font-display-fallback"
+            }
+          }
+        },
+        "mono": {
+          "$value": "ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, Consolas, \"Liberation Mono\", monospace",
+          "$type": "fontFamily",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--tantu-font-mono-fallback"
+            }
+          }
+        },
+        "meta": {
+          "$value": "ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, Consolas, \"Liberation Mono\", monospace",
+          "$type": "fontFamily",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--tantu-font-meta-fallback"
+            }
+          }
+        },
+        "body": {
+          "$value": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Noto Sans\", \"Helvetica Neue\", Arial, sans-serif",
+          "$type": "fontFamily",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--tantu-font-body-fallback"
+            }
+          }
+        },
         "size": {
           "base": {
             "$value": "14px",
@@ -572,24 +626,6 @@
           "$value": "240ms",
           "$type": "duration"
         }
-      }
-    },
-    "font": {
-      "talim": {
-        "$value": "\"Talim-Mono\", \"IBM Plex Mono\", \"Courier New\", monospace",
-        "$type": "fontFamily"
-      },
-      "kalam": {
-        "$value": "\"Kalam-Rupa\", \"IBM Plex Serif\", Georgia, serif",
-        "$type": "fontFamily"
-      },
-      "kasuti": {
-        "$value": "\"Kasuti-Gauze\", \"IBM Plex Mono\", \"Lucida Console\", monospace",
-        "$type": "fontFamily"
-      },
-      "body": {
-        "$value": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Noto Sans\", \"Helvetica Neue\", Arial, sans-serif",
-        "$type": "fontFamily"
       }
     }
   }

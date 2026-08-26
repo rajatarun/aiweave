@@ -105,11 +105,16 @@ jobs:
       - name: Glyph geometry checks
         run: npm run audit:fonts
 
-      - name: Fail if the committed fonts are stale
+      # build.py writes three things: fonts/ for the site, src/tantu/fonts/ for
+      # the package, and src/tantu/styles/fonts.css — the opt-in brand layer,
+      # whose unicode-range is computed from each font's real cmap. A stale
+      # committed copy of that last one is the dangerous case: the range would
+      # silently describe a coverage the fonts no longer have.
+      - name: Fail if the committed font output is stale
         run: |
-          if ! git diff --quiet -- fonts/; then
-            echo "fonts/ differs from what build.py produces — run 'npm run build:fonts' and commit the result:"
-            git diff --stat -- fonts/
+          if ! git diff --quiet -- fonts/ src/tantu/fonts/ src/tantu/styles/fonts.css; then
+            echo "font build output differs from what build.py produces — run 'npm run build:fonts' and commit:"
+            git diff --stat -- fonts/ src/tantu/fonts/ src/tantu/styles/fonts.css
             exit 1
           fi
-          echo "committed typefaces match build.py"
+          echo "committed typefaces and brand layer match build.py"

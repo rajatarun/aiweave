@@ -52,7 +52,7 @@ export interface TantuMastheadLink {
 }
 
 export interface TantuMastheadProps extends HTMLAttributes<HTMLElement> {
-  /** Wordmark set in Kalam-Rupa. */
+  /** Wordmark, set in the display role. */
   mark: ReactNode;
   links?: TantuMastheadLink[];
   /** Trailing slot for actions. */

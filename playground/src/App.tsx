@@ -21,6 +21,11 @@ import {
   TantuToggle,
 } from "@aiweave/tantu";
 import "@aiweave/tantu/styles.css";
+// Optional. The design system is complete without it — the type roles resolve
+// to stacks the reader's machine already has. This line is what opting into
+// the three Tantu typefaces looks like; delete it and the app still works,
+// just in the reader's own faces.
+import "@aiweave/tantu/fonts.css";
 
 /**
  * A working application, not a component gallery.
@@ -67,7 +72,7 @@ export default function App() {
           }}
         >
           <div>
-            <h1 style={{ fontFamily: "var(--font-kalam)", margin: 0 }}>Shift record</h1>
+            <h1 style={{ fontFamily: "var(--tantu-font-display)", margin: 0 }}>Shift record</h1>
             <p style={{ margin: 0, color: "var(--tantu-ink-secondary)" }}>
               Loom 4 · edit anything; it is a real app.
             </p>
@@ -98,7 +103,7 @@ export default function App() {
 
       <TantuCell warpSpan={6}>
         <TantuCard talimCode="BEAM">
-          <h2 style={{ fontFamily: "var(--font-kalam)", marginTop: 0 }}>Beam register</h2>
+          <h2 style={{ fontFamily: "var(--tantu-font-display)", marginTop: 0 }}>Beam register</h2>
           <TantuTable
             caption="Beams currently dressed"
             rows={BEAMS}
@@ -115,7 +120,7 @@ export default function App() {
 
       <TantuCell warpSpan={6}>
         <TantuCard talimCode="TENSION">
-          <h2 style={{ fontFamily: "var(--font-kalam)", marginTop: 0 }}>Tension</h2>
+          <h2 style={{ fontFamily: "var(--tantu-font-display)", marginTop: 0 }}>Tension</h2>
           <TantuMeter label="Across the width" value={tension} />
           <div style={{ marginTop: "var(--tantu-knot-3)" }}>
             <TantuSlider
@@ -175,14 +180,14 @@ export default function App() {
         <ChambaRumalCard
           obverse={
             <>
-              <h2 style={{ fontFamily: "var(--font-kalam)", marginTop: 0 }}>Today</h2>
+              <h2 style={{ fontFamily: "var(--tantu-font-display)", marginTop: 0 }}>Today</h2>
               <p>Three beams dressed. One cut pending.</p>
               <p style={{ color: "var(--tantu-ink-secondary)" }}>Press the card.</p>
             </>
           }
           reverse={
             <>
-              <h2 style={{ fontFamily: "var(--font-kalam)", marginTop: 0 }}>Yesterday</h2>
+              <h2 style={{ fontFamily: "var(--tantu-font-display)", marginTop: 0 }}>Yesterday</h2>
               <p>Warp parted at pick 1,204. Re-tensioned and resumed.</p>
             </>
           }
@@ -191,7 +196,7 @@ export default function App() {
 
       <TantuCell warpSpan={6}>
         <TantuCard talimCode="RATE">
-          <h2 style={{ fontFamily: "var(--font-kalam)", marginTop: 0 }}>Picks per inch</h2>
+          <h2 style={{ fontFamily: "var(--tantu-font-display)", marginTop: 0 }}>Picks per inch</h2>
           <KasutiMatrix
             caption="By loom, this shift"
             audio={false}
@@ -207,7 +212,7 @@ export default function App() {
 
       <TantuCell warpSpan={6}>
         <TantuCard talimCode="NOTES">
-          <h2 style={{ fontFamily: "var(--font-kalam)", marginTop: 0 }}>Standing orders</h2>
+          <h2 style={{ fontFamily: "var(--tantu-font-display)", marginTop: 0 }}>Standing orders</h2>
           <TantuFold
             items={[
               { id: "a", label: "Dressing the loom", content: <p>Beam, cross, heddles, reed.</p> },

@@ -133,7 +133,7 @@ export const FrayedEdge: Story = {
             />
             <figcaption
               style={{
-                fontFamily: "var(--font-kasuti)",
+                fontFamily: "var(--tantu-font-meta)",
                 fontSize: 10,
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",

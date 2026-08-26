@@ -53,8 +53,21 @@ if (!Object.keys(darkOverrides).length) {
   process.exit(2);
 }
 
-const light = { ...root, ...lightOverrides };
-const dark = { ...root, ...darkOverrides };
+/**
+ * Tokens kept only so existing consumers keep working, and which a design
+ * library should never bind to. `--font-kalam` and friends name a *typeface*
+ * where the system now names a *role*; exporting them would put the coupling
+ * this refactor removed straight back into Figma, where it is far harder to
+ * find and undo.
+ */
+const DEPRECATED = new Set(["--font-kalam", "--font-talim", "--font-kasuti", "--font-body"]);
+
+function withoutDeprecated(tokens) {
+  return Object.fromEntries(Object.entries(tokens).filter(([name]) => !DEPRECATED.has(name)));
+}
+
+const light = withoutDeprecated({ ...root, ...lightOverrides });
+const dark = withoutDeprecated({ ...root, ...darkOverrides });
 
 /**
  * Resolve `var(--x)` chains down to a literal. Design tools understand token

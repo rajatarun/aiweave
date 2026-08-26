@@ -45,7 +45,14 @@ into the repo:
 ```tsx
 import { TantuLoom, TantuCard } from "@aiweave/tantu";
 import "@aiweave/tantu/styles.css";
+import "@aiweave/tantu/fonts.css";   // optional
 ```
+
+That second line is the only thing tying this app to the Tantu typefaces.
+Delete it and everything still works — the type roles resolve to stacks the
+reader's machine already has, and the layout, colour and motion are unchanged.
+Worth trying: it is the clearest demonstration of what the system is versus
+what its skin is.
 
 `vite.config.ts` aliases those two specifiers at the source tree, which is what
 a consumer's `node_modules` would provide — so the playground exercises the real
@@ -58,11 +65,9 @@ Two things in that config are worth reading before copying it:
   the aliased Tantu source. Two copies means two dispatchers and every hook
   throws. A real consumer gets this for free from the peer dependency; here it
   has to be said out loud, because the alias sidesteps package resolution.
-- **`publicDir`** points at the repo's `fonts/`, which is build output. Run
-  `npm run build:fonts` at the root once; without it the `@font-face` rules
-  simply fail and every stack falls back to IBM Plex — which is exactly what a
-  consumer who has not wired the fonts sees, so it is a useful thing to look at
-  deliberately.
+- **`publicDir`** points at the repo's `fonts/`, which is build output. It is
+  no longer needed for the typefaces — those come from the package now — but it
+  keeps the directory available for anything else the app wants to serve.
 
 ## Opening it in StackBlitz
 

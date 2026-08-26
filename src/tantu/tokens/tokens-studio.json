@@ -188,19 +188,35 @@
       "value": "6px",
       "type": "sizing"
     },
-    "font.talim": {
-      "value": "\"Talim-Mono\", \"IBM Plex Mono\", \"Courier New\", monospace",
+    "tantu.font.display.fallback": {
+      "value": "ui-serif, Georgia, \"Times New Roman\", Times, serif",
       "type": "fontFamilies"
     },
-    "font.kalam": {
-      "value": "\"Kalam-Rupa\", \"IBM Plex Serif\", Georgia, serif",
+    "tantu.font.mono.fallback": {
+      "value": "ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, Consolas, \"Liberation Mono\", monospace",
       "type": "fontFamilies"
     },
-    "font.kasuti": {
-      "value": "\"Kasuti-Gauze\", \"IBM Plex Mono\", \"Lucida Console\", monospace",
+    "tantu.font.meta.fallback": {
+      "value": "ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, Consolas, \"Liberation Mono\", monospace",
       "type": "fontFamilies"
     },
-    "font.body": {
+    "tantu.font.body.fallback": {
+      "value": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Noto Sans\", \"Helvetica Neue\", Arial, sans-serif",
+      "type": "fontFamilies"
+    },
+    "tantu.font.display": {
+      "value": "ui-serif, Georgia, \"Times New Roman\", Times, serif",
+      "type": "fontFamilies"
+    },
+    "tantu.font.mono": {
+      "value": "ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, Consolas, \"Liberation Mono\", monospace",
+      "type": "fontFamilies"
+    },
+    "tantu.font.meta": {
+      "value": "ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, Consolas, \"Liberation Mono\", monospace",
+      "type": "fontFamilies"
+    },
+    "tantu.font.body": {
       "value": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Noto Sans\", \"Helvetica Neue\", Arial, sans-serif",
       "type": "fontFamilies"
     },
@@ -418,19 +434,35 @@
       "value": "6px",
       "type": "sizing"
     },
-    "font.talim": {
-      "value": "\"Talim-Mono\", \"IBM Plex Mono\", \"Courier New\", monospace",
+    "tantu.font.display.fallback": {
+      "value": "ui-serif, Georgia, \"Times New Roman\", Times, serif",
       "type": "fontFamilies"
     },
-    "font.kalam": {
-      "value": "\"Kalam-Rupa\", \"IBM Plex Serif\", Georgia, serif",
+    "tantu.font.mono.fallback": {
+      "value": "ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, Consolas, \"Liberation Mono\", monospace",
       "type": "fontFamilies"
     },
-    "font.kasuti": {
-      "value": "\"Kasuti-Gauze\", \"IBM Plex Mono\", \"Lucida Console\", monospace",
+    "tantu.font.meta.fallback": {
+      "value": "ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, Consolas, \"Liberation Mono\", monospace",
       "type": "fontFamilies"
     },
-    "font.body": {
+    "tantu.font.body.fallback": {
+      "value": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Noto Sans\", \"Helvetica Neue\", Arial, sans-serif",
+      "type": "fontFamilies"
+    },
+    "tantu.font.display": {
+      "value": "ui-serif, Georgia, \"Times New Roman\", Times, serif",
+      "type": "fontFamilies"
+    },
+    "tantu.font.mono": {
+      "value": "ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, Consolas, \"Liberation Mono\", monospace",
+      "type": "fontFamilies"
+    },
+    "tantu.font.meta": {
+      "value": "ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, Consolas, \"Liberation Mono\", monospace",
+      "type": "fontFamilies"
+    },
+    "tantu.font.body": {
       "value": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Noto Sans\", \"Helvetica Neue\", Arial, sans-serif",
       "type": "fontFamilies"
     },

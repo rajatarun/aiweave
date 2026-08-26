@@ -84,7 +84,7 @@ export const PanchangAtNightfall: Story = {
         <div key={hour}>
           <p
             style={{
-              fontFamily: "var(--font-kasuti)",
+              fontFamily: "var(--tantu-font-meta)",
               fontSize: 10,
               letterSpacing: "0.1em",
               textTransform: "uppercase",
