@@ -27,6 +27,27 @@ Then open http://localhost:5173.
 
 ## What to try
 
+- **Press the five dye squares in the vat.** This is the part of Tantu nothing
+  else in the system does, and it is not a metaphor in the code: the dye front
+  follows the Lucas–Washburn wicking law, `L ∝ √t`, which is a genuinely
+  different shape from the saturation curve `1 − e^(−kt)` that usually stands
+  in for "ink spreading", and different again from any cubic bezier. Half the
+  travel is over in the first third of the duration; the rest is a long crawl.
+  It stretches along the warp, because cotton does not draw dye equally in
+  both axes.
+- **Change the bath in Setup → Dye.** The long cloth below the squares takes
+  that dye. None of the five colours is written in this app — each names a
+  custom property that the shader reads off the live element, so re-dyeing the
+  system through CSS moves the bleed and the swatch together.
+- **Press the button inside the long cloth, then press beside it.** One press
+  is one dye front. The innermost thing that answers the gesture owns it and
+  the cloth beneath stays dry; that arbitration is a shared bus, not a
+  per-component guess.
+- **Press the page margin, outside every card.** The ground is cloth too. It
+  bleeds only where nothing above it has claimed the gesture.
+- **Six live surfaces, one WebGL context.** Safari caps live contexts and
+  drops the oldest past the cap, so a context per surface blanks surfaces
+  mid-scroll. Every surface here draws from one offscreen vat.
 - **The direction switch, top right.** Nothing in this app is written twice.
   Every inline-axis rule in the stylesheet is logical, so the browser mirrors
   the layout, and the tabs' arrow keys reverse on their own because each widget

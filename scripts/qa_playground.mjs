@@ -89,6 +89,28 @@ try {
     if (r.status() >= 400) failedRequests.push(`${r.status()} ${r.url().slice(-60)}`);
   });
 
+  // Count WebGL contexts by instrumenting acquisition, not by walking the DOM.
+  //
+  // Tantu pools by rendering every surface from one offscreen 1x1 canvas that
+  // is never appended to the document; each visible surface holds a plain 2D
+  // context and drawImages from that vat. A check that walks
+  // document.querySelectorAll("canvas") therefore cannot see the only WebGL
+  // context on the page, reports zero, and passes for the wrong reason.
+  // Hooking getContext measures the claim itself: however many surfaces
+  // exist, how many contexts did the page actually take out?
+  await page.addInitScript(() => {
+    const held = new Set();
+    window.__glCanvases = held;
+    const original = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (type, ...args) {
+      const ctx = original.call(this, type, ...args);
+      // getContext hands back the same object on repeat calls for one canvas,
+      // so identity is what to count, not call sites.
+      if (ctx && /webgl/i.test(String(type))) held.add(this);
+      return ctx;
+    };
+  });
+
   await page.goto(BASE, { waitUntil: "networkidle", timeout: 30000 });
 
   const mounted = await page.evaluate(() => {
@@ -168,6 +190,67 @@ try {
     "all three brand faces actually load and are selected",
     Object.values(fonts).every(Boolean),
     JSON.stringify(fonts),
+  );
+
+  /* ---- The dye engine, which is the thing worth showing ----------------- */
+  // The playground is the only place a stranger sees Tantu move, and its
+  // signature is capillary dye on the Lucas-Washburn law. A playground that
+  // renders the components but never wicks is showing the least interesting
+  // half of the system, so this measures that the surfaces exist, that they
+  // share one context, that the five baths are five different colours, and
+  // that a press actually paints.
+  const surfaces = await page.evaluate(() => ({
+    hosts: document.querySelectorAll(".tantu-bleed-host").length,
+    substrate: !!document.querySelector(".tantu-loom-substrate"),
+  }));
+  check(
+    "the dye surfaces are on the page",
+    surfaces.hosts >= 6 && surfaces.substrate,
+    `${surfaces.hosts} bleed surfaces, substrate=${surfaces.substrate}`,
+  );
+
+  // Safari caps live WebGL contexts and drops the oldest past the cap, so a
+  // context per surface blanks surfaces mid-scroll. Six surfaces is the point
+  // of the check: one surface sharing one context is not evidence of pooling.
+  const gl = await page.evaluate(() => ({
+    contexts: window.__glCanvases ? window.__glCanvases.size : -1,
+    canvases: document.querySelectorAll("canvas").length,
+  }));
+  check(
+    "six live surfaces share exactly one WebGL context",
+    gl.contexts === 1,
+    `${gl.canvases} canvases in the document, ${gl.contexts} WebGL context(s) acquired`,
+  );
+
+  // Five baths must read as five colours at rest, not five grey squares that
+  // only differ once a pointer has touched them — which is what a reader
+  // without a pointer would otherwise get.
+  const swatches = await page.evaluate(() =>
+    Array.from(document.querySelectorAll(".tantu-bleed-host > span[aria-hidden]")).map(
+      (el) => getComputedStyle(el).backgroundColor,
+    ),
+  );
+  const distinct = new Set(swatches.filter((c) => c && c !== "rgba(0, 0, 0, 0)"));
+  check(
+    "each bath shows its own pigment at rest",
+    swatches.length === 5 && distinct.size === 5,
+    `${swatches.length} swatches, ${distinct.size} distinct: ${[...distinct].join(" ")}`,
+  );
+
+  // A press has to paint. Screenshot the same surface either side of a
+  // pointerdown and require the bytes to differ.
+  const cloth = page.locator(".tantu-bleed-host").first();
+  const before = await cloth.screenshot();
+  const box = await cloth.boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(220);
+  const during = await cloth.screenshot();
+  await page.mouse.up();
+  check(
+    "pressing the cloth wicks dye into it",
+    Buffer.compare(before, during) !== 0,
+    `${before.length} vs ${during.length} bytes`,
   );
 
   /* ---- Layout: no two-axis scrolling anywhere it matters ---------------- */
