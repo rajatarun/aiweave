@@ -31,6 +31,18 @@ jobs:
       - name: Typecheck the library and its tests
         run: npm run typecheck
 
+      # The design-tool exports are generated from the stylesheet. A stale
+      # committed copy is a Figma library that quietly disagrees with the code.
+      - name: Design tokens are in sync with the stylesheet
+        run: |
+          npm run tokens
+          if ! git diff --quiet -- src/tantu/tokens/; then
+            echo "src/tantu/tokens/ differs from what the stylesheet produces — run 'npm run tokens' and commit:"
+            git diff --stat -- src/tantu/tokens/
+            exit 1
+          fi
+          echo "token exports match the stylesheet"
+
       - name: Test suite
         run: npm run test
 
@@ -55,6 +67,21 @@ jobs:
       # count — none of which jsdom can answer.
       - name: Browser checks
         run: npm run audit:browser
+
+      - name: Build Storybook
+        run: npm run build:storybook
+
+      # Renders every story in both themes and measures what only a real
+      # engine can: colour contrast against actual pixels (jsdom has no
+      # cascade, so the unit sweep cannot), and target size against the
+      # 24x24 minimum. Eight contrast defects reached this repository through
+      # a token audit that passed — a pairing audit only covers the pairings
+      # someone thought to write down.
+      - name: Story render, contrast and target-size sweep
+        run: npm run audit:stories
+
+      - name: Build the playground
+        run: npm --prefix playground ci && npm --prefix playground run build
 
   fonts:
     name: typeface build

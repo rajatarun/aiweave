@@ -10,6 +10,28 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
 
 ### Added
 
+- **Storybook**, with a story for every component, an axe check on each, and
+  theme and writing-direction switches in the toolbar so any story can be seen
+  in all four combinations. `npm run storybook`.
+- **A playground** — a working application rather than a component gallery,
+  consuming Tantu through its published entry points. `npm run playground`.
+- **Design tokens for Figma**, generated from the stylesheet in both the W3C
+  DTCG format and Tokens Studio's, with the import procedure documented.
+  `npm run tokens`; CI fails if the committed output is stale.
+- **A draft Accessibility Conformance Report** on the VPAT 2.5Rev INT
+  structure, filled from measurements, with every criterion that could not be
+  verified marked *Not Evaluated* rather than assumed. It is explicitly a
+  self-assessment: no third-party audit and no assistive-technology testing
+  have been done, and the report says so at the top.
+- **A rendered-contrast sweep** (`npm run audit:stories`) that runs axe over
+  every story in a real browser. The token audit computes pairings, but only
+  pairings someone thought to write down; jsdom has no cascade, so the unit
+  sweep cannot see a resolved colour at all. Eight contrast defects had passed
+  both.
+- **Target-size measurement** against WCAG 2.2 SC 2.5.8, in the same sweep.
+- **Reflow, text-spacing and resize-text measurements** in the browser checks,
+  at the criteria's actual thresholds — 320 CSS px for reflow, not a phone
+  width.
 - **Right-to-left support.** Every inline-axis rule is written with logical
   properties, so a host that sets `dir="rtl"` gets a correct mirror with no
   Tantu-specific work. The three things CSS cannot express logically —
@@ -38,17 +60,37 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
   animating. There is now one scoped floor beneath the considered
   per-component reductions.
 - **Keyboard.** `Home` and `End` on `TantuTabs`.
-- **Tests.** 204 of them, from none: axe-core over all 47 exported components
+- **Tests.** 213 of them, from none: axe-core over all 47 exported components
   in both themes and both directions, server rendering with the browser
   globals genuinely removed, the composite-widget keyboard contract, the modal
   contract, the dye physics, and lint-style guards on the stylesheet.
 - **CI.** `npm run verify` — typecheck, tests, contrast audit, bleed
-  arbitration, site build, and 16 browser checks — runs on every push and pull
+  arbitration, site build, and 20 browser checks — runs on every push and pull
   request, alongside a job that rebuilds the typefaces and fails if the
   committed files are stale.
 
 ### Fixed
 
+- **Table zebra striping was a theme-invariant cream**, so in dark mode every
+  even row carried near-white text on a cream slab. Effectively invisible, and
+  it passed every check the system had.
+- **Seven more contrast failures** found by the rendered sweep: the seal's
+  label (3.52:1), the caution tag in light (3.07) and in dark (3.19), the
+  success tag in dark (1.99), the zari tag (3.33), the trace search's label
+  and readout (2.43), the calendar's weekday strip (1.75), and the acoustic
+  toggle's muted label (3.46). Each had the same root cause — a dye primitive
+  or a fixed colour used where a semantic, theme-aware token belongs — except
+  the last, which used `opacity` to say "muted".
+- **The dark theme never redefined `--tantu-state-success` or
+  `--tantu-state-caution`**, so both rendered their light-theme values on a
+  dark ground.
+- **The solid tag's label was a hardcoded white**, which works on every
+  light-theme tone and none of the dark ones.
+- **Four interactive targets were under 24×24 CSS px** (WCAG 2.2 SC 2.5.8):
+  masthead links, stepper steps, the slider's hit area and breadcrumb links.
+- **`TantuTooltip` failed two of WCAG 1.4.13's three requirements** — it could
+  not be dismissed with Escape, and `pointer-events: none` plus a 6px gap made
+  it impossible to move the pointer onto.
 - **`TantuDialog` did not honour `aria-modal`.** Tab walked out of the panel
   into the page behind the scrim, where a keyboard user could operate controls
   they could not see. The focus ring is now contained, the dialog takes its

@@ -120,8 +120,8 @@ npm run verify
 | Step | What it establishes |
 | --- | --- |
 | `npm run typecheck` | The library and its tests compile under bundler resolution. |
-| `npm run test` | 204 tests — see below. |
-| `npm run audit:a11y` | 36 real component colour pairings against WCAG 1.4.3 / 1.4.11, computed from the resolved tokens in both themes. |
+| `npm run test` | 213 tests — see below. |
+| `npm run audit:a11y` | 58 real component colour pairings against WCAG 1.4.3 / 1.4.11, computed from the resolved tokens in both themes. |
 | `npm run audit:bleed` | The bleed arbitration matrix, run against the *compiled* browser asset. |
 | `npm run build` | The site renders under `renderToStaticMarkup` with real content. |
 | `npm run audit:browser` | 16 checks that need a real engine — layout, cascade, forced colours, reduced motion, WebGL context count. |
@@ -156,6 +156,55 @@ silent gap in coverage. Everything else sweeps that one list:
   property, no `!important` outside the reduced-motion floor, no universal
   selector reaching into the host document, every font stack ending in a
   generic family.
+
+## Seeing it
+
+```
+npm run storybook     # every component, with theme and direction switches
+npm run playground    # a working app built with Tantu, not a gallery
+```
+
+**Storybook** carries a story for every component plus a Foundations section
+that reads its swatches, type ramp and spacing scale out of the live cascade —
+a token sheet maintained by hand is a token sheet that will eventually lie
+about the system it documents. Theme and writing direction are toolbar globals
+rather than per-story args, so any story can be seen in all four combinations
+by clicking rather than by editing a file.
+
+**The playground** (`playground/`) is a small working tool — a loom's shift
+record — rather than a component gallery, and it consumes Tantu through the
+published entry points, so it exercises the real export surface. A gallery
+answers "what is in the box"; this answers the question that decides adoption,
+which is what it feels like to *build* with the system.
+
+Both are rendered and measured in CI. `npm run audit:stories` loads all 110
+story/theme combinations in Chromium, fails on a story that throws or renders
+nothing, and runs axe over each with **`color-contrast` enabled** — which the
+unit sweep cannot do, because jsdom has no cascade to resolve a colour from.
+That check found eight contrast defects that had passed a green token audit,
+including a table's zebra striping bound to a theme-invariant cream: near-white
+text on a cream row in dark mode, invisible, and passing everything.
+
+## For designers
+
+`src/tantu/tokens/` holds the token set in the two formats Figma imports — W3C
+DTCG and Tokens Studio — generated from the stylesheet by `npm run tokens` and
+checked in CI, so the design library cannot drift from the code.
+[The import procedure is documented there](src/tantu/tokens/README.md), along
+with the one rule that matters: bind to the semantic tokens, never the dye
+primitives. Every contrast defect this system has had came from breaking it.
+
+## Accessibility conformance
+
+[`src/tantu/ACCESSIBILITY-CONFORMANCE-REPORT.md`](src/tantu/ACCESSIBILITY-CONFORMANCE-REPORT.md)
+is a VPAT 2.5Rev INT self-assessment covering every WCAG 2.1 and 2.2 A/AA
+criterion — what was measured, how, and who determines the outcome for a
+component library as opposed to the application embedding it.
+
+It is **not an audit**. No third party has evaluated Tantu and no testing with
+assistive technology has been done; every criterion that could not be verified
+by measurement is marked *Not Evaluated* rather than assumed, and the four
+known defects are named in the report rather than left to be found.
 
 ## Writing direction
 

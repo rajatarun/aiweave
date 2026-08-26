@@ -1,0 +1,484 @@
+{
+  "tantu/light": {
+    "tantu.kora.raw": {
+      "value": "#faf7f0",
+      "type": "color"
+    },
+    "tantu.kora.bleached": {
+      "value": "#ffffff",
+      "type": "color"
+    },
+    "tantu.kora.mud": {
+      "value": "#ece6d8",
+      "type": "color"
+    },
+    "tantu.kala.iron": {
+      "value": "#12100e",
+      "type": "color"
+    },
+    "tantu.kala.charcoal": {
+      "value": "#201c19",
+      "type": "color"
+    },
+    "tantu.madder.root": {
+      "value": "#82231d",
+      "type": "color"
+    },
+    "tantu.madder.flame": {
+      "value": "#a83228",
+      "type": "color"
+    },
+    "tantu.indigo.vat": {
+      "value": "#0d233a",
+      "type": "color"
+    },
+    "tantu.indigo.sky": {
+      "value": "#2b5377",
+      "type": "color"
+    },
+    "tantu.pala.copper": {
+      "value": "#294d34",
+      "type": "color"
+    },
+    "tantu.genda.rust": {
+      "value": "#c97218",
+      "type": "color"
+    },
+    "tantu.katha.bark": {
+      "value": "#6e4a35",
+      "type": "color"
+    },
+    "tantu.zari.pure.gold": {
+      "value": "#c5a059",
+      "type": "color"
+    },
+    "tantu.zari.tarnish": {
+      "value": "#9e7d3b",
+      "type": "color"
+    },
+    "tantu.bg.substrate": {
+      "value": "#f3eee2",
+      "type": "color"
+    },
+    "tantu.bg.elevated": {
+      "value": "#e8e1d0",
+      "type": "color"
+    },
+    "tantu.bg.surface.active": {
+      "value": "#eae3d2",
+      "type": "color"
+    },
+    "tantu.ink.primary": {
+      "value": "#12100e",
+      "type": "color"
+    },
+    "tantu.ink.secondary": {
+      "value": "#524a42",
+      "type": "color"
+    },
+    "tantu.ink.inverted": {
+      "value": "#faf7f0",
+      "type": "color"
+    },
+    "tantu.accent.primary": {
+      "value": "#82231d",
+      "type": "color"
+    },
+    "tantu.accent.highlight": {
+      "value": "#a83228",
+      "type": "color"
+    },
+    "tantu.accent.structural": {
+      "value": "#0d233a",
+      "type": "color"
+    },
+    "tantu.state.success": {
+      "value": "#294d34",
+      "type": "color"
+    },
+    "tantu.state.caution": {
+      "value": "#945412",
+      "type": "color"
+    },
+    "tantu.ink.zari": {
+      "value": "#7a602d",
+      "type": "color"
+    },
+    "tantu.grid.thread": {
+      "value": "rgba(110, 74, 53, 0.25)",
+      "type": "color"
+    },
+    "tantu.border.hairline": {
+      "value": "rgba(110, 74, 53, 0.75)",
+      "type": "color"
+    },
+    "tantu.focus.contrast": {
+      "value": "#12100e",
+      "type": "color"
+    },
+    "tantu.border.embroidery": {
+      "value": "#8a6c33",
+      "type": "color"
+    },
+    "tantu.color.surface": {
+      "value": "#e8e1d0",
+      "type": "color"
+    },
+    "tantu.color.ink": {
+      "value": "#12100e",
+      "type": "color"
+    },
+    "tantu.color.accent": {
+      "value": "#82231d",
+      "type": "color"
+    },
+    "tantu.color.structure": {
+      "value": "#0d233a",
+      "type": "color"
+    },
+    "tantu.color.metallic": {
+      "value": "#c5a059",
+      "type": "color"
+    },
+    "tantu.breakpoint.lens": {
+      "value": "768px",
+      "type": "sizing"
+    },
+    "tantu.knot.1": {
+      "value": "6px",
+      "type": "sizing"
+    },
+    "tantu.knot.2": {
+      "value": "12px",
+      "type": "sizing"
+    },
+    "tantu.knot.3": {
+      "value": "18px",
+      "type": "sizing"
+    },
+    "tantu.knot.4": {
+      "value": "24px",
+      "type": "sizing"
+    },
+    "tantu.knot.6": {
+      "value": "36px",
+      "type": "sizing"
+    },
+    "tantu.knot.8": {
+      "value": "48px",
+      "type": "sizing"
+    },
+    "tantu.knot.12": {
+      "value": "72px",
+      "type": "sizing"
+    },
+    "tantu.gauge.filament": {
+      "value": "1px",
+      "type": "sizing"
+    },
+    "tantu.gauge.ply": {
+      "value": "2px",
+      "type": "sizing"
+    },
+    "tantu.gauge.cord": {
+      "value": "4px",
+      "type": "sizing"
+    },
+    "tantu.gauge.braid": {
+      "value": "6px",
+      "type": "sizing"
+    },
+    "font.talim": {
+      "value": "\"Talim-Mono\", \"IBM Plex Mono\", \"Courier New\", monospace",
+      "type": "fontFamilies"
+    },
+    "font.kalam": {
+      "value": "\"Kalam-Rupa\", \"IBM Plex Serif\", Georgia, serif",
+      "type": "fontFamilies"
+    },
+    "font.kasuti": {
+      "value": "\"Kasuti-Gauze\", \"IBM Plex Mono\", \"Lucida Console\", monospace",
+      "type": "fontFamilies"
+    },
+    "font.body": {
+      "value": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Noto Sans\", \"Helvetica Neue\", Arial, sans-serif",
+      "type": "fontFamilies"
+    },
+    "tantu.font.size.base": {
+      "value": "14px",
+      "type": "sizing"
+    },
+    "tantu.line.height.base": {
+      "value": "1.5",
+      "type": "other"
+    },
+    "tantu.motion.capillary": {
+      "value": "cubic-bezier(0.12, 0.9, 0.24, 1)",
+      "type": "other"
+    },
+    "tantu.motion.batten": {
+      "value": "60ms",
+      "type": "other"
+    },
+    "tantu.motion.shuttle": {
+      "value": "180ms",
+      "type": "other"
+    },
+    "tantu.motion.unspool": {
+      "value": "240ms",
+      "type": "other"
+    }
+  },
+  "tantu/dark": {
+    "tantu.kora.raw": {
+      "value": "#faf7f0",
+      "type": "color"
+    },
+    "tantu.kora.bleached": {
+      "value": "#ffffff",
+      "type": "color"
+    },
+    "tantu.kora.mud": {
+      "value": "#ece6d8",
+      "type": "color"
+    },
+    "tantu.kala.iron": {
+      "value": "#12100e",
+      "type": "color"
+    },
+    "tantu.kala.charcoal": {
+      "value": "#201c19",
+      "type": "color"
+    },
+    "tantu.madder.root": {
+      "value": "#82231d",
+      "type": "color"
+    },
+    "tantu.madder.flame": {
+      "value": "#a83228",
+      "type": "color"
+    },
+    "tantu.indigo.vat": {
+      "value": "#0d233a",
+      "type": "color"
+    },
+    "tantu.indigo.sky": {
+      "value": "#2b5377",
+      "type": "color"
+    },
+    "tantu.pala.copper": {
+      "value": "#294d34",
+      "type": "color"
+    },
+    "tantu.genda.rust": {
+      "value": "#c97218",
+      "type": "color"
+    },
+    "tantu.katha.bark": {
+      "value": "#6e4a35",
+      "type": "color"
+    },
+    "tantu.zari.pure.gold": {
+      "value": "#c5a059",
+      "type": "color"
+    },
+    "tantu.zari.tarnish": {
+      "value": "#9e7d3b",
+      "type": "color"
+    },
+    "tantu.bg.substrate": {
+      "value": "#12100e",
+      "type": "color"
+    },
+    "tantu.bg.elevated": {
+      "value": "#1a1714",
+      "type": "color"
+    },
+    "tantu.bg.surface.active": {
+      "value": "#201c19",
+      "type": "color"
+    },
+    "tantu.ink.primary": {
+      "value": "#faf7f0",
+      "type": "color"
+    },
+    "tantu.ink.secondary": {
+      "value": "#c8c0b2",
+      "type": "color"
+    },
+    "tantu.ink.inverted": {
+      "value": "#12100e",
+      "type": "color"
+    },
+    "tantu.accent.primary": {
+      "value": "#c5a059",
+      "type": "color"
+    },
+    "tantu.accent.highlight": {
+      "value": "#d8b26e",
+      "type": "color"
+    },
+    "tantu.accent.structural": {
+      "value": "#5688b4",
+      "type": "color"
+    },
+    "tantu.state.success": {
+      "value": "#4e9263",
+      "type": "color"
+    },
+    "tantu.state.caution": {
+      "value": "#c36f18",
+      "type": "color"
+    },
+    "tantu.ink.zari": {
+      "value": "#c5a059",
+      "type": "color"
+    },
+    "tantu.grid.thread": {
+      "value": "rgba(197, 160, 89, 0.2)",
+      "type": "color"
+    },
+    "tantu.border.hairline": {
+      "value": "rgba(214, 190, 140, 0.72)",
+      "type": "color"
+    },
+    "tantu.focus.contrast": {
+      "value": "#faf7f0",
+      "type": "color"
+    },
+    "tantu.border.embroidery": {
+      "value": "#9e7d3b",
+      "type": "color"
+    },
+    "tantu.color.surface": {
+      "value": "#1a1714",
+      "type": "color"
+    },
+    "tantu.color.ink": {
+      "value": "#faf7f0",
+      "type": "color"
+    },
+    "tantu.color.accent": {
+      "value": "#c5a059",
+      "type": "color"
+    },
+    "tantu.color.structure": {
+      "value": "#4c7ba6",
+      "type": "color"
+    },
+    "tantu.color.metallic": {
+      "value": "#c5a059",
+      "type": "color"
+    },
+    "tantu.breakpoint.lens": {
+      "value": "768px",
+      "type": "sizing"
+    },
+    "tantu.knot.1": {
+      "value": "6px",
+      "type": "sizing"
+    },
+    "tantu.knot.2": {
+      "value": "12px",
+      "type": "sizing"
+    },
+    "tantu.knot.3": {
+      "value": "18px",
+      "type": "sizing"
+    },
+    "tantu.knot.4": {
+      "value": "24px",
+      "type": "sizing"
+    },
+    "tantu.knot.6": {
+      "value": "36px",
+      "type": "sizing"
+    },
+    "tantu.knot.8": {
+      "value": "48px",
+      "type": "sizing"
+    },
+    "tantu.knot.12": {
+      "value": "72px",
+      "type": "sizing"
+    },
+    "tantu.gauge.filament": {
+      "value": "1px",
+      "type": "sizing"
+    },
+    "tantu.gauge.ply": {
+      "value": "2px",
+      "type": "sizing"
+    },
+    "tantu.gauge.cord": {
+      "value": "4px",
+      "type": "sizing"
+    },
+    "tantu.gauge.braid": {
+      "value": "6px",
+      "type": "sizing"
+    },
+    "font.talim": {
+      "value": "\"Talim-Mono\", \"IBM Plex Mono\", \"Courier New\", monospace",
+      "type": "fontFamilies"
+    },
+    "font.kalam": {
+      "value": "\"Kalam-Rupa\", \"IBM Plex Serif\", Georgia, serif",
+      "type": "fontFamilies"
+    },
+    "font.kasuti": {
+      "value": "\"Kasuti-Gauze\", \"IBM Plex Mono\", \"Lucida Console\", monospace",
+      "type": "fontFamilies"
+    },
+    "font.body": {
+      "value": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Noto Sans\", \"Helvetica Neue\", Arial, sans-serif",
+      "type": "fontFamilies"
+    },
+    "tantu.font.size.base": {
+      "value": "14px",
+      "type": "sizing"
+    },
+    "tantu.line.height.base": {
+      "value": "1.5",
+      "type": "other"
+    },
+    "tantu.motion.capillary": {
+      "value": "cubic-bezier(0.12, 0.9, 0.24, 1)",
+      "type": "other"
+    },
+    "tantu.motion.batten": {
+      "value": "60ms",
+      "type": "other"
+    },
+    "tantu.motion.shuttle": {
+      "value": "180ms",
+      "type": "other"
+    },
+    "tantu.motion.unspool": {
+      "value": "240ms",
+      "type": "other"
+    }
+  },
+  "$themes": [
+    {
+      "id": "light",
+      "name": "Light",
+      "selectedTokenSets": {
+        "tantu/light": "enabled"
+      }
+    },
+    {
+      "id": "dark",
+      "name": "Dark",
+      "selectedTokenSets": {
+        "tantu/dark": "enabled"
+      }
+    }
+  ],
+  "$metadata": {
+    "tokenSetOrder": [
+      "tantu/light",
+      "tantu/dark"
+    ]
+  }
+}

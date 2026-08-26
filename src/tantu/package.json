@@ -19,10 +19,12 @@
     "hooks",
     "lib",
     "styles",
+    "tokens",
     "index.ts",
     "README.md",
     "CHANGELOG.md",
-    "VERSIONING.md"
+    "VERSIONING.md",
+    "ACCESSIBILITY-CONFORMANCE-REPORT.md"
   ],
   "peerDependencies": {
     "react": ">=18",

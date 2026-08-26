@@ -94,18 +94,29 @@ What is verified, on every commit, and how:
 
 | | |
 |---|---|
-| Colour contrast | 36 real component pairings computed from the resolved tokens in both themes, against 4.5 (body), 3.0 (large and non-text). Alpha is flattened onto the actual backdrop first. `scripts/audit_a11y.mjs`. |
+| Colour contrast | 58 real component pairings computed from the resolved tokens in both themes, against 4.5 (body), 3.0 (large and non-text). Alpha is flattened onto the actual backdrop first. `scripts/audit_a11y.mjs`. |
 | Markup | axe-core over all 47 components × 2 themes × 2 directions. |
 | Keyboard | The WAI-ARIA composite-widget patterns, including the RTL arrow reversal, and a regression guard that the page-level shuttle never takes a key a component wanted. |
 | Modals | Focus containment, accessible name, and focus restoration. |
 | Reduced motion | Chromium reports zero animating elements under `prefers-reduced-motion: reduce`. |
 | Forced colours | Every fill that carries state is restated in system colours; decorative dye layers withdraw. |
 | High contrast | `prefers-contrast: more` resolves harder tokens system-wide. |
+| Rendered contrast | axe measured against real pixels across every story in both themes, in Chromium. This is separate from the token audit and catches what it cannot: a pairing nobody wrote down. Eight defects reached this repository past a green token audit. |
+| Target size | Every interactive element in every story measured against WCAG 2.2's 24×24 CSS px. |
+| Reflow / text spacing / zoom | At the criteria's real thresholds — 320 CSS px for reflow, the four prescribed spacing overrides, 200% zoom. |
 
 What is **not** claimed: no screen-reader testing with JAWS, NVDA or VoiceOver
 has been done, and no third-party audit. Automated checks catch roughly a third
 of WCAG failures. Treat the table above as evidence, not as a conformance
 statement.
+
+[**ACCESSIBILITY-CONFORMANCE-REPORT.md**](./ACCESSIBILITY-CONFORMANCE-REPORT.md)
+is the full VPAT 2.5Rev INT self-assessment — every WCAG 2.1 and 2.2 A/AA
+criterion, who determines the outcome (the library, the consumer, or both), and
+what was actually measured. Four known defects are named there rather than left
+to be discovered: dragging has no alternative in the pan/zoom lens, component
+text does not scale under text-only enlargement, there is no in-page control to
+stop animation, and status changes are not consistently announced.
 
 ## Motion
 
@@ -129,11 +140,16 @@ per-surface context would blank surfaces mid-scroll.
 
 ```
 npm install
-npm run verify      # typecheck, tests, contrast, bleed bus, build, browser checks
+npm run verify        # everything CI runs
+npm run storybook     # every component, with theme and direction switches
+npm run playground    # a working app built with Tantu
 npm run test:watch
 ```
 
-`npm run verify` is exactly what CI runs. A change is ready when it passes.
+`npm run verify` is exactly what CI runs — typecheck, 213 tests, the token
+export, 58 contrast pairings, the bleed matrix, the site build, 20 browser
+checks, and a render of all 110 story/theme combinations with contrast and
+target size measured on real pixels. A change is ready when it passes.
 
 The typefaces are generated, not committed by hand:
 
@@ -149,7 +165,16 @@ own way. Edit the skeleton, not the outlines.
 
 Adding a component? `tests/fixtures.tsx` holds one realistic specimen of every
 export, and a test fails if the two lists diverge, so a new component cannot
-escape the sweeps.
+escape the sweeps. Give it a story too — the rendered sweep only sees what
+Storybook renders.
+
+## For designers
+
+`tokens/` holds the token set in the two formats Figma imports, generated from
+the stylesheet and checked in CI so the library cannot drift from the code.
+[tokens/README.md](./tokens/README.md) has the import procedure and the one
+rule that matters: bind to the semantic tokens, never the dye primitives.
+Every contrast defect this system has had came from breaking it.
 
 ## Licence
 
