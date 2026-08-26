@@ -342,6 +342,51 @@ try {
   });
   console.log(`note  text-only enlargement at root 200% — ${scaling}`);
 
+  /* ---- Text is not flush against a dye boundary ------------------------ */
+  //
+  // The Chamba rumal's faces used to begin at the card's padding edge, so the
+  // dye filled an inset rectangle and the first glyph started at exactly the
+  // same x as that rectangle. Invisible while the resting dye matched the
+  // card's own colour, and obvious the moment a different dye arrived: an
+  // undyed frame, and text touching the colour's edge on every side.
+  //
+  // Measured rather than asserted, because the relationship that matters is
+  // geometric — how much clear dye sits between the boundary and the words.
+  const dyed = await page.evaluate(() => {
+    const card = document.querySelector(".tantu-card-rumal");
+    if (!card) return null;
+    card.setAttribute("data-state", "reverse");
+    const face = card.querySelector(".tantu-rumal-reverse");
+    const text = face.querySelector(".tantu-rumal-content :is(h1,h2,h3,h4,p,li)");
+    if (!text) return null;
+    const c = card.getBoundingClientRect();
+    const f = face.getBoundingClientRect();
+    const t = text.getBoundingClientRect();
+    card.setAttribute("data-state", "obverse");
+    return {
+      // The dye should reach the card's own edges, not stop short of them.
+      frame: Math.round(Math.max(f.left - c.left, c.right - f.right, f.top - c.top)),
+      // ...and the text should sit inside it.
+      gapStart: Math.round(t.left - f.left),
+      gapTop: Math.round(t.top - f.top),
+      gapEnd: Math.round(f.right - t.right),
+    };
+  });
+  if (dyed) {
+    check(
+      "a dyed face fills its card rather than an inset rectangle",
+      dyed.frame <= 1,
+      `${dyed.frame}px of undyed frame`,
+    );
+    check(
+      "text on a dyed face is not flush against the dye boundary",
+      dyed.gapStart >= 12 && dyed.gapTop >= 12 && dyed.gapEnd >= 0,
+      `start ${dyed.gapStart}px, top ${dyed.gapTop}px, end ${dyed.gapEnd}px`,
+    );
+  } else {
+    check("a dyed face fills its card rather than an inset rectangle", false, "no .tantu-card-rumal on the page");
+  }
+
   /* ---- Fonts are decoupled from the system ----------------------------- */
   //
   // The claim: Tantu works with no typefaces. Asserting that in a unit test

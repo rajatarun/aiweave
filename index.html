@@ -1907,8 +1907,12 @@ body:has(.tantu-loom-substrate) .tantu-loom {
 .tantu-rumal-obverse {
   z-index: 2;
   /* The dye this face wicks in. Carried by .tantu-rumal-rim-fill rather
-     than as this element's own background — see above. */
+     than as this element's own background — see above.
+     Every dye is declared with the ink that reads on it: a face that sets
+     its own background and leaves the text colour to inherit is a contrast
+     failure waiting for someone to change the dye. */
   --tantu-rumal-dye: var(--tantu-color-surface);
+  --tantu-rumal-ink: var(--tantu-ink-primary);
   /* Fully open at rest: large enough to clear any card. */
   --tantu-rumal-rx: 9999px;
   --tantu-rumal-ry: 9999px;
@@ -1916,10 +1920,44 @@ body:has(.tantu-loom-substrate) .tantu-loom {
 
 .tantu-rumal-reverse {
   z-index: 1;
+  /* The reverse dyes itself indigo and inherited --tantu-ink-primary on top
+     of it: near-black on near-black, 1.19:1 in the light theme. It went
+     unmeasured because every automated sweep renders this card at rest,
+     where only the obverse is showing — the reverse face's pairing was
+     never on screen for anything to check. The inverted ink is the token
+     that exists for text on an accent fill: 14.88 light, 5.04 dark. */
   --tantu-rumal-dye: var(--tantu-accent-structural);
+  --tantu-rumal-ink: var(--tantu-ink-inverted);
   --tantu-rumal-rx: 0px;
   --tantu-rumal-ry: 0px;
   pointer-events: none;
+}
+
+/* The basted ring, moved onto the faces.
+   .tantu-card draws it as an outline at -6px, which worked while the faces
+   sat inside the card's padding and left that band clear. Now that the dye
+   fills the card edge to edge, a positioned face paints over the parent's
+   outline and the ring disappeared — from both states, not just the dyed one.
+   Drawing it per face fixes more than the regression: the ring takes the
+   face's own ink, so it reads on either dye instead of being a brown dashed
+   line that only shows on cream, and it carries the same ellipse clip as the
+   dye, so the stitch arrives with the cloth rather than sitting there waiting
+   for it. */
+.tantu-rumal-obverse::after,
+.tantu-rumal-reverse::after {
+  content: "";
+  position: absolute;
+  inset: var(--tantu-knot-1);
+  z-index: 2;
+  pointer-events: none;
+  border: var(--tantu-gauge-filament) dashed
+    color-mix(in srgb, var(--tantu-rumal-ink) 42%, transparent);
+  clip-path: ellipse(var(--tantu-rumal-rx) var(--tantu-rumal-ry) at var(--tantu-rumal-ox) var(--tantu-rumal-oy));
+}
+
+/* The card's own outline would now double the ring above. */
+.tantu-card-rumal {
+  outline: none;
 }
 
 /* The wet rim — two nested elements, deliberately, not one.
@@ -1976,12 +2014,66 @@ body:has(.tantu-loom-substrate) .tantu-loom {
 .tantu-rumal-content {
   position: relative;
   z-index: 1;
+  color: var(--tantu-rumal-ink);
   clip-path: ellipse(var(--tantu-rumal-rx) var(--tantu-rumal-ry) at var(--tantu-rumal-ox) var(--tantu-rumal-oy));
+  /* The padding lives HERE rather than on the card, and that is the whole
+     fix for two things at once.
+
+     The card carried it, so both faces — and therefore both dye pools —
+     started at the card's padding edge. Measured: the face box and the first
+     glyph began at the same x. Two consequences, invisible while the obverse
+     dye matched the card's own colour and both obvious the moment a
+     different dye arrived: a permanent undyed frame around a rectangle of
+     colour, and text sitting flush against that rectangle's edge on every
+     side, with long lines running out past it.
+
+     Moving it down one level means the dye fills the card edge to edge, and
+     the text floats inside the colour with room around it. The clip-path
+     geometry is untouched: padding is inside the border box, so this
+     element's box still coincides with the face's and the ellipse
+     coordinates the flip script writes still line up. */
+  padding: var(--tantu-rumal-inset);
+}
+
+/* Space between a dye boundary and the text inside it. Named rather than
+   inlined because it is a system-wide relationship — anything that fills a
+   region with colour and then puts words on it needs the same breathing
+   room — and because it wants to shrink with the card on small frames. */
+.tantu-card-rumal {
+  --tantu-rumal-inset: var(--tantu-knot-4);
+  /* Was the inherited .tantu-card padding; see .tantu-rumal-content. */
+  padding: 0;
+}
+
+@media (max-width: 768px) {
+  .tantu-card-rumal {
+    --tantu-rumal-inset: var(--tantu-knot-3);
+  }
 }
 
 .tantu-card-rumal[data-state="reverse"] .tantu-rumal-reverse {
   z-index: 2;
   pointer-events: auto;
+}
+
+/* The static resting shape of each state.
+   Without these the component depends on the page-level flip script to ever
+   show its reverse: the `isFlipped` prop flipped `data-state` and raised the
+   reverse face, but the face's radii stayed 0, so a consumer rendering
+   `<ChambaRumalCard isFlipped />` with no script got a blank card — and no
+   story could show the dyed face, which is why its 1.19:1 text went
+   unmeasured for so long. The flip script writes these same properties
+   inline while animating, so it still owns the motion; this is only where
+   each state comes to rest. */
+.tantu-card-rumal[data-state="reverse"] .tantu-rumal-reverse,
+.tantu-card-rumal[data-state="obverse"] .tantu-rumal-obverse {
+  --tantu-rumal-rx: 9999px;
+  --tantu-rumal-ry: 9999px;
+}
+.tantu-card-rumal[data-state="reverse"] .tantu-rumal-obverse,
+.tantu-card-rumal[data-state="obverse"] .tantu-rumal-reverse {
+  --tantu-rumal-rx: 0px;
+  --tantu-rumal-ry: 0px;
 }
 
 .tantu-card-rumal[data-state="reverse"] .tantu-rumal-obverse {
@@ -3812,8 +3904,8 @@ textarea.tantu-maku-focus {
 
 @font-face {
   font-family: "Kasuti-Gauze";
-  src: url("fonts/Kasuti-Gauze.woff2?v=90a82be2") format("woff2"),
-       url("fonts/Kasuti-Gauze.woff?v=cc063deb") format("woff");
+  src: url("fonts/Kasuti-Gauze.woff2?v=7f5537cf") format("woff2"),
+       url("fonts/Kasuti-Gauze.woff?v=e274f6b3") format("woff");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -3822,8 +3914,8 @@ textarea.tantu-maku-focus {
 
 @font-face {
   font-family: "Talim-Mono";
-  src: url("fonts/Talim-Mono.woff2?v=d83a120a") format("woff2"),
-       url("fonts/Talim-Mono.woff?v=19bf838e") format("woff");
+  src: url("fonts/Talim-Mono.woff2?v=c8f63bb0") format("woff2"),
+       url("fonts/Talim-Mono.woff?v=c9159ab9") format("woff");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -3832,8 +3924,8 @@ textarea.tantu-maku-focus {
 
 @font-face {
   font-family: "Kalam-Rupa";
-  src: url("fonts/Kalam-Rupa.woff2?v=9bfb1129") format("woff2"),
-       url("fonts/Kalam-Rupa.woff?v=db20e561") format("woff");
+  src: url("fonts/Kalam-Rupa.woff2?v=38d4001c") format("woff2"),
+       url("fonts/Kalam-Rupa.woff?v=217b7529") format("woff");
   font-weight: 400;
   font-style: normal;
   font-display: swap;

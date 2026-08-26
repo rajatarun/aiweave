@@ -121,6 +121,44 @@ export const RumalCard: Story = {
   ),
 };
 
+export const RumalCardReverse: Story = {
+  name: "Chamba rumal — the dyed face",
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "The same card at rest on its reverse. This story exists because its absence was a " +
+          "hole in every automated sweep: the card was only ever rendered showing its obverse, " +
+          "so nothing measured the reverse face's text against its own dye — which was " +
+          "**1.19:1** in the light theme, near-black ink on near-black indigo, effectively " +
+          "invisible.\n\n" +
+          "Each dye is now declared alongside the ink that reads on it (14.88 light, 5.04 " +
+          "dark), the dye fills the card edge to edge rather than an inset rectangle, and the " +
+          "text sits inside the colour rather than flush against its boundary.",
+      },
+    },
+  },
+  render: () => (
+    <div style={{ maxWidth: "22rem" }}>
+      <ChambaRumalCard
+        isFlipped
+        obverse={
+          <>
+            <h3 style={{ marginTop: 0 }}>Obverse</h3>
+            <p>The face the room sees.</p>
+          </>
+        }
+        reverse={
+          <>
+            <h3 style={{ marginTop: 0 }}>Reverse</h3>
+            <p>The same stitch, read in mirror — no knots, no loose ends.</p>
+          </>
+        }
+      />
+    </div>
+  ),
+};
+
 export const StackAndCut: Story = {
   render: () => (
     <TantuStack>
