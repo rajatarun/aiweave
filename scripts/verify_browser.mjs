@@ -85,6 +85,21 @@ try {
     if (r.status() >= 400 && !isExternal(r.url())) consoleErrors.push(`${r.status()} ${r.url()}`);
   });
 
+  // Count WebGL contexts by instrumenting acquisition, before the page's own
+  // scripts run. See the check below for why walking the DOM cannot work.
+  await page.addInitScript(() => {
+    const held = new Set();
+    window.__glCanvases = held;
+    const original = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (type, ...args) {
+      const ctx = original.call(this, type, ...args);
+      // getContext hands back the same object on repeat calls for one canvas,
+      // so identity is what to count, not call sites.
+      if (ctx && /webgl/i.test(String(type))) held.add(this);
+      return ctx;
+    };
+  });
+
   await page.goto(PAGE, { waitUntil: "networkidle" });
 
   check("page loads with no script or same-origin resource errors", consoleErrors.length === 0, consoleErrors.slice(0, 3).join(" | "));
@@ -93,26 +108,23 @@ try {
   // Safari caps live WebGL contexts per page and drops the oldest past the
   // cap, blanking bleed surfaces mid-scroll. Tantu's claim is that the whole
   // page shares exactly one context regardless of how many surfaces exist.
-  const gl = await page.evaluate(() => {
-    const canvases = Array.from(document.querySelectorAll("canvas"));
-    let live = 0;
-    for (const c of canvases) {
-      // getContext returns the SAME object for a context already created on
-      // that canvas, and null-ish for one that never had a webgl context.
-      // Asking for "2d" on a webgl canvas throws/returns null, so this
-      // distinguishes them without creating anything new.
-      try {
-        if (c.getContext("webgl", { failIfMajorPerformanceCaveat: false })) live += 1;
-      } catch {
-        /* a 2d canvas: not a webgl context */
-      }
-    }
-    return { canvases: canvases.length, live };
-  });
+  //
+  // This check used to walk document.querySelectorAll("canvas") and ask each
+  // one for a webgl context. It could never have worked: the pooling is a
+  // single offscreen 1x1 canvas that is never appended to the document, and
+  // every visible surface holds a plain 2D context that drawImages from it.
+  // So the loop looked at 2D canvases only, found zero WebGL contexts, and
+  // passed the `<= 1` assertion for exactly the wrong reason — it would have
+  // gone on passing if the pooling were removed entirely. Instrumenting
+  // acquisition measures the claim rather than a proxy for it.
+  const gl = await page.evaluate(() => ({
+    contexts: window.__glCanvases ? window.__glCanvases.size : -1,
+    canvases: document.querySelectorAll("canvas").length,
+  }));
   check(
-    "at most one WebGL context for the whole page",
-    gl.live <= 1,
-    `${gl.canvases} canvases, ${gl.live} webgl contexts`,
+    "exactly one WebGL context is acquired for the whole page",
+    gl.contexts === 1,
+    `${gl.canvases} canvases in the document, ${gl.contexts} WebGL context(s) acquired`,
   );
 
   /* ---- No horizontal overflow, both directions ------------------------- */

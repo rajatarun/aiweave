@@ -6,6 +6,12 @@ export * from "./lib/bleed-bus";
 // can follow the same inline-axis rules the built-in ones do.
 export * from "./lib/direction";
 
+// The vat. Exported so a consumer can name a dye without copying its hex:
+// every dye here mirrors a custom property, and `resolveDye` reads that
+// property off the live element, so a re-dyed subtree stays consistent
+// between what the shader paints and what CSS paints beside it.
+export * from "./lib/dye";
+
 export * from "./components/TantuLoom";
 export * from "./components/TantuCell";
 export * from "./components/TantuCard";

@@ -35,6 +35,13 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
 
 ### Added
 
+- **`lib/dye` is public.** `TANTU_DYES` and `resolveDye` were internal, which
+  left a consumer wanting to put a swatch of madder beside a madder bleed with
+  no option but to copy the hex — and a copied hex does not move when the
+  system is re-dyed through CSS. Every dye names the custom property it
+  mirrors, and `resolveDye` reads that property off the live element, so the
+  shader and the stylesheet stay in agreement even in a locally re-dyed
+  subtree.
 - **The Darshan lens has a keypad**, and with it the conformance report has no
   *Does Not Support* left. The lens panned by dragging and zoomed by pinching,
   and neither had an equivalent a single pointer could reach — WCAG 2.5.7 and
@@ -140,6 +147,17 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
 
 ### Fixed
 
+- **The WebGL pooling check had never checked anything.** Tantu's claim is
+  that a page shares exactly one WebGL context however many bleed surfaces sit
+  on it. The check walked `document.querySelectorAll("canvas")` and asked each
+  one for a `webgl` context — but the pooling *is* a single offscreen 1×1
+  canvas that is never appended to the document, and every visible surface
+  holds a plain 2D context that `drawImage`s from it. So the loop only ever
+  saw 2D canvases, counted zero, and passed its `<= 1` assertion for exactly
+  the wrong reason. It would have gone on passing with the pooling removed
+  entirely. Both browser sweeps now instrument `getContext` before the page's
+  scripts run and count acquisitions, which measures the claim rather than a
+  proxy for it: twelve canvases on the playground, one context.
 - **Text on a dyed card face sat flush against the dye's edge**, and the dye
   filled an inset rectangle rather than the card. Both faces of
   `ChambaRumalCard` began at the card's padding edge, so the first glyph
