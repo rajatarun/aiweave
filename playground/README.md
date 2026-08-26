@@ -5,6 +5,13 @@ gallery of components. A gallery answers "what is in the box"; this answers the
 question that actually decides adoption, which is what it feels like to *build*
 something with the system.
 
+**Live at [tantu-playground.netlify.app](https://tantu-playground.netlify.app)**
+— evaluation should cost one click, not a clone. `netlify.toml` at the
+repository root is what configures that deploy; `base = "playground"` is the
+line that makes a root-level config publish this subdirectory.
+
+To run it locally instead:
+
 ```
 npm install
 npm run dev

@@ -176,6 +176,9 @@ silent gap in coverage. Everything else sweeps that one list:
 
 ## Seeing it
 
+**[tantu-playground.netlify.app](https://tantu-playground.netlify.app)** —
+no clone required.
+
 ```
 npm run storybook     # every component, with theme and direction switches
 npm run playground    # a working app built with Tantu, not a gallery
@@ -194,13 +197,26 @@ published entry points, so it exercises the real export surface. A gallery
 answers "what is in the box"; this answers the question that decides adoption,
 which is what it feels like to *build* with the system.
 
-Both are rendered and measured in CI. `npm run audit:stories` loads all 110
-story/theme combinations in Chromium, fails on a story that throws or renders
+The playground is deployed from `netlify.toml` at this repository's root. The
+one line that matters there is `base = "playground"`: it is what lets a
+root-level config build and publish a subdirectory. aiweave.org itself is
+unaffected — that is still built by `generate_site.jsx` and pushed to S3 by
+`.github/workflows/deploy.yaml`.
+
+Both are rendered and measured in CI. `npm run audit:stories` loads every
+story/theme combination in Chromium, fails on a story that throws or renders
 nothing, and runs axe over each with **`color-contrast` enabled** — which the
 unit sweep cannot do, because jsdom has no cascade to resolve a colour from.
 That check found eight contrast defects that had passed a green token audit,
 including a table's zebra striping bound to a theme-invariant cream: near-white
 text on a cream row in dark mode, invisible, and passing everything.
+
+It also loads the pan/zoom lens a second time at 390 CSS px, which is the only
+width where that component renders anything at all — the 1024px sweep sees it
+hand its children straight through. Its chrome had therefore never been
+measured by anything, and the first run of the new pass found the readout's
+Talim code at 2.18:1 in the light theme: a theme-aware ink sitting on a
+theme-invariant iron plate.
 
 ## Fonts are decoupled from the system
 

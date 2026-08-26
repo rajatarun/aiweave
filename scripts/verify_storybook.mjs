@@ -199,6 +199,101 @@ try {
       page.off("pageerror", onError);
     }
   }
+
+  /* ---- The Darshan lens, at the width where it actually engages ---------
+   *
+   * The sweep above runs at 1024px, where the lens hands its children
+   * straight through and renders no glass at all — so none of its chrome has
+   * ever been measured, by this or by anything else. That is precisely where
+   * the one *Does Not Support* in the conformance report lived.
+   *
+   * This pass loads the lens story on a phone and asks the two questions the
+   * criteria ask: is there a control for every gesture, big enough to press
+   * (2.5.8), and does pressing one actually move the cloth without a drag
+   * (2.5.7, 2.5.1)?
+   */
+  const lens = stories.find((s) => /darshan/i.test(s.id));
+  if (!lens) {
+    failures.push("no Darshan lens story found — the 2.5.7 alternative is unmeasured");
+  } else {
+    const phone = await browser.newPage({ viewport: { width: 390, height: 740 } });
+    try {
+      for (const mode of MODES) {
+        const url =
+          `${base}/iframe.html?id=${encodeURIComponent(lens.id)}&viewMode=story` +
+          `&globals=theme:${mode.theme};direction:${mode.direction}`;
+        await phone.goto(url, { waitUntil: "load", timeout: 20000 });
+        await phone
+          .waitForSelector(".tantu-darshan-keypad button", { timeout: 10000 })
+          .catch(() => {});
+
+        const tag = `[${mode.theme}/${mode.direction}]`;
+        const keypad = await phone.evaluate(() =>
+          Array.from(document.querySelectorAll(".tantu-darshan-keypad button")).map((el) => {
+            const r = el.getBoundingClientRect();
+            return {
+              name: el.getAttribute("aria-label"),
+              w: Math.round(r.width),
+              h: Math.round(r.height),
+            };
+          }),
+        );
+
+        if (keypad.length !== 7) {
+          failures.push(`darshan keypad ${tag}: ${keypad.length} controls, expected 7`);
+          continue;
+        }
+        const unnamed = keypad.filter((k) => !k.name);
+        if (unnamed.length) failures.push(`darshan keypad ${tag}: ${unnamed.length} control(s) unnamed`);
+        for (const k of keypad.filter((k) => k.w < 24 || k.h < 24)) {
+          failures.push(
+            `darshan keypad ${tag} target-size (WCAG 2.2 SC 2.5.8)\n` +
+              `        "${k.name}" is ${k.w}x${k.h}, under the 24x24 minimum`,
+          );
+        }
+
+        // The measurement that matters: one click, no path, cloth moves.
+        const clothTransform = () =>
+          phone.evaluate(() => document.querySelector(".tantu-darshan-cloth")?.style.transform ?? "");
+        const before = await clothTransform();
+        await phone.getByRole("button", { name: "Pan right" }).click();
+        const after = await clothTransform();
+        if (!before || before === after) {
+          failures.push(
+            `darshan keypad ${tag}: "Pan right" did not move the cloth (WCAG 2.5.7)\n` +
+              `        before=${before || "(none)"} after=${after || "(none)"}`,
+          );
+        }
+
+        // The lens chrome is theme-invariant brass over a dark body, which is
+        // the shape of mistake that put a fixed white label on a solid tag.
+        // Contrast stays enabled here.
+        await phone.addScriptTag({ content: AXE_SOURCE });
+        const lensViolations = await phone.evaluate(
+          async (disabled) =>
+            (
+              await window.axe.run(".tantu-darshan", {
+                rules: Object.fromEntries(disabled.map((id) => [id, { enabled: false }])),
+                resultTypes: ["violations"],
+              })
+            ).violations.map((v) => ({
+              id: v.id,
+              impact: v.impact,
+              html: v.nodes[0]?.html.slice(0, 120) ?? "",
+              summary: (v.nodes[0]?.failureSummary || "").replace(/\s+/g, " ").slice(0, 200),
+            })),
+          PAGE_LEVEL_RULES,
+        );
+        for (const v of lensViolations) {
+          const line = `darshan lens ${tag} ${v.id} (${v.impact})\n        ${v.html}\n        ${v.summary}`;
+          (v.id === "color-contrast" ? contrastFailures : failures).push(line);
+        }
+        checked += 1;
+      }
+    } finally {
+      await phone.close();
+    }
+  }
 } finally {
   await browser.close();
   server.close();

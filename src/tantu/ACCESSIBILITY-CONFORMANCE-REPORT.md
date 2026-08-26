@@ -53,10 +53,11 @@ than omitted.
 
 | Method | What it covers | Command |
 |---|---|---|
-| Token contrast audit | 58 foreground/background pairings taken from real component rules, computed from the resolved `[data-theme]` blocks in both themes, with alpha flattened onto the actual backdrop | `npm run audit:a11y` |
+| Token contrast audit | 66 foreground/background pairings taken from real component rules, computed from the resolved `[data-theme]` blocks in both themes, with alpha flattened onto the actual backdrop | `npm run audit:a11y` |
 | Rendered contrast sweep | axe-core `color-contrast` over all 54 stories × 2 themes in Chromium, against real computed pixels | `npm run audit:stories` |
 | Markup sweep | axe-core over all 47 components × 2 themes × 2 writing directions | `npm run test` |
-| Unit and behaviour tests | 213 tests: composite-widget keyboard patterns, modal focus containment, tooltip persistence, server rendering, dye physics | `npm run test` |
+| Unit and behaviour tests | 237 tests: composite-widget keyboard patterns, modal focus containment, tooltip persistence, server rendering, dye physics, and the lens's pointer alternatives | `npm run test` |
+| Pointer-alternative measurement | The one gesture-driven component loaded at 390 CSS px, where it engages; every control clicked and the resulting transform read back | `npm run audit:stories` |
 | Browser measurements | Reflow at 320px, text spacing overrides, 200% zoom, forced colours, reduced motion, focus rendering, writing-direction mirroring | `npm run audit:browser` |
 | Target size measurement | Every interactive element in every story measured against 24×24 CSS px | `npm run audit:stories` |
 
@@ -99,7 +100,7 @@ with a disability.
 | **2.4.2** Page Titled | Consumer | Not Applicable | |
 | **2.4.3** Focus Order | Library | Supports | Verified for the modal and for every composite widget. Roving tabindex moves focus with selection — a tablist that moved only selection, stranding focus on a `tabindex="-1"` element, was found and fixed. |
 | **2.4.4** Link Purpose (In Context) | Shared | Supports | Every link component takes its text from the consumer. Pagination — where the library generates the text — now names each control "Page 3 of 7" rather than "3". |
-| **2.5.1** Pointer Gestures | Library | Partially Supports | `TantuDarshanLens` pans by drag and zooms by pinch. Double-tap zooms as a single-pointer alternative to pinch, but **there is no non-path alternative for the pan** — no arrow-key or button equivalent. This is the clearest remaining defect in the system. |
+| **2.5.1** Pointer Gestures | Library | Supports | `TantuDarshanLens` is the only component with a gesture. It still pans by drag and zooms by pinch, and both now have a single-pointer, no-path equivalent: a keypad of seven controls — four directions, in, out, and fit — each of which is a discrete press. Measured in Chromium at the phone width where the lens actually engages: each control clicked, and the cloth's transform read back to confirm it moved. |
 | **2.5.2** Pointer Cancellation | Library | Supports | No component completes an action on `pointerdown`. The dye bleed fires on press, but it is a visual effect with no action attached; every action fires on `click` or `pointerup`. |
 | **2.5.3** Label in Name | Library | Supports | Where a control has visible text, its accessible name contains that text. The two components that add to the visible text — pagination ("Page 3 of 7" containing "3") and the calendar ("Friday 14 March 2026" containing "14") — contain it rather than replacing it. |
 | **2.5.4** Motion Actuation | Library | Not Applicable | No component responds to device motion. |
@@ -118,7 +119,7 @@ with a disability.
 | **1.2.4–1.2.5** Live media, audio description | Consumer | Not Applicable | |
 | **1.3.4** Orientation | Library | Supports | Nothing is locked to an orientation. |
 | **1.3.5** Identify Input Purpose | Shared | Supports | `TantuInput` passes `autocomplete` through to the native input. Setting it is the consumer's call, since only they know what a field collects. |
-| **1.4.3** Contrast (Minimum) | Library | Supports | 58 token pairings computed in both themes: **0 failing**, most at AAA. Independently, axe measures real rendered pixels across 110 story renders: **0 failing**. Eight defects were found and fixed by these two checks between them, including zebra striping set to a theme-invariant cream — near-white text on a cream row in dark mode. |
+| **1.4.3** Contrast (Minimum) | Library | Supports | 66 token pairings computed in both themes: **0 failing**, most at AAA. Independently, axe measures real rendered pixels across 110 story renders: **0 failing**. Eight defects were found and fixed by these two checks between them, including zebra striping set to a theme-invariant cream — near-white text on a cream row in dark mode. |
 | **1.4.4** Resize Text | Library | Partially Supports | At 200% browser page zoom there is no loss of content or functionality and no horizontal scrolling — measured. Under *text-only* enlargement the picture is worse and is reported rather than rounded up: prose scales 2.29×, but Tantu's own chrome does not move at all (buttons, tags and metadata all measure 1.00×) because the component type scale is pinned in absolute pixels. Those are the smallest text in the system. Page zoom is the interpretation auditors apply, hence Partially rather than Does Not; the fix is a conversion of the type scale to relative units. |
 | **1.4.5** Images of Text | Library | Supports | No text is rendered as an image. The three typefaces are real fonts with real glyph outlines and a real `cmap`. |
 | **1.4.10** Reflow | Library | Supports | Measured at **320 CSS px** — the criterion's actual threshold, not a phone width — in both writing directions: 0px of two-axis scrolling. The twelve-thread grid drops to four below 768px and clamps every child to it. |
@@ -140,7 +141,7 @@ with a disability.
 | Criterion | Responsibility | Conformance | Remarks |
 |---|---|---|---|
 | **2.4.11** Focus Not Obscured (Minimum) | Library | Not Evaluated | Requires testing focus against sticky headers and scroll containers in a real layout. Tantu ships no sticky chrome of its own, so the risk sits mostly with the consumer, but this has not been verified. |
-| **2.5.7** Dragging Movements | Library | Does Not Support | `TantuDarshanLens` pans by dragging with no single-pointer alternative. Same root cause as 2.5.1. |
+| **2.5.7** Dragging Movements | Library | Supports | Every position the drag reaches is reachable by pressing a keypad control instead — including the far edges, which is asserted by pressing one control forty times and checking the cloth stops exactly at the aperture's limit rather than short of it. The keys are 40×40 CSS px. Same mechanism as 2.5.1. |
 | **2.5.8** Target Size (Minimum) | Library | Supports | Every interactive element in every story measured against 24×24 CSS px. Four undersized targets were found — masthead links at 21px, stepper steps at 18px, the slider's hit area at 12px, breadcrumb links at 15px — and all four enlarged. The measurement now runs in CI, so a regression fails the build. |
 | **3.2.6** Consistent Help | Consumer | Not Applicable | |
 | **3.3.7** Redundant Entry | Consumer | Not Applicable | |
@@ -179,18 +180,24 @@ activation.
 
 ## Known defects, stated plainly
 
-Four things in this report are worse than "Supports", and a reviewer should
-weigh them rather than hunt for them:
+Three things in this report are worse than "Supports", and a reviewer should
+weigh them rather than hunt for them. **None of them is a *Does Not Support*** —
+the one that was, dragging without an alternative, is closed.
 
-1. **Dragging has no alternative (2.5.7, 2.5.1).** The Darshan lens pans by
-   drag only. This is the one *Does Not Support* in the report.
-2. **Component text does not scale with a text-only enlargement (1.4.4).** The
+1. **Component text does not scale with a text-only enlargement (1.4.4).** The
    type scale is in absolute pixels. Page zoom works; a raised browser default
    font size does nothing for buttons, tags or metadata.
-3. **No in-page control to stop animation (2.2.2).** The OS preference is
+2. **No in-page control to stop animation (2.2.2).** The OS preference is
    honoured completely; there is no button.
-4. **Status changes are not consistently announced (4.1.3).** Some components
+3. **Status changes are not consistently announced (4.1.3).** Some components
    change state visually only.
+
+The lens keypad is worth one caution rather than a clean claim. It satisfies
+2.5.7 and 2.5.1 as those criteria are written — every gesture has a
+single-pointer, no-path equivalent, and it is measured. Whether seven small
+brass keys in the corner of a phone are *good* is a question about usability,
+which no automated check answers and no evaluation with a real user has been
+done to answer here either.
 
 ## A limitation that is not a WCAG defect
 
