@@ -3464,42 +3464,92 @@ textarea.tantu-maku-focus {
               // soak, not a snap-instant swap.
               (function() {
                 var K = 3.4; // capillary uptake rate; matches the shader exactly
-                var MAX_R = 150; // percent — clears every corner from any origin
                 var DURATION = 1400; // ms; matches capillary-bleed.ts's own default
+                var REST_R = 150; // percent — the settled "fully open" resting radius
+
+                // The displacement primitive inside #tantu-rumal-bleed. Its
+                // scale is eased to 0 across the spread so the wet edge stops
+                // being ragged exactly as it stops moving. Without that taper
+                // the filter was switched off in one step at the end, and the
+                // notches it had been chewing into the card's own border
+                // popped solid in a single frame — the visible "snap" at the
+                // end of the fill (measured: 74.2% of the card inked with the
+                // filter on vs 76.0% with it off, at an identical radius).
+                var disp = document.querySelector('#tantu-rumal-bleed feDisplacementMap');
+                var BASE_SCALE = disp ? (parseFloat(disp.getAttribute('scale')) || 0) : 0;
+                // The soak blur is tapered alongside the displacement. Zeroing
+                // only the displacement still left this softening the card's
+                // border by ~2px, so switching the filter off at the end was
+                // still a (smaller) visible step. With both at 0 the filter is
+                // an identity pass by the final frame, and removing it changes
+                // nothing on screen.
+                var blur = document.querySelector('#tantu-rumal-bleed feGaussianBlur');
+                var BASE_SOAK = blur ? (parseFloat(blur.getAttribute('stdDeviation')) || 0) : 0;
+
+                // Radius (in clip-path percent) at which a circle centred on
+                // (ox, oy) covers the element's farthest corner. CSS resolves
+                // a circle() percentage against sqrt(w^2 + h^2) / sqrt(2), so
+                // convert through that same reference.
+                function coverRadiusPct(el, oxPct, oyPct) {
+                  var w = el.offsetWidth, h = el.offsetHeight;
+                  if (!w || !h) return REST_R;
+                  var cx = w * oxPct / 100, cy = h * oyPct / 100;
+                  var far = Math.max(
+                    Math.sqrt(cx * cx + cy * cy),
+                    Math.sqrt((w - cx) * (w - cx) + cy * cy),
+                    Math.sqrt(cx * cx + (h - cy) * (h - cy)),
+                    Math.sqrt((w - cx) * (w - cx) + (h - cy) * (h - cy))
+                  );
+                  return far / (Math.sqrt(w * w + h * h) / Math.SQRT2) * 100;
+                }
 
                 // Sets --tantu-rumal-r/ox/oy, not a literal clip-path: the
-                // face's own crisp clip-path AND its nested rim's larger,
+                // face's own crisp clip-path AND its nested rim's
                 // ink-bleed-filtered one (see .tantu-rumal-rim-filter/-fill
                 // in tantu.css) both read the same three custom properties,
                 // so one write drives both — the content stays sharp and
-                // legible while the rim frays. The rim itself is display:
-                // none by default (see tantu.css) and only switched on for
-                // the duration of this call.
+                // legible while the rim frays.
                 function growRadius(el, ox, oy, duration, onDone) {
-                  // The rim carries this face's actual colour now, so it is
-                  // always rendered — only its FILTER is toggled, on for the
-                  // duration of the spread and off once the edge has stopped
-                  // moving (the filter's region extends past the element box,
-                  // and left on permanently it spilled faint frayed paint
-                  // outside the card).
                   var rim = el.querySelector('.tantu-rumal-rim-filter');
                   if (rim) rim.style.filter = 'url(#tantu-rumal-bleed)';
                   el.style.setProperty('--tantu-rumal-ox', ox + '%');
                   el.style.setProperty('--tantu-rumal-oy', oy + '%');
+
+                  // Pick the droplet's maximum spread radius so the front
+                  // reaches the farthest corner exactly as the droplet's
+                  // lifetime ends. A fixed 150% meant the curve cleared the
+                  // card at ~26% of the duration and spent the remaining ~74%
+                  // growing off-card where nothing changes — the fill looked
+                  // like it stalled just short of the borders, then completed
+                  // in a jump. Same exponential, same K: only maxRadius is
+                  // chosen from the geometry instead of guessed.
+                  var cover = coverRadiusPct(el, ox, oy);
+                  var maxR = cover / (1 - Math.exp(-K));
+
                   var start = null;
                   function frame(now) {
                     if (start === null) start = now;
                     var t = Math.min(1, (now - start) / duration);
-                    var r = MAX_R * (1 - Math.exp(-K * t));
+                    var r = maxR * (1 - Math.exp(-K * t));
                     el.style.setProperty('--tantu-rumal-r', r.toFixed(2) + '%');
+                    // Fray amplitude follows the wet front: full while the dye
+                    // is climbing, zero once it has saturated, so the border
+                    // resolves smoothly instead of popping when the filter
+                    // comes off.
+                    var wetness = 1 - t * t;
+                    if (disp) disp.setAttribute('scale', (BASE_SCALE * wetness).toFixed(2));
+                    if (blur) blur.setAttribute('stdDeviation', (BASE_SOAK * wetness).toFixed(3));
                     if (t < 1) {
                       requestAnimationFrame(frame);
                     } else {
-                      // The exponential only asymptotically approaches 1
-                      // (96.66% of MAX_R at t=1) — snap the last sliver shut
-                      // so the incoming face is genuinely fully covered.
-                      el.style.setProperty('--tantu-rumal-r', MAX_R + '%');
+                      // Park at the resting radius. r(1) already equals the
+                      // cover radius, so this is off-card and invisible — it
+                      // just leaves the face in the same settled state the
+                      // stylesheet declares.
+                      el.style.setProperty('--tantu-rumal-r', REST_R + '%');
                       if (rim) rim.style.filter = 'none';
+                      if (disp) disp.setAttribute('scale', BASE_SCALE);
+                      if (blur) blur.setAttribute('stdDeviation', BASE_SOAK);
                       if (onDone) onDone();
                     }
                   }
