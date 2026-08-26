@@ -115,6 +115,32 @@ const PAIRS = [
   // Inverted (text on solid accent fills)
   ["--tantu-ink-inverted", "--tantu-accent-primary", 4.5, "label on primary fill"],
   ["--tantu-ink-inverted", "--tantu-accent-structural", 4.5, "label on structural fill"],
+  // State colours carried as *text*, which is where they are smallest.
+  //
+  // These were absent, and their absence is instructive: a rendered-contrast
+  // sweep in a real browser found the caution tag at 3.07:1 in light and the
+  // success tag at 1.99:1 in dark — the dark theme had never redefined either
+  // token, so both rendered their light-theme value on a dark ground. A
+  // pairing audit only ever covers the pairings someone thought to write
+  // down, which is why scripts/verify_storybook.mjs now measures the rendered
+  // result as well. Writing them down here too keeps the failure cheap to
+  // find: this runs in a second, that one needs a browser.
+  ["--tantu-state-success", "--tantu-bg-substrate", 4.5, "success text on ground"],
+  ["--tantu-state-success", "--tantu-color-surface", 4.5, "success text on card"],
+  ["--tantu-state-caution", "--tantu-bg-substrate", 4.5, "caution text on ground"],
+  ["--tantu-state-caution", "--tantu-color-surface", 4.5, "caution text on card"],
+  ["--tantu-ink-zari", "--tantu-bg-substrate", 4.5, "zari text on ground"],
+  ["--tantu-ink-zari", "--tantu-color-surface", 4.5, "zari text on card"],
+  // Solid tags: the label sits on the tone itself, so every tone is a
+  // background here rather than a foreground. The light-theme tones are the
+  // dark end of each hue and the dark-theme tones are the light end, which is
+  // exactly why a fixed white label worked in one theme and failed in the
+  // other.
+  ["--tantu-ink-inverted", "--tantu-ink-secondary", 4.5, "solid neutral tag label"],
+  ["--tantu-ink-inverted", "--tantu-accent-highlight", 4.5, "solid accent tag label"],
+  ["--tantu-ink-inverted", "--tantu-state-success", 4.5, "solid success tag label"],
+  ["--tantu-ink-inverted", "--tantu-state-caution", 4.5, "solid caution tag label"],
+  ["--tantu-ink-inverted", "--tantu-ink-zari", 4.5, "solid zari tag label"],
   // Non-text: borders, rules, focus (1.4.11 -> 3.0)
   ["--tantu-border-embroidery", "--tantu-bg-substrate", 3.0, "card border vs ground"],
   ["--tantu-border-embroidery", "--tantu-color-surface", 3.0, "card border vs card"],

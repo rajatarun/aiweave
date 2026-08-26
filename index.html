@@ -40,7 +40,19 @@
   --tantu-accent-structural: #0d233a;
 
   --tantu-state-success: var(--tantu-pala-copper);
-  --tantu-state-caution: var(--tantu-genda-rust);
+  /* Was var(--tantu-genda-rust), #c97218, which measured 3.07:1 against the
+     page ground — fine as a 3px notice rule, a failure as the 10px text on a
+     caution tag. A rendered-contrast sweep found it; the token audit could
+     not, because it only checks pairings someone thought to write down and
+     nobody had written this one. Deepened to 5.11 / 4.54 / 4.62 across the
+     three grounds; the notice and banner rules it also feeds only improve. */
+  --tantu-state-caution: #945412;
+  /* Zari as *text*. The tag used --tantu-zari-tarnish directly, and a dye
+     primitive is theme-invariant by definition: 3.33:1 on the light ground.
+     The primitive is left alone — a dozen decorative strokes on dark
+     surfaces depend on it — and the semantic token carries the readable
+     value for each theme. */
+  --tantu-ink-zari: #7a602d;
 
   --tantu-grid-thread: rgba(110, 74, 53, 0.25);
   /* --tantu-grid-thread was doing two jobs with different requirements: the
@@ -187,6 +199,15 @@
   --tantu-grid-thread: rgba(197, 160, 89, 0.2);
   --tantu-border-hairline: rgba(214, 190, 140, 0.72);
   --tantu-focus-contrast: var(--tantu-kora-raw);
+  /* On a dark ground the untarnished gold is already 7.73:1. */
+  --tantu-ink-zari: var(--tantu-zari-pure-gold);
+  /* The dark theme did not redefine these at all, so a caution tag rendered
+     its light-theme colour on the dark ground: success at 1.99:1 and caution
+     at 3.19:1, both effectively unreadable. Lifted in HSL rather than blended
+     toward white, so the copper stays green and the genda stays orange.
+     5.09 / 4.78 / 4.53 and 5.07 / 4.77 / 4.52 across the three dark grounds. */
+  --tantu-state-success: #4e9263;
+  --tantu-state-caution: #c36f18;
   --tantu-border-embroidery: #9e7d3b;
 
   --tantu-color-surface: #1a1714;
@@ -1077,12 +1098,17 @@ h3.tantu-heading-kalam {
 .tantu-tag-structural { color: var(--tantu-accent-structural); }
 .tantu-tag-success { color: var(--tantu-state-success); }
 .tantu-tag-caution { color: var(--tantu-state-caution); }
-.tantu-tag-zari { color: var(--tantu-zari-tarnish); }
+.tantu-tag-zari { color: var(--tantu-ink-zari); }
 .tantu-tag-solid {
   background-color: currentColor;
   border-color: currentColor;
 }
-.tantu-tag-solid > span { color: var(--tantu-kora-bleached); }
+/* The label was a hardcoded white, which works on every light-theme tone and
+   on none of the dark-theme ones — the dark tones are the *light* end of each
+   hue, so white-on-gold measured 2.46:1. --tantu-ink-inverted is the semantic
+   answer and inverts with the theme: no light tone falls below 5.55:1, no
+   dark tone below 5.04:1. Same token the seal uses, for the same reason. */
+.tantu-tag-solid > span { color: var(--tantu-ink-inverted); }
 
 /* NOTICE PANEL (alert) */
 .tantu-notice {
@@ -1169,7 +1195,13 @@ h3.tantu-heading-kalam {
   background-color: var(--tantu-bg-elevated);
   color: var(--tantu-ink-secondary);
 }
-.tantu-table tbody tr:nth-child(even) { background-color: var(--tantu-kora-raw); }
+/* Zebra striping was `--tantu-kora-raw`, a theme-invariant *dye primitive*
+   rather than a semantic token — so in dark mode every even row was a cream
+   slab carrying near-white ink, and its text was effectively invisible. The
+   token audit missed it because it checks token pairings and this was a
+   pairing no one had written down; the rendered-contrast sweep in
+   scripts/verify_storybook.mjs is what now catches this class. */
+.tantu-table tbody tr:nth-child(even) { background-color: var(--tantu-bg-elevated); }
 
 /* SCRIM & DIALOG (unspooled panel) */
 .tantu-scrim {
@@ -1222,7 +1254,22 @@ h3.tantu-heading-kalam {
   padding: var(--tantu-knot-1) var(--tantu-knot-2);
   white-space: nowrap;
   z-index: 40;
-  pointer-events: none;
+}
+
+/* WCAG 1.4.13 "Hoverable": the pointer has to be able to move onto the
+   tooltip without it vanishing. Two things stopped that.
+   `pointer-events: none` made the tooltip transparent to the pointer, so the
+   browser treated the pointer as having left the host; and the 6px gap
+   between anchor and tooltip was dead space that fired `mouseleave` on the
+   way across. The tooltip is a DOM descendant of the host, so once it is
+   pointer-reachable and the gap is bridged, `mouseleave` correctly does not
+   fire while the pointer is on it. */
+.tantu-tooltip::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  height: var(--tantu-knot-1);
 }
 
 /* TENSION METER (progress) */
@@ -1259,7 +1306,11 @@ h3.tantu-heading-kalam {
   display: inline-grid;
   place-items: center;
   background-color: var(--tantu-accent-structural);
-  color: var(--tantu-kora-raw);
+  /* Was --tantu-kora-raw, a theme-invariant cream, which sat at 3.52:1 on the
+     lightened structural fill the dark theme uses. --tantu-ink-inverted is
+     the semantic "text on an accent fill" token and is theme-aware: 14.88 on
+     light, 5.04 on dark. */
+  color: var(--tantu-ink-inverted);
   font-family: var(--font-kasuti);
   font-size: 12px;
   letter-spacing: 0.08em;
@@ -1282,9 +1333,21 @@ h3.tantu-heading-kalam {
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
-.tantu-trail a { color: var(--tantu-ink-secondary); text-decoration: none; }
+/* A breadcrumb could be argued into SC 2.5.8's "inline" exception — it is a
+   run of text with separators — but the argument is thin enough that a
+   procurement reviewer might not accept it, and the fix costs 9px of row
+   height. Claim nothing; just meet the 24px. */
+.tantu-trail a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tantu-knot-4);
+  color: var(--tantu-ink-secondary);
+  text-decoration: none;
+}
 .tantu-trail a:hover { color: var(--tantu-accent-primary); text-decoration: underline; }
-.tantu-trail-sep { color: var(--tantu-katha-bark); }
+/* --tantu-katha-bark is a dye primitive: theme-invariant, and 2.43:1 as text
+   on the dark ground. Same bug as the trace search's label. */
+.tantu-trail-sep { color: var(--tantu-ink-secondary); }
 .tantu-trail-current { color: var(--tantu-ink-primary); }
 
 /* FOLD STACK (accordion) */
@@ -1351,7 +1414,15 @@ h3.tantu-heading-kalam {
   letter-spacing: -0.02em;
 }
 .tantu-masthead-nav { display: flex; gap: var(--tantu-knot-3); align-items: center; }
+/* WCAG 2.2 SC 2.5.8 asks 24x24 CSS px of any interactive target that is not
+   inline in a sentence. A navigation link is not inline prose, and these
+   measured 21px tall. The height comes from padding rather than a min-height
+   so the underline stays where it was — the target grows, the mark does not
+   move. */
 .tantu-masthead-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tantu-knot-4);
   font-family: var(--font-kasuti);
   font-size: 11px;
   text-transform: uppercase;
@@ -1488,6 +1559,8 @@ body:has(.tantu-loom-substrate) .tantu-loom {
 .tantu-stepper-step {
   display: flex;
   align-items: center;
+  /* 18px tall before; see SC 2.5.8 above. */
+  min-height: var(--tantu-knot-4);
   gap: var(--tantu-knot-1);
   padding: 0;
   background: transparent;
@@ -1637,6 +1710,11 @@ body:has(.tantu-loom-substrate) .tantu-loom {
 }
 
 /* SLIDER — horizontal tension control */
+/* The rail is drawn 2px high for the look of a stretched thread, but the
+   thing a pointer has to hit is the native range input stretched over it —
+   12px, which fails SC 2.5.8. Giving the wrapper a 24px minimum enlarges the
+   hit area without touching the drawn rail, since the rail and fill are
+   absolutely positioned and the input fills the box. */
 .tantu-slider {
   width: 100%;
 }
@@ -1651,7 +1729,11 @@ body:has(.tantu-loom-substrate) .tantu-loom {
 }
 .tantu-slider-track {
   position: relative;
-  height: var(--tantu-knot-2);
+  /* The drawn rail is a 2px thread, but what a pointer must hit is the native
+     range input stretched over this box — 12px tall, which fails WCAG 2.2
+     SC 2.5.8 (24x24). The rail and fill are absolutely positioned and centred,
+     so enlarging the box grows the hit area without thickening the thread. */
+  height: var(--tantu-knot-4);
   display: flex;
   align-items: center;
 }
@@ -2717,8 +2799,15 @@ textarea.tantu-maku-focus {
   transition: background 1200ms linear;
 }
 
-.tantu-panchang-heading > span {
+/* The weekday strip sits on the Panchang's own theme-invariant dark
+   substrate, so its text has to be theme-invariant too. The span carries
+   .tantu-meta-talim, which sets --tantu-ink-secondary and — being defined
+   later in the sheet at equal specificity — won: dark-grey letters on a dark
+   ground, 1.75:1. The doubled class outranks it without shouting. */
+.tantu-panchang-heading > span,
+.tantu-panchang-heading.tantu-panchang-heading > span {
   line-height: 1.8;
+  color: var(--tantu-kora-mud);
 }
 
 .tantu-panchang-heading {
@@ -3236,8 +3325,9 @@ textarea.tantu-maku-focus {
   gap: var(--tantu-knot-1);
 }
 
+/* --tantu-katha-bark is a dye primitive: 2.43:1 as text on the dark ground. */
 .tantu-trace-label {
-  color: var(--tantu-katha-bark);
+  color: var(--tantu-ink-secondary);
 }
 
 .tantu-trace-field {
@@ -3289,7 +3379,7 @@ textarea.tantu-maku-focus {
 }
 
 .tantu-trace-readout {
-  color: var(--tantu-katha-bark);
+  color: var(--tantu-ink-secondary);
 }
 
 .tantu-trace[data-state="slack"] .tantu-trace-readout {
@@ -3357,9 +3447,14 @@ textarea.tantu-maku-focus {
   cursor: pointer;
 }
 
+/* `opacity` was doing the talking here, and it dragged the label to 3.46:1
+   against its own background. It is the wrong tool twice over: it degrades
+   contrast for everyone, and forced-colors mode does not apply it at all, so
+   the state it encodes vanishes exactly where it is needed most. The muted
+   state is already said twice — by the token colour and by the label text
+   itself, which reads LOOM SILENT rather than LOOM AUDIBLE. */
 .tantu-acoustic-toggle[data-muted] {
   color: var(--tantu-ink-secondary);
-  opacity: 0.72;
 }
 
 .tantu-acoustic-toggle:focus-visible {

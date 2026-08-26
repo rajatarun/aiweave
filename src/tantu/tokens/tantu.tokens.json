@@ -1,0 +1,596 @@
+{
+  "light": {
+    "$description": "Tantu design tokens — light theme. Generated from src/tantu/styles/tantu.css; do not edit by hand, run `npm run tokens`.",
+    "tantu": {
+      "kora": {
+        "raw": {
+          "$value": "#faf7f0",
+          "$type": "color"
+        },
+        "bleached": {
+          "$value": "#ffffff",
+          "$type": "color"
+        },
+        "mud": {
+          "$value": "#ece6d8",
+          "$type": "color"
+        }
+      },
+      "kala": {
+        "iron": {
+          "$value": "#12100e",
+          "$type": "color"
+        },
+        "charcoal": {
+          "$value": "#201c19",
+          "$type": "color"
+        }
+      },
+      "madder": {
+        "root": {
+          "$value": "#82231d",
+          "$type": "color"
+        },
+        "flame": {
+          "$value": "#a83228",
+          "$type": "color"
+        }
+      },
+      "indigo": {
+        "vat": {
+          "$value": "#0d233a",
+          "$type": "color"
+        },
+        "sky": {
+          "$value": "#2b5377",
+          "$type": "color"
+        }
+      },
+      "pala": {
+        "copper": {
+          "$value": "#294d34",
+          "$type": "color"
+        }
+      },
+      "genda": {
+        "rust": {
+          "$value": "#c97218",
+          "$type": "color"
+        }
+      },
+      "katha": {
+        "bark": {
+          "$value": "#6e4a35",
+          "$type": "color"
+        }
+      },
+      "zari": {
+        "pure": {
+          "gold": {
+            "$value": "#c5a059",
+            "$type": "color"
+          }
+        },
+        "tarnish": {
+          "$value": "#9e7d3b",
+          "$type": "color"
+        }
+      },
+      "bg": {
+        "substrate": {
+          "$value": "#f3eee2",
+          "$type": "color"
+        },
+        "elevated": {
+          "$value": "#e8e1d0",
+          "$type": "color"
+        },
+        "surface": {
+          "active": {
+            "$value": "#eae3d2",
+            "$type": "color"
+          }
+        }
+      },
+      "ink": {
+        "primary": {
+          "$value": "#12100e",
+          "$type": "color"
+        },
+        "secondary": {
+          "$value": "#524a42",
+          "$type": "color"
+        },
+        "inverted": {
+          "$value": "#faf7f0",
+          "$type": "color"
+        },
+        "zari": {
+          "$value": "#7a602d",
+          "$type": "color"
+        }
+      },
+      "accent": {
+        "primary": {
+          "$value": "#82231d",
+          "$type": "color"
+        },
+        "highlight": {
+          "$value": "#a83228",
+          "$type": "color"
+        },
+        "structural": {
+          "$value": "#0d233a",
+          "$type": "color"
+        }
+      },
+      "state": {
+        "success": {
+          "$value": "#294d34",
+          "$type": "color",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--tantu-pala-copper"
+            }
+          }
+        },
+        "caution": {
+          "$value": "#945412",
+          "$type": "color"
+        }
+      },
+      "grid": {
+        "thread": {
+          "$value": "rgba(110, 74, 53, 0.25)",
+          "$type": "color"
+        }
+      },
+      "border": {
+        "hairline": {
+          "$value": "rgba(110, 74, 53, 0.75)",
+          "$type": "color"
+        },
+        "embroidery": {
+          "$value": "#8a6c33",
+          "$type": "color"
+        }
+      },
+      "focus": {
+        "contrast": {
+          "$value": "#12100e",
+          "$type": "color",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--tantu-kala-iron"
+            }
+          }
+        }
+      },
+      "color": {
+        "surface": {
+          "$value": "#e8e1d0",
+          "$type": "color"
+        },
+        "ink": {
+          "$value": "#12100e",
+          "$type": "color"
+        },
+        "accent": {
+          "$value": "#82231d",
+          "$type": "color"
+        },
+        "structure": {
+          "$value": "#0d233a",
+          "$type": "color"
+        },
+        "metallic": {
+          "$value": "#c5a059",
+          "$type": "color"
+        }
+      },
+      "breakpoint": {
+        "lens": {
+          "$value": "768px",
+          "$type": "dimension"
+        }
+      },
+      "knot": {
+        "1": {
+          "$value": "6px",
+          "$type": "dimension"
+        },
+        "2": {
+          "$value": "12px",
+          "$type": "dimension"
+        },
+        "3": {
+          "$value": "18px",
+          "$type": "dimension"
+        },
+        "4": {
+          "$value": "24px",
+          "$type": "dimension"
+        },
+        "6": {
+          "$value": "36px",
+          "$type": "dimension"
+        },
+        "8": {
+          "$value": "48px",
+          "$type": "dimension"
+        },
+        "12": {
+          "$value": "72px",
+          "$type": "dimension"
+        }
+      },
+      "gauge": {
+        "filament": {
+          "$value": "1px",
+          "$type": "dimension"
+        },
+        "ply": {
+          "$value": "2px",
+          "$type": "dimension"
+        },
+        "cord": {
+          "$value": "4px",
+          "$type": "dimension"
+        },
+        "braid": {
+          "$value": "6px",
+          "$type": "dimension"
+        }
+      },
+      "font": {
+        "size": {
+          "base": {
+            "$value": "14px",
+            "$type": "dimension"
+          }
+        }
+      },
+      "line": {
+        "height": {
+          "base": {
+            "$value": "1.5",
+            "$type": "number"
+          }
+        }
+      },
+      "motion": {
+        "capillary": {
+          "$value": "cubic-bezier(0.12, 0.9, 0.24, 1)",
+          "$type": "cubicBezier"
+        },
+        "batten": {
+          "$value": "60ms",
+          "$type": "duration"
+        },
+        "shuttle": {
+          "$value": "180ms",
+          "$type": "duration"
+        },
+        "unspool": {
+          "$value": "240ms",
+          "$type": "duration"
+        }
+      }
+    },
+    "font": {
+      "talim": {
+        "$value": "\"Talim-Mono\", \"IBM Plex Mono\", \"Courier New\", monospace",
+        "$type": "fontFamily"
+      },
+      "kalam": {
+        "$value": "\"Kalam-Rupa\", \"IBM Plex Serif\", Georgia, serif",
+        "$type": "fontFamily"
+      },
+      "kasuti": {
+        "$value": "\"Kasuti-Gauze\", \"IBM Plex Mono\", \"Lucida Console\", monospace",
+        "$type": "fontFamily"
+      },
+      "body": {
+        "$value": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Noto Sans\", \"Helvetica Neue\", Arial, sans-serif",
+        "$type": "fontFamily"
+      }
+    }
+  },
+  "dark": {
+    "$description": "Tantu design tokens — dark theme. Generated from src/tantu/styles/tantu.css; do not edit by hand, run `npm run tokens`.",
+    "tantu": {
+      "kora": {
+        "raw": {
+          "$value": "#faf7f0",
+          "$type": "color"
+        },
+        "bleached": {
+          "$value": "#ffffff",
+          "$type": "color"
+        },
+        "mud": {
+          "$value": "#ece6d8",
+          "$type": "color"
+        }
+      },
+      "kala": {
+        "iron": {
+          "$value": "#12100e",
+          "$type": "color"
+        },
+        "charcoal": {
+          "$value": "#201c19",
+          "$type": "color"
+        }
+      },
+      "madder": {
+        "root": {
+          "$value": "#82231d",
+          "$type": "color"
+        },
+        "flame": {
+          "$value": "#a83228",
+          "$type": "color"
+        }
+      },
+      "indigo": {
+        "vat": {
+          "$value": "#0d233a",
+          "$type": "color"
+        },
+        "sky": {
+          "$value": "#2b5377",
+          "$type": "color"
+        }
+      },
+      "pala": {
+        "copper": {
+          "$value": "#294d34",
+          "$type": "color"
+        }
+      },
+      "genda": {
+        "rust": {
+          "$value": "#c97218",
+          "$type": "color"
+        }
+      },
+      "katha": {
+        "bark": {
+          "$value": "#6e4a35",
+          "$type": "color"
+        }
+      },
+      "zari": {
+        "pure": {
+          "gold": {
+            "$value": "#c5a059",
+            "$type": "color"
+          }
+        },
+        "tarnish": {
+          "$value": "#9e7d3b",
+          "$type": "color"
+        }
+      },
+      "bg": {
+        "substrate": {
+          "$value": "#12100e",
+          "$type": "color"
+        },
+        "elevated": {
+          "$value": "#1a1714",
+          "$type": "color"
+        },
+        "surface": {
+          "active": {
+            "$value": "#201c19",
+            "$type": "color"
+          }
+        }
+      },
+      "ink": {
+        "primary": {
+          "$value": "#faf7f0",
+          "$type": "color"
+        },
+        "secondary": {
+          "$value": "#c8c0b2",
+          "$type": "color"
+        },
+        "inverted": {
+          "$value": "#12100e",
+          "$type": "color"
+        },
+        "zari": {
+          "$value": "#c5a059",
+          "$type": "color",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--tantu-zari-pure-gold"
+            }
+          }
+        }
+      },
+      "accent": {
+        "primary": {
+          "$value": "#c5a059",
+          "$type": "color"
+        },
+        "highlight": {
+          "$value": "#d8b26e",
+          "$type": "color"
+        },
+        "structural": {
+          "$value": "#5688b4",
+          "$type": "color"
+        }
+      },
+      "state": {
+        "success": {
+          "$value": "#4e9263",
+          "$type": "color"
+        },
+        "caution": {
+          "$value": "#c36f18",
+          "$type": "color"
+        }
+      },
+      "grid": {
+        "thread": {
+          "$value": "rgba(197, 160, 89, 0.2)",
+          "$type": "color"
+        }
+      },
+      "border": {
+        "hairline": {
+          "$value": "rgba(214, 190, 140, 0.72)",
+          "$type": "color"
+        },
+        "embroidery": {
+          "$value": "#9e7d3b",
+          "$type": "color"
+        }
+      },
+      "focus": {
+        "contrast": {
+          "$value": "#faf7f0",
+          "$type": "color",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--tantu-kora-raw"
+            }
+          }
+        }
+      },
+      "color": {
+        "surface": {
+          "$value": "#1a1714",
+          "$type": "color"
+        },
+        "ink": {
+          "$value": "#faf7f0",
+          "$type": "color"
+        },
+        "accent": {
+          "$value": "#c5a059",
+          "$type": "color"
+        },
+        "structure": {
+          "$value": "#4c7ba6",
+          "$type": "color"
+        },
+        "metallic": {
+          "$value": "#c5a059",
+          "$type": "color"
+        }
+      },
+      "breakpoint": {
+        "lens": {
+          "$value": "768px",
+          "$type": "dimension"
+        }
+      },
+      "knot": {
+        "1": {
+          "$value": "6px",
+          "$type": "dimension"
+        },
+        "2": {
+          "$value": "12px",
+          "$type": "dimension"
+        },
+        "3": {
+          "$value": "18px",
+          "$type": "dimension"
+        },
+        "4": {
+          "$value": "24px",
+          "$type": "dimension"
+        },
+        "6": {
+          "$value": "36px",
+          "$type": "dimension"
+        },
+        "8": {
+          "$value": "48px",
+          "$type": "dimension"
+        },
+        "12": {
+          "$value": "72px",
+          "$type": "dimension"
+        }
+      },
+      "gauge": {
+        "filament": {
+          "$value": "1px",
+          "$type": "dimension"
+        },
+        "ply": {
+          "$value": "2px",
+          "$type": "dimension"
+        },
+        "cord": {
+          "$value": "4px",
+          "$type": "dimension"
+        },
+        "braid": {
+          "$value": "6px",
+          "$type": "dimension"
+        }
+      },
+      "font": {
+        "size": {
+          "base": {
+            "$value": "14px",
+            "$type": "dimension"
+          }
+        }
+      },
+      "line": {
+        "height": {
+          "base": {
+            "$value": "1.5",
+            "$type": "number"
+          }
+        }
+      },
+      "motion": {
+        "capillary": {
+          "$value": "cubic-bezier(0.12, 0.9, 0.24, 1)",
+          "$type": "cubicBezier"
+        },
+        "batten": {
+          "$value": "60ms",
+          "$type": "duration"
+        },
+        "shuttle": {
+          "$value": "180ms",
+          "$type": "duration"
+        },
+        "unspool": {
+          "$value": "240ms",
+          "$type": "duration"
+        }
+      }
+    },
+    "font": {
+      "talim": {
+        "$value": "\"Talim-Mono\", \"IBM Plex Mono\", \"Courier New\", monospace",
+        "$type": "fontFamily"
+      },
+      "kalam": {
+        "$value": "\"Kalam-Rupa\", \"IBM Plex Serif\", Georgia, serif",
+        "$type": "fontFamily"
+      },
+      "kasuti": {
+        "$value": "\"Kasuti-Gauze\", \"IBM Plex Mono\", \"Lucida Console\", monospace",
+        "$type": "fontFamily"
+      },
+      "body": {
+        "$value": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Noto Sans\", \"Helvetica Neue\", Arial, sans-serif",
+        "$type": "fontFamily"
+      }
+    }
+  }
+}
