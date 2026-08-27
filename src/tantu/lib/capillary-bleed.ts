@@ -8,8 +8,26 @@
  *
  * No geometric easing: the front follows the Lucas-Washburn wicking law
  * L ∝ sqrt(t) (regularised at t=0), the distance a dye front actually
- * travels through untreated cotton. Shared with the CSS-driven fronts via
- * wickProgress() in bleed-bus.ts.
+ * travels through untreated cotton. GLSL cannot call wickProgress() in
+ * bleed-bus.ts — the shader has to reimplement the formula — but the two
+ * numbers that parametrise it, WICK_T0 and WICK_ANISOTROPY, are imported
+ * from there rather than retyped. They used to be typed twice: once as
+ * exported constants for the CSS-driven fronts, once as bare GLSL literals
+ * here, held in step by nothing but a comment asking nicely. Nothing
+ * checked that the two copies agreed, and nothing would have noticed if a
+ * future edit to one had left the other behind. Importing the numbers
+ * turns "kept in step by convention" into "there is only one number" —
+ * nothing to drift out of, rather than a rule about remembering to edit
+ * both. tests/bleed.test.ts asserts the exact literal that lands in the
+ * compiled shader source still matches the export, so a regression to a
+ * second hand-typed copy fails loudly rather than silently.
+ *
+ * That import is the one place this file stops being self-contained: it is
+ * always shipped and loaded alongside bleed-bus.js already (see the T2
+ * bleed engine's setup in generate_site.jsx, which imports both), so the
+ * real-world dependency already existed — this makes the type system aware
+ * of it too, rather than leaving it a fact two files' comments each assert
+ * about the other.
  *
  * CONTEXT POOLING — Safari (WebKit) hard-caps live WebGL contexts per page
  * (historically 16) and silently drops the oldest once the cap is passed,
@@ -17,10 +35,40 @@
  * surface its own context: ONE shared offscreen WebGL drawing frame renders
  * every surface in turn, and each surface blits the result onto its own
  * cheap 2D canvas. Page-wide context count is exactly one, regardless of how
- * many cards, buttons or fields are woven into the loom.
+ * many cards, buttons or fields are woven into the loom — there is no
+ * second code path that creates a context, so a consumer cannot opt out of
+ * pooling by forgetting to use it. scripts/verify_browser.mjs and
+ * scripts/qa_playground.mjs instrument `getContext` before the page's own
+ * scripts run and assert exactly one WebGL context is ever acquired, so a
+ * refactor that reintroduced a per-surface context fails CI rather than
+ * waiting to be noticed on a Safari device.
+ *
+ * A context per *module instance* is a real, separate risk this does not
+ * cover: `vat` below is a module-scope singleton, so two independently
+ * bundled copies of this file — a duplicate dependency, a monorepo pulling
+ * in two versions — would each get their own vat and their own context,
+ * silently. That is the same class of bug `resolve.dedupe` fixes for React
+ * in playground/vite.config.ts. Nothing here detects it.
  */
+import { WICK_T0, WICK_ANISOTROPY } from "./bleed-bus.js";
 
 export const TANTU_MAX_BLEEDS = 6;
+
+/**
+ * GLSL ES 1.00 parses a bare `0` as an integer token, not a float, and some
+ * drivers reject `1.0 + 0 * growth` in a context that expects a float. Every
+ * value WICK_T0 and WICK_ANISOTROPY hold today happens to already contain a
+ * decimal point, so this has never fired — but the shader source is built by
+ * interpolating whatever JS gives `String()`, and nothing stops either
+ * constant from becoming a whole number later. Guaranteeing the decimal
+ * point here means that day is a no-op instead of a WebGL compile failure
+ * silently caught by getDyeVat()'s own fallback (which would just make every
+ * bleed surface quietly stop rendering, dye-free, everywhere at once).
+ */
+function glslFloat(n: number): string {
+  const s = String(n);
+  return s.includes(".") ? s : `${s}.0`;
+}
 
 export interface CapillaryBleedOptions {
   /** Dye colour as #rrggbb. Defaults to madder root. */
@@ -51,7 +99,10 @@ void main() {
 }
 `;
 
-const FRAGMENT_SHADER = `
+// Exported only so tests/bleed.test.ts can statically confirm the constants
+// interpolated below still match WICK_T0 / WICK_ANISOTROPY — not part of the
+// public API surface a consumer should ever read from.
+export const FRAGMENT_SHADER = `
 precision highp float;
 
 uniform vec2  u_res;
@@ -122,9 +173,12 @@ void main() {
     // how wet one point becomes as dye pools there, wrong for where the
     // front has reached. Driving a radius with it stalls the edge — against
     // its own peak speed an exponential front is 92% stopped by t=0.75,
-    // where Washburn still holds ~24%. Kept in step with wickProgress() in
-    // bleed-bus.ts so the CSS and GLSL fronts cannot drift apart.
-    float T0 = 0.04;
+    // where Washburn still holds ~24%.
+    //
+    // T0 is WICK_T0 from bleed-bus.ts, interpolated at module load rather
+    // than retyped — see this file's header comment for why that stopped
+    // being two numbers kept in step by hand.
+    float T0 = ${glslFloat(WICK_T0)};
     float s0 = sqrt(T0);
     float growth = (sqrt(t + T0) - s0) / (sqrt(1.0 + T0) - s0);
     float radius = u_maxRadius * growth;
@@ -132,7 +186,9 @@ void main() {
     vec2 d = threadWarp(p - b.xy, b.w);
 
     // Slight orthogonal stretch — the lattice conducts, the bias resists.
-    d.x /= 1.0 + 0.18 * growth;
+    // The 0.18 is WICK_ANISOTROPY, same reasoning as T0 above: one number,
+    // imported, not two that happen to agree today.
+    d.x /= 1.0 + ${glslFloat(WICK_ANISOTROPY)} * growth;
 
     float dist = length(d);
 

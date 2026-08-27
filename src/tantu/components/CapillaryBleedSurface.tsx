@@ -10,11 +10,22 @@ import {
 
 import { createCapillaryBleed, type CapillaryBleedHandle } from "../lib/capillary-bleed";
 import { registerBleedNode, shouldBleed } from "../lib/bleed-bus";
-import { resolveDye } from "../lib/dye";
+import { resolveDye, type TantuDye } from "../lib/dye";
 import { InkBleedFilter } from "./InkBleedFilter";
 
-/** Dye primitives available to a bleed surface, drawn live from the vat. */
-export type BleedDye = "madder" | "indigo" | "copper" | "marigold" | "iron";
+/**
+ * Dye primitives available to a bleed surface, drawn live from the vat.
+ *
+ * An alias for TantuDye (lib/dye.ts), not a second, narrower list. It used
+ * to be its own five-member union — madder, indigo, copper, marigold, iron —
+ * while the registry it actually resolved against already named ten,
+ * missing madderFlame, indigoSky, katha, zari and zariTarnish for no reason
+ * the shader or the engine required: `u_dye` is one arbitrary vec3 uniform
+ * per draw call, with no concept of a fixed palette at all. The restriction
+ * lived entirely in this type alias. Widening it is additive — every value
+ * that satisfied the old union still satisfies this one.
+ */
+export type BleedDye = TantuDye;
 
 export interface CapillaryBleedSurfaceProps extends HTMLAttributes<HTMLDivElement> {
   /** Natural dye drawn into the substrate on contact. */

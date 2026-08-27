@@ -56,7 +56,7 @@ than omitted.
 | Token contrast audit | 66 foreground/background pairings taken from real component rules, computed from the resolved `[data-theme]` blocks in both themes, with alpha flattened onto the actual backdrop | `npm run audit:a11y` |
 | Rendered contrast sweep | axe-core `color-contrast` over all 54 stories × 2 themes in Chromium, against real computed pixels | `npm run audit:stories` |
 | Markup sweep | axe-core over all 47 components × 2 themes × 2 writing directions | `npm run test` |
-| Unit and behaviour tests | 237 tests: composite-widget keyboard patterns, modal focus containment, tooltip persistence, server rendering, dye physics, and the lens's pointer alternatives | `npm run test` |
+| Unit and behaviour tests | 239 tests: composite-widget keyboard patterns, modal focus containment, tooltip persistence, server rendering, dye physics, and the lens's pointer alternatives | `npm run test` |
 | Pointer-alternative measurement | The one gesture-driven component loaded at 390 CSS px, where it engages; every control clicked and the resulting transform read back | `npm run audit:stories` |
 | Browser measurements | Reflow at 320px, text spacing overrides, 200% zoom, forced colours, reduced motion, focus rendering, writing-direction mirroring | `npm run audit:browser` |
 | Target size measurement | Every interactive element in every story measured against 24×24 CSS px | `npm run audit:stories` |
