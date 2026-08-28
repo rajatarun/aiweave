@@ -216,7 +216,7 @@ npm run playground    # a working app built with Tantu
 npm run test:watch
 ```
 
-`npm run verify` is exactly what CI runs — typecheck, 237 tests, the token
+`npm run verify` is exactly what CI runs — typecheck, 239 tests, the token
 export, 66 contrast pairings, the bleed matrix, the site build, 27 browser
 checks, and a render of every story/theme combination with contrast and target
 size measured on real pixels. A change is ready when it passes.

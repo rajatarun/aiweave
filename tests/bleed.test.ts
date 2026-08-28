@@ -21,6 +21,7 @@ import {
   WICK_ANISOTROPY,
   WICK_T0,
 } from "../src/tantu/lib/bleed-bus";
+import { FRAGMENT_SHADER } from "../src/tantu/lib/capillary-bleed";
 
 beforeEach(() => {
   resetBleedBus();
@@ -120,6 +121,34 @@ describe("wickCoverRadius", () => {
         ).toBeLessThanOrEqual(1.0001);
       }
     }
+  });
+});
+
+describe("the shader cannot drift from wickProgress", () => {
+  // GLSL cannot call wickProgress() — the shader in capillary-bleed.ts
+  // reimplements the Lucas–Washburn formula by hand, and used to reimplement
+  // its two constants by hand too: WICK_T0 and WICK_ANISOTROPY were each
+  // typed a second time as bare GLSL literals, held in step with these
+  // exports by nothing but a comment. Nothing checked the two copies still
+  // agreed after an edit to either.
+  //
+  // capillary-bleed.ts now imports both constants and interpolates them into
+  // the shader source, so there is structurally one number rather than two
+  // that happen to match — but that only holds as long as nobody reverts to
+  // a hand-typed literal. This extracts whatever numeric value actually
+  // landed in the compiled shader text and compares it against the live
+  // export, independently of how it got there, so a reintroduced hardcoded
+  // copy — correct or not — fails here rather than silently drifting.
+  it("T0 in the shader is WICK_T0, not a second copy of it", () => {
+    const match = FRAGMENT_SHADER.match(/float T0 = ([\d.]+);/);
+    expect(match, "expected `float T0 = <value>;` in FRAGMENT_SHADER").not.toBeNull();
+    expect(Number(match![1])).toBeCloseTo(WICK_T0, 10);
+  });
+
+  it("the anisotropy stretch in the shader is WICK_ANISOTROPY, not a second copy of it", () => {
+    const match = FRAGMENT_SHADER.match(/d\.x \/= 1\.0 \+ ([\d.]+) \* growth;/);
+    expect(match, "expected `d.x /= 1.0 + <value> * growth;` in FRAGMENT_SHADER").not.toBeNull();
+    expect(Number(match![1])).toBeCloseTo(WICK_ANISOTROPY, 10);
   });
 });
 

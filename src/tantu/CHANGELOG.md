@@ -35,6 +35,25 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
 
 ### Added
 
+- **The wicking constants are one number each, not two that happened to
+  agree.** `WICK_T0` and `WICK_ANISOTROPY` were exported from `lib/bleed-bus`
+  for the CSS-driven fronts, and separately hand-typed as bare GLSL literals
+  inside the WebGL shader in `lib/capillary-bleed` — held in step by nothing
+  but a comment asking that they be. Nothing checked the two copies still
+  agreed after an edit to either. `lib/capillary-bleed` now imports both
+  constants and interpolates them into the shader source at load, so there
+  is structurally one number rather than two hand-synchronised ones.
+  `tests/bleed.test.ts` extracts the literal that actually lands in the
+  compiled shader text and compares it against the live export, independent
+  of how it got there, so a reverted-to-hardcoded copy fails loudly instead
+  of drifting silently.
+- **`BleedDye` covers the full dye registry.** It was its own five-member
+  union — `madder | indigo | copper | marigold | iron` — narrower than the
+  ten names `lib/dye`'s `TANTU_DYES` registry already had, for no reason the
+  engine required: the shader takes one arbitrary colour uniform per draw
+  call with no concept of a fixed palette. `BleedDye` is now an alias for
+  `TantuDye`; every value that satisfied the old union still satisfies this
+  one.
 - **`lib/dye` is public.** `TANTU_DYES` and `resolveDye` were internal, which
   left a consumer wanting to put a swatch of madder beside a madder bleed with
   no option but to copy the hex — and a copied hex does not move when the
