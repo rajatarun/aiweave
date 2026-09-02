@@ -57,6 +57,8 @@ interface Beam {
   dye: BleedDye;
   /** Percent, the same scale the slider speaks. Newtons are for reading. */
   tension: number;
+  /** Mordanted before dyeing, which is what fixes the colour in the fibre. */
+  mordant: boolean;
   stage: string;
 }
 
@@ -91,7 +93,7 @@ const STAGES = [
 ];
 
 /** What a freshly dressed beam carries before anyone touches it. */
-const STOCK = { tension: 50, dye: "madder" as BleedDye, picks: 48, stage: "warp" };
+const STOCK = { tension: 50, dye: "madder" as BleedDye, picks: 48, mordant: false, stage: "warp" };
 
 /**
  * The register at the start of the shift. The first beam is at stock tension
@@ -99,9 +101,9 @@ const STOCK = { tension: 50, dye: "madder" as BleedDye, picks: 48, stage: "warp"
  * chose; the other two are mid-shift, which is what a register looks like.
  */
 const INITIAL_BEAMS: Beam[] = [
-  { id: "b1", warp: "Cotton 40s", picks: 48, dye: "madder", tension: STOCK.tension, stage: "weave" },
-  { id: "b2", warp: "Cotton 60s", picks: 62, dye: "indigo", tension: 68, stage: "dress" },
-  { id: "b3", warp: "Tussar silk", picks: 71, dye: "marigold", tension: 34, stage: "warp" },
+  { id: "b1", warp: "Cotton 40s", picks: 48, dye: "madder", tension: STOCK.tension, mordant: true, stage: "weave" },
+  { id: "b2", warp: "Cotton 60s", picks: 62, dye: "indigo", tension: 68, mordant: false, stage: "dress" },
+  { id: "b3", warp: "Tussar silk", picks: 71, dye: "marigold", tension: 34, mordant: true, stage: "warp" },
 ];
 
 export default function App() {
@@ -133,6 +135,7 @@ export default function App() {
       picks: STOCK.picks,
       dye: STOCK.dye,
       tension: STOCK.tension,
+      mordant: STOCK.mordant,
       stage: STOCK.stage,
     };
     setDressed(n);
@@ -237,7 +240,22 @@ export default function App() {
                 {
                   key: "dye",
                   header: "Dye",
-                  cell: (r) => <TantuTag tone="accent">{labelFor(r.dye)}</TantuTag>,
+                  // The mordant reads here rather than in a column of its own:
+                  // it is a property of the dyeing, and a sixth column at this
+                  // span would cost the table its reflow at 320px.
+                  cell: (r) => (
+                    <>
+                      <TantuTag tone="accent">{labelFor(r.dye)}</TantuTag>
+                      {r.mordant ? (
+                        <span
+                          className="tantu-meta-talim"
+                          style={{ display: "block", color: "var(--tantu-ink-secondary)" }}
+                        >
+                          mordanted
+                        </span>
+                      ) : null}
+                    </>
+                  ),
                 },
                 { key: "tension", header: "Tension", cell: (r) => newtons(r.tension) },
                 {
@@ -332,6 +350,22 @@ export default function App() {
 
         <TantuCell warpSpan={6}>
           <TantuCard talimCode="SETUP">
+            {/* This card had no heading and said nothing about what it edited.
+                Its four controls all write into the beam register two columns
+                away, so using one looked like pressing a button that did
+                nothing — the effect was real and simply out of view. Naming the
+                beam is the whole fix. */}
+            <h2 style={{ fontFamily: "var(--tantu-font-display)", marginTop: 0 }}>Setup</h2>
+            <p style={{ color: "var(--tantu-ink-secondary)", marginTop: 0 }}>
+              {active ? (
+                <>
+                  Dressing <strong>{active.warp}</strong>. Everything here edits the beam on the
+                  loom — the register above takes the change as you make it.
+                </>
+              ) : (
+                "No beam on the loom. Dress one in the register above."
+              )}
+            </p>
             <TantuTabs
               items={[
                 {
@@ -383,7 +417,14 @@ export default function App() {
                           </option>
                         ))}
                       </TantuSelect>
-                      <TantuToggle audio={false}>Mordant first</TantuToggle>
+                      <TantuToggle
+                        audio={false}
+                        checked={active?.mordant ?? false}
+                        disabled={!active}
+                        onChange={(e) => editActive({ mordant: e.target.checked })}
+                      >
+                        Mordant first
+                      </TantuToggle>
                     </div>
                   ),
                 },
