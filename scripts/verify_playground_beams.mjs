@@ -200,6 +200,8 @@ try {
     await page.getByRole("slider", { name: "Warp tension" }).isDisabled());
   check("with nothing dressed, there is nothing to cut",
     await opener.isDisabled());
+  check("and nothing to dye",
+    await page.getByRole("button", { name: /^Dye / }).isDisabled());
   check("the sett falls back to stock", (await tension()) === "0.5", await tension());
 
   await page.getByRole("button", { name: "Dress a new beam" }).click();
@@ -211,6 +213,33 @@ try {
   check("and the loom is workable again", !(await opener.isDisabled()));
   check("a freshly dressed beam is unmordanted",
     !(await register())[0][2].includes("mordanted"), (await register())[0][2]);
+
+  // --- The vat dyes what is put in it -----------------------------------
+  // This button read "Commit the madder bath" and had no handler at all. It
+  // was there to demonstrate gesture arbitration — which it still does — but
+  // a label naming an action is a promise.
+  await page.getByRole("button", { name: "Dress a new beam" }).click();
+  await page.getByRole("button", { name: "Dress a new beam" }).click();
+  const inVat = await register();
+  check("three beams are back in the register", inVat.length === 3, `${inVat.length} rows`);
+
+  await page.getByRole("tab", { name: "Dye" }).click();
+  await pickSpool("Bath", "Copper sulphate");
+  const vatButton = page.getByRole("button", { name: /^Dye all 3 beams/ });
+  check("the vat button counts what is in it",
+    (await vatButton.count()) === 1 && (await vatButton.innerText()).toLowerCase().includes("copper sulphate"),
+    await vatButton.innerText());
+
+  await vatButton.click();
+  const dyedRows = await register();
+  check("every beam comes out the same colour",
+    dyedRows.every((r) => r[2].startsWith("copper sulphate")),
+    dyedRows.map((r) => r[2]).join(" | "));
+
+  const vatNotice = page.locator(".tantu-notice-success").filter({ hasText: "went into" });
+  check("and the vat announces it, not only redraws the table",
+    (await vatNotice.count()) === 1 && (await vatNotice.getAttribute("role")) === "status",
+    await vatNotice.innerText());
 } finally {
   await browser.close();
   server.close();
