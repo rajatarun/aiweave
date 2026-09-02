@@ -57,7 +57,10 @@ Then open http://localhost:5173.
 - **Open "Cut the cloth" and hold Tab.** Focus stays inside the panel — the
   page behind the scrim is unreachable, which is what `aria-modal` promises and
   what the browser does not enforce. Escape hands focus back to the button that
-  opened it.
+  opened it. Then set a tension and a bath, and actually press Cut: the piece
+  comes off the beam and the beam goes back to stock, so Cancel and Cut lead
+  somewhere different. A confirmation whose two answers do the same thing is a
+  screenshot of the pattern rather than the pattern.
 - **Press the "Today" card.** The reverse wicks through as dye spreading into
   cloth, on the Lucas–Washburn law. Half the travel happens in the first third
   of the duration.
