@@ -84,22 +84,72 @@
   /* The single breakpoint where the Loom hands off to the Darshan Lens. */
   --tantu-breakpoint-lens: 768px;
 
-  /* 3. BASE-6 WARP & WEFT SPACING LATTICE
-     Deliberately non-linear: x1,2,3,4 then x6,8,12.
-     knot-5 and knot-7 are intentionally absent — do not "fix" the gap. */
-  --tantu-knot-1: 6px;
-  --tantu-knot-2: 12px;
-  --tantu-knot-3: 18px;
-  --tantu-knot-4: 24px;
-  --tantu-knot-6: 36px;
-  --tantu-knot-8: 48px;
-  --tantu-knot-12: 72px;
+  /* 3. THE SETT — how tightly this cloth is woven.
+     A weaver setting up a loom chooses one number before anything else:
+     how much tension to hold the warp under. It is not a preference. It
+     decides the sett — how close the threads sit — and everything follows
+     from it. Slack warp, open cloth. Taut warp, dense cloth. Past the
+     limit the warp parts, which is what TantuRupture depicts.
 
-  /* 4. THREAD GAUGES */
+     Other systems ship this as "density" — two or three presets, each
+     value picked by taste and tuned independently of the others. This is
+     the same need answered from a single cause, so the values cannot
+     drift apart: they are all derived from one thread.
+
+     0 = slack, 1 = taut. 0.5 reproduces the historic scale exactly, so
+     setting nothing changes nothing. */
+  --tantu-tension: 0.5;
+
+  /* The thread every measurement descends from.
+
+     Quantised to whole pixels because a fractional thread does not
+     exist — the same rule JamdaniBlock already applies when it rounds a
+     column to whole picks. The unrounded declaration is the fallback for
+     engines without round(); it lands on the historic 6px at the default
+     tension, so the worst case is a system that simply does not respond
+     to the dial rather than one that breaks. */
+  --tantu-thread: 6px;
+  --tantu-thread: round(calc(8px - 4px * var(--tantu-tension)), 1px);
+
+  /* 3b. BASE-6 WARP & WEFT SPACING LATTICE
+     Deliberately non-linear: x1,2,3,4 then x6,8,12.
+     knot-5 and knot-7 are intentionally absent — do not "fix" the gap.
+     At the default tension these are 6/12/18/24/36/48/72, unchanged. */
+  --tantu-knot-1: calc(var(--tantu-thread) * 1);
+  --tantu-knot-2: calc(var(--tantu-thread) * 2);
+  --tantu-knot-3: calc(var(--tantu-thread) * 3);
+  --tantu-knot-4: calc(var(--tantu-thread) * 4);
+  --tantu-knot-6: calc(var(--tantu-thread) * 6);
+  --tantu-knot-8: calc(var(--tantu-thread) * 8);
+  --tantu-knot-12: calc(var(--tantu-thread) * 12);
+
+  /* 4. THREAD GAUGES
+     Only the heavy gauges answer the dial. A filament is a hairline at
+     any tension: below 1px it renders blurry or vanishes on a
+     non-retina screen, and physical fidelity is not worth an invisible
+     border. The ply holds at 2px for the same reason — it is the focus
+     ring's weight, and a focus ring that thins under a density setting
+     is an accessibility regression wearing a metaphor. */
   --tantu-gauge-filament: 1px;
   --tantu-gauge-ply: 2px;
   --tantu-gauge-cord: 4px;
+  --tantu-gauge-cord: round(calc(5px - 2px * var(--tantu-tension)), 1px);
   --tantu-gauge-braid: 6px;
+  --tantu-gauge-braid: round(calc(7px - 2px * var(--tantu-tension)), 1px);
+
+  /* 4b. THE ACCESSIBILITY FLOOR — deliberately outside the sett.
+     WCAG 2.2 SC 2.5.8 asks for 24x24 CSS px, and a hit area is made of
+     padding, so a density dial will shrink one through the floor without
+     anything looking wrong. It did: the stepper step and the slider's
+     track both expressed their 2.5.8 fix as var(--tantu-knot-4), which
+     was 24px only because the default sett made it 24px. At full tension
+     they became 16px tall and two criteria that had been fixed were
+     quietly broken again.
+
+     Hence a token of its own rather than a knot that happens to be the
+     right size. Tension governs how the cloth looks. It does not get a
+     vote on whether a person can hit the control. */
+  --tantu-target-min: 24px;
 
   /* 5. TYPOGRAPHIC SPECIFICATIONS — roles, not typefaces
      ------------------------------------------------------------------
@@ -551,7 +601,13 @@ h3.tantu-heading-kalam {
   font-family: var(--tantu-font-meta);
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  /* The counted-thread voice tracks with the sett, and alone among the
+     four roles it has a literal reason to: Kasuti letterforms are built
+     on the thread grid itself — the letters are the threads. Body and
+     display tracking deliberately do not follow, because reflowing
+     paragraphs every time someone changes a density setting is a
+     usability problem, not fidelity. 0.08em at the default tension. */
+  letter-spacing: calc(0.1em - 0.04em * var(--tantu-tension));
   color: var(--tantu-ink-secondary);
 }
 
@@ -1607,8 +1663,9 @@ body:has(.tantu-loom-substrate) .tantu-loom {
 .tantu-stepper-step {
   display: flex;
   align-items: center;
-  /* 18px tall before; see SC 2.5.8 above. */
-  min-height: var(--tantu-knot-4);
+  /* 18px tall before; see SC 2.5.8 above. Held at the floor rather than a
+     knot, so closing the sett cannot shrink it back under 24px. */
+  min-height: var(--tantu-target-min);
   gap: var(--tantu-knot-1);
   padding: 0;
   background: transparent;
@@ -1780,8 +1837,9 @@ body:has(.tantu-loom-substrate) .tantu-loom {
   /* The drawn rail is a 2px thread, but what a pointer must hit is the native
      range input stretched over this box — 12px tall, which fails WCAG 2.2
      SC 2.5.8 (24x24). The rail and fill are absolutely positioned and centred,
-     so enlarging the box grows the hit area without thickening the thread. */
-  height: var(--tantu-knot-4);
+     so enlarging the box grows the hit area without thickening the thread.
+   The floor, not a knot: tension must not close the sett through it. */
+  height: var(--tantu-target-min);
   display: flex;
   align-items: center;
 }

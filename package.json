@@ -14,6 +14,7 @@
     "build:client-assets": "tsc --target es2020 --module es2020 --lib es2020,dom --noResolve --skipLibCheck --outDir assets src/tantu/lib/capillary-bleed.ts src/tantu/lib/maku-shuttle.ts src/tantu/lib/bleed-bus.ts src/tantu/lib/direction.ts",
     "build:fonts": "python3 build.py",
     "build:storybook": "storybook build -o storybook-static",
+    "audit:tension": "node scripts/verify_tension.mjs",
     "qa:playground": "node scripts/qa_playground.mjs",
     "playground": "npm --prefix playground run dev",
     "storybook": "storybook dev -p 6006 --no-open",
@@ -21,7 +22,7 @@
     "test:watch": "vitest",
     "tokens": "node scripts/export_tokens.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
-    "verify": "npm run typecheck && npm run test && npm run tokens && npm run audit:a11y && npm run audit:bleed && npm run build && npm run audit:browser && npm run build:storybook && npm run audit:stories"
+    "verify": "npm run typecheck && npm run test && npm run tokens && npm run audit:a11y && npm run audit:bleed && npm run build && npm run audit:browser && npm run build:storybook && npm run audit:stories && npm --prefix playground run build && npm run audit:tension"
   },
   "dependencies": {
     "react": "^19.0.0",

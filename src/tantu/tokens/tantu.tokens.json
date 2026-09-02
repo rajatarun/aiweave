@@ -194,6 +194,14 @@
           "$type": "dimension"
         }
       },
+      "tension": {
+        "$value": "0.5",
+        "$type": "number"
+      },
+      "thread": {
+        "$value": "6px",
+        "$type": "dimension"
+      },
       "knot": {
         "1": {
           "$value": "6px",
@@ -239,6 +247,12 @@
         },
         "braid": {
           "$value": "6px",
+          "$type": "dimension"
+        }
+      },
+      "target": {
+        "min": {
+          "$value": "24px",
           "$type": "dimension"
         }
       },
@@ -509,6 +523,14 @@
           "$type": "dimension"
         }
       },
+      "tension": {
+        "$value": "0.5",
+        "$type": "number"
+      },
+      "thread": {
+        "$value": "6px",
+        "$type": "dimension"
+      },
       "knot": {
         "1": {
           "$value": "6px",
@@ -554,6 +576,12 @@
         },
         "braid": {
           "$value": "6px",
+          "$type": "dimension"
+        }
+      },
+      "target": {
+        "min": {
+          "$value": "24px",
           "$type": "dimension"
         }
       },

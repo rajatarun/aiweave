@@ -72,15 +72,20 @@ export default function App() {
   const [theme, setTheme] = useState<Theme>("light");
   const [direction, setDirection] = useState<Direction>("ltr");
   const [cutting, setCutting] = useState(false);
-  const [tension, setTension] = useState(62);
+  // Opens at 50 — the stock tension, so the first thing anyone sees is the
+  // system exactly as it ships rather than a setting someone chose.
+  const [tension, setTension] = useState(50);
   const [bath, setBath] = useState<BleedDye>("madder");
 
-  // Tantu reads both from the document. Setting them here is the whole of the
-  // integration — there is no provider, no context, no hook to install.
+  // Tantu reads all three from the document. Setting them here is the whole
+  // of the integration — there is no provider, no context, no hook to
+  // install. Tension is a 0..1 scalar; the slider speaks percent because
+  // that is what a meter wants, so it is divided once, here.
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
     document.documentElement.setAttribute("dir", direction);
-  }, [theme, direction]);
+    document.documentElement.style.setProperty("--tantu-tension", String(tension / 100));
+  }, [theme, direction, tension]);
 
   return (
     <>
@@ -153,17 +158,49 @@ export default function App() {
 
         <TantuCell warpSpan={6}>
           <TantuCard talimCode="TENSION">
-            <h2 style={{ fontFamily: "var(--tantu-font-display)", marginTop: 0 }}>Tension</h2>
+            <h2 style={{ fontFamily: "var(--tantu-font-display)", marginTop: 0 }}>Warp tension</h2>
+            <p style={{ color: "var(--tantu-ink-secondary)", marginTop: 0 }}>
+              Drag this and watch the whole page re-sett, not just this card. Tension
+              decides how close the threads sit, and every measurement in the system
+              descends from that one number — so the gaps, the rules and the
+              counted-thread tracking all move together, because they share a cause.
+            </p>
             <TantuMeter label="Across the width" value={tension} />
             <div style={{ marginTop: "var(--tantu-knot-3)" }}>
               <TantuSlider
-                label="Beat force"
+                label="Warp tension"
                 min={0}
                 max={100}
                 value={tension}
                 onChange={setTension}
               />
             </div>
+
+            {/* The derived values, live. The dial is felt rather than seen, so
+                showing the thread it resolves to is what makes the mechanism
+                legible — including that it lands on whole pixels, because a
+                fractional thread does not exist. */}
+            <dl
+              style={{
+                display: "grid",
+                gridTemplateColumns: "auto 1fr",
+                gap: "var(--tantu-knot-1) var(--tantu-knot-2)",
+                margin: "var(--tantu-knot-3) 0 0",
+                fontFamily: "var(--tantu-font-mono)",
+                fontSize: "0.8rem",
+                color: "var(--tantu-ink-secondary)",
+              }}
+            >
+              <dt>thread</dt>
+              <dd style={{ margin: 0 }}>{Math.round(8 - 4 * (tension / 100))}px</dd>
+              <dt>knot-4</dt>
+              <dd style={{ margin: 0 }}>{Math.round(8 - 4 * (tension / 100)) * 4}px</dd>
+              <dt>sett</dt>
+              <dd style={{ margin: 0 }}>
+                {tension < 34 ? "open" : tension > 72 ? "close" : "even"}
+              </dd>
+            </dl>
+
             {tension > 85 ? (
               <div style={{ marginTop: "var(--tantu-knot-3)" }}>
                 <TantuNotice tone="caution" title="Over-tensioned">

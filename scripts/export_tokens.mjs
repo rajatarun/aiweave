@@ -33,11 +33,34 @@ function declarationsIn(selector) {
   if (!match) return {};
   const open = css.indexOf("{", match.index);
   const close = css.indexOf("}", open);
-  const out = {};
+  const all = {};
   for (const d of css.slice(open + 1, close).matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) {
-    out[d[1]] = d[2].trim();
+    (all[d[1]] ??= []).push(d[2].trim());
   }
-  return out;
+  return Object.fromEntries(Object.entries(all).map(([name, values]) => [name, pickStatic(values)]));
+}
+
+/**
+ * Choose the declaration a design tool can actually represent.
+ *
+ * The stylesheet declares a token twice where a modern CSS function needs a
+ * fallback — `--tantu-thread` is `6px` and then `round(calc(...), 1px)`, so
+ * an engine without `round()` still gets a working lattice. In CSS the later
+ * declaration wins, which is right for a browser and wrong here: Figma and
+ * Tokens Studio store numbers, and importing the literal text
+ * `round(calc(8px - 4px * var(--tantu-tension)), 1px)` gives a designer a
+ * dangling value for every spacing token in the system.
+ *
+ * So walk newest-first and take the first declaration that is not built on a
+ * function this exporter cannot reduce to a literal. `calc()` is not in that
+ * list — the lattice is a length times a number and `resolve()` evaluates it.
+ */
+function pickStatic(values) {
+  const unrepresentable = /\b(?:round|clamp|min|max)\(/;
+  for (let i = values.length - 1; i >= 0; i -= 1) {
+    if (!unrepresentable.test(values[i])) return values[i];
+  }
+  return values[values.length - 1];
 }
 
 const root = declarationsIn(":root");
@@ -84,7 +107,37 @@ function resolve(theme, value, depth = 0) {
   const flat = value.replace(/\s+/g, " ").trim();
   const m = flat.match(/^var\((--[\w-]+)(?:\s*,\s*(.+))?\)$/);
   if (m) return resolve(theme, theme[m[1]] ?? m[2], depth + 1);
-  return flat;
+
+  // A var() *inside* an expression — every knot is `calc(var(--tantu-thread)
+  // * n)`. Substitute the reference, then reduce the arithmetic, so the
+  // design library receives 24px rather than a formula it cannot evaluate.
+  if (flat.startsWith("calc(") && flat.includes("var(")) {
+    const substituted = flat.replace(
+      /var\((--[\w-]+)(?:\s*,\s*([^)]+))?\)/g,
+      (_, name, fallback) => resolve(theme, theme[name] ?? fallback, depth + 1),
+    );
+    return resolve(theme, substituted, depth + 1);
+  }
+
+  return reduceCalc(flat);
+}
+
+/**
+ * Reduce the one arithmetic shape the lattice uses: a length scaled by a
+ * number, in either order. Anything else is returned untouched — this is a
+ * deliberately small evaluator rather than a CSS engine, and a shape it does
+ * not recognise should reach the warning below rather than be guessed at.
+ */
+function reduceCalc(value) {
+  const lengthFirst = value.match(/^calc\(\s*([\d.]+)(px|rem|em)\s*\*\s*([\d.]+)\s*\)$/);
+  if (lengthFirst) {
+    return `${+(parseFloat(lengthFirst[1]) * parseFloat(lengthFirst[3])).toFixed(4)}${lengthFirst[2]}`;
+  }
+  const numberFirst = value.match(/^calc\(\s*([\d.]+)\s*\*\s*([\d.]+)(px|rem|em)\s*\)$/);
+  if (numberFirst) {
+    return `${+(parseFloat(numberFirst[1]) * parseFloat(numberFirst[2])).toFixed(4)}${numberFirst[3]}`;
+  }
+  return value;
 }
 
 function aliasOf(value) {
@@ -179,6 +232,33 @@ function tokensStudio(theme) {
 }
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
+
+/**
+ * Nothing unevaluated may reach a design tool.
+ *
+ * The CI gate on these files only asserts that the committed output matches
+ * what this script produces — it cannot tell a usable library from a broken
+ * one, so a change to the stylesheet that introduced a value this exporter
+ * could not reduce would regenerate cleanly, pass the staleness check, and
+ * hand designers a dangling reference. That happened the moment the lattice
+ * became `calc(var(--tantu-thread) * n)`: every spacing token in the system
+ * exported as literal formula text and the gate said nothing.
+ */
+function assertResolved(theme, label) {
+  const unresolved = Object.entries(theme)
+    .map(([name, raw]) => [name, resolve(theme, raw)])
+    .filter(([, value]) => typeof value === "string" && /\b(?:calc|var|round|clamp)\(/.test(value));
+  if (unresolved.length) {
+    console.error(
+      `${label}: ${unresolved.length} token(s) did not reduce to a literal, which a design tool ` +
+        `cannot import. Extend resolve()/reduceCalc() rather than shipping these:`,
+    );
+    for (const [name, value] of unresolved) console.error(`  ${name}: ${value}`);
+    process.exit(1);
+  }
+}
+assertResolved(light, "light");
+assertResolved(dark, "dark");
 
 const dtcgOut = {
   light: dtcg(light, "light"),
