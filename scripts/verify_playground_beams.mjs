@@ -111,7 +111,24 @@ try {
   check("changing the bath rewrites the register row",
     (await rowFor("Cotton 60s"))?.[2] === "iron liquor", (await rowFor("Cotton 60s"))?.[2]);
 
+  // The one control in Setup that was still wired to nothing. Its effect lands
+  // in the register like the other three, which is the whole reason the card
+  // now names the beam it is editing: every change here shows up over there.
+  // The native control sits behind the knotbox and is visually hidden, so
+  // click the label — which is what a pointer actually hits.
+  const mordant = page.locator(".tantu-toggle").filter({ hasText: "Mordant first" });
+  await mordant.click();
+  check("mordanting is recorded against the beam",
+    (await rowFor("Cotton 60s"))?.[2].includes("mordanted"), (await rowFor("Cotton 60s"))?.[2]);
+  await mordant.click();
+  check("and can be taken back off",
+    !(await rowFor("Cotton 60s"))?.[2].includes("mordanted"), (await rowFor("Cotton 60s"))?.[2]);
+  await mordant.click();
+
   await page.getByRole("tab", { name: "Warp" }).click();
+  check("the setup card names the beam it is editing",
+    (await page.locator(".tantu-card").filter({ hasText: "Setup" }).first().textContent())
+      .includes("Cotton 60s"));
   await field("Ends per inch").locator("input").fill("55");
   check("editing the ends rewrites the register row",
     (await rowFor("Cotton 60s"))?.[1] === "55", (await rowFor("Cotton 60s"))?.[1]);
@@ -192,6 +209,8 @@ try {
   check("it arrives at stock", (await tension()) === "0.5" && (await stage()) === "Wind",
     `${await tension()} / ${await stage()}`);
   check("and the loom is workable again", !(await opener.isDisabled()));
+  check("a freshly dressed beam is unmordanted",
+    !(await register())[0][2].includes("mordanted"), (await register())[0][2]);
 } finally {
   await browser.close();
   server.close();
