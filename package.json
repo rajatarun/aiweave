@@ -15,6 +15,7 @@
     "build:fonts": "python3 build.py",
     "build:storybook": "storybook build -o storybook-static",
     "audit:tension": "node scripts/verify_tension.mjs",
+    "audit:cut": "node scripts/verify_playground_cut.mjs",
     "qa:playground": "node scripts/qa_playground.mjs",
     "playground": "npm --prefix playground run dev",
     "storybook": "storybook dev -p 6006 --no-open",
@@ -22,7 +23,7 @@
     "test:watch": "vitest",
     "tokens": "node scripts/export_tokens.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
-    "verify": "npm run typecheck && npm run test && npm run tokens && npm run audit:a11y && npm run audit:bleed && npm run build && npm run audit:browser && npm run build:storybook && npm run audit:stories && npm --prefix playground run build && npm run audit:tension"
+    "verify": "npm run typecheck && npm run test && npm run tokens && npm run audit:a11y && npm run audit:bleed && npm run build && npm run audit:browser && npm run build:storybook && npm run audit:stories && npm --prefix playground run build && npm run audit:tension && npm run audit:cut"
   },
   "dependencies": {
     "react": "^19.0.0",

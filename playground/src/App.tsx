@@ -68,14 +68,49 @@ const BATHS: { id: BleedDye; label: string }[] = [
 
 const labelFor = (id: BleedDye) => BATHS.find((b) => b.id === id)?.label.toLowerCase() ?? id;
 
+const STAGES = [
+  { id: "warp", label: "Wind" },
+  { id: "dress", label: "Dress" },
+  { id: "weave", label: "Weave" },
+  { id: "cut", label: "Cut" },
+];
+
+/**
+ * What the beam holds when nothing has been set on it.
+ *
+ * Tension opens at 50 — the stock sett, so the first thing anyone sees is the
+ * system exactly as it ships rather than a setting someone chose. Cutting the
+ * cloth returns the beam to these, which is what makes the confirmation
+ * dialog a real decision rather than a demonstration of one.
+ */
+const STOCK = { tension: 50, bath: "madder" as BleedDye };
+
+/** The app opens mid-shift; a cut beam has to be wound again from nothing. */
+const OPENING_STAGE = "weave";
+const AFTER_CUT_STAGE = "warp";
+
 export default function App() {
   const [theme, setTheme] = useState<Theme>("light");
   const [direction, setDirection] = useState<Direction>("ltr");
   const [cutting, setCutting] = useState(false);
-  // Opens at 50 — the stock tension, so the first thing anyone sees is the
-  // system exactly as it ships rather than a setting someone chose.
-  const [tension, setTension] = useState(50);
-  const [bath, setBath] = useState<BleedDye>("madder");
+  const [tension, setTension] = useState(STOCK.tension);
+  const [bath, setBath] = useState<BleedDye>(STOCK.bath);
+  const [stage, setStage] = useState(OPENING_STAGE);
+  const [cuts, setCuts] = useState(0);
+
+  /**
+   * Cut the cloth: the piece comes off the beam and the beam goes back to
+   * stock. Both footer buttons used to call the same close, which made the
+   * word IRREVERSIBLE decoration — a confirmation is only a pattern worth
+   * showing if the two answers lead somewhere different.
+   */
+  function cutTheCloth() {
+    setTension(STOCK.tension);
+    setBath(STOCK.bath);
+    setStage(AFTER_CUT_STAGE);
+    setCuts((n) => n + 1);
+    setCutting(false);
+  }
 
   // Tantu reads all three from the document. Setting them here is the whole
   // of the integration — there is no provider, no context, no hook to
@@ -259,7 +294,12 @@ export default function App() {
             obverse={
               <>
                 <h2 style={{ fontFamily: "var(--tantu-font-display)", marginTop: 0 }}>Today</h2>
-                <p>Three beams dressed. One cut pending.</p>
+                <p>
+                  Three beams dressed.{" "}
+                  {cuts === 0
+                    ? "One cut pending."
+                    : `${cuts} cut${cuts > 1 ? "s" : ""} off the beam.`}
+                </p>
                 <p style={{ color: "var(--tantu-ink-secondary)" }}>Press the card.</p>
               </>
             }
@@ -395,20 +435,24 @@ export default function App() {
               ]}
             />
             <div style={{ marginTop: "var(--tantu-knot-4)" }}>
-              <TantuStepper
-                currentStepId="weave"
-                steps={[
-                  { id: "warp", label: "Wind" },
-                  { id: "dress", label: "Dress" },
-                  { id: "weave", label: "Weave" },
-                  { id: "cut", label: "Cut" },
-                ]}
-              />
+              <TantuStepper currentStepId={stage} steps={STAGES} />
             </div>
           </TantuCard>
         </TantuCell>
 
         <TantuCell warpSpan={12}>
+          {/* The outcome, announced rather than only drawn. TantuNotice carries
+              role="status" below the critical tone, so a reader who cannot see
+              the stepper fall back to Wind is still told the cut happened —
+              which is the part a destructive confirmation usually forgets. */}
+          {cuts > 0 ? (
+            <div style={{ marginBottom: "var(--tantu-knot-3)" }}>
+              <TantuNotice tone="success" title="Cloth cut">
+                Cut {cuts} came off the beam. Tension is back to stock, the vat is drained to
+                madder, and the progression has fallen back to Wind.
+              </TantuNotice>
+            </div>
+          ) : null}
           <div style={{ display: "flex", gap: "var(--tantu-knot-2)", justifyContent: "flex-end" }}>
             <TantuButton variant="ghost">Save draft</TantuButton>
             <TantuButton variant="primary" onClick={() => setCutting(true)}>
@@ -427,15 +471,20 @@ export default function App() {
               <TantuButton variant="ghost" onClick={() => setCutting(false)}>
                 Cancel
               </TantuButton>
-              <TantuButton variant="primary" onClick={() => setCutting(false)}>
+              <TantuButton variant="primary" onClick={cutTheCloth}>
                 Cut
               </TantuButton>
             </div>
           }
         >
           <p>
-            Once the selvedge is crossed the cloth cannot be re-tensioned on this beam. Hold Tab
-            — focus stays inside this panel, and Escape hands it back to the button that opened it.
+            Once the selvedge is crossed the cloth cannot be re-tensioned on this beam. Cutting
+            takes the piece off and returns the beam to stock: the warp tension you set, the
+            bath you chose and the progression through the shift are all lost.
+          </p>
+          <p>
+            Hold Tab — focus stays inside this panel, and Escape hands it back to the button that
+            opened it. Cancel and Cut both close it; only one of them empties the beam.
           </p>
         </TantuDialog>
       </TantuLoom>
