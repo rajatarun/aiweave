@@ -144,6 +144,14 @@
       "value": "768px",
       "type": "sizing"
     },
+    "tantu.tension": {
+      "value": "0.5",
+      "type": "other"
+    },
+    "tantu.thread": {
+      "value": "6px",
+      "type": "sizing"
+    },
     "tantu.knot.1": {
       "value": "6px",
       "type": "sizing"
@@ -186,6 +194,10 @@
     },
     "tantu.gauge.braid": {
       "value": "6px",
+      "type": "sizing"
+    },
+    "tantu.target.min": {
+      "value": "24px",
       "type": "sizing"
     },
     "tantu.font.display.fallback": {
@@ -390,6 +402,14 @@
       "value": "768px",
       "type": "sizing"
     },
+    "tantu.tension": {
+      "value": "0.5",
+      "type": "other"
+    },
+    "tantu.thread": {
+      "value": "6px",
+      "type": "sizing"
+    },
     "tantu.knot.1": {
       "value": "6px",
       "type": "sizing"
@@ -432,6 +452,10 @@
     },
     "tantu.gauge.braid": {
       "value": "6px",
+      "type": "sizing"
+    },
+    "tantu.target.min": {
+      "value": "24px",
       "type": "sizing"
     },
     "tantu.font.display.fallback": {

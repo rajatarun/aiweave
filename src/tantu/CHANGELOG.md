@@ -35,6 +35,33 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
 
 ### Added
 
+- **`--tantu-tension` — density as a physical parameter rather than a set of
+  presets.** A weaver sets warp tension before anything else, and it decides
+  the sett: how close the threads sit. Slack warp, open cloth; taut warp,
+  dense cloth. `--tantu-tension` (0 slack, 1 taut) resolves to
+  `--tantu-thread`, and every knot on the base-6 lattice is a multiple of
+  that one thread, so the whole scale moves together because it shares a
+  cause. The counted-thread voice tracks with it too — alone among the four
+  type roles, because Kasuti letterforms are built on the thread grid, so
+  there the letters really are the threads.
+
+  The thread is quantised to whole pixels: a fractional thread does not
+  exist, which is the same rule `JamdaniBlock` already applies when it rounds
+  a column to whole picks.
+
+  **The default changes nothing.** At `0.5` the scale is 6/12/18/24/36/48/72
+  — exactly what it has always been — and a check asserts those twelve values
+  rather than trusting the arithmetic.
+
+  This is the need other systems ship as "density": two or three presets,
+  each value chosen by taste and tuned independently of its neighbours. One
+  cause instead of an enumeration means the values cannot drift apart.
+
+  Not everything answers the dial, deliberately. `--tantu-gauge-filament`
+  holds at 1px because below that a hairline renders blurry or vanishes, and
+  `--tantu-gauge-ply` holds because it is the focus ring's weight — a focus
+  ring that thins under a density setting is an accessibility regression
+  wearing a metaphor.
 - **The wicking constants are one number each, not two that happened to
   agree.** `WICK_T0` and `WICK_ANISOTROPY` were exported from `lib/bleed-bus`
   for the CSS-driven fronts, and separately hand-typed as bare GLSL literals
@@ -166,6 +193,16 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
 
 ### Fixed
 
+- **Two WCAG 2.5.8 fixes were expressed in a token that could shrink.** The
+  stepper step and the slider track each satisfied the 24×24 minimum with
+  `min-height: var(--tantu-knot-4)` — correct at the time, because knot-4 was
+  24px. It was 24px only because the default sett made it so. The first run
+  of the tension dial at full tension took both to 16px tall and silently
+  re-broke two criteria that had already been fixed, and none of the six
+  existing sweeps could see it, because all of them run at the default.
+  There is now a `--tantu-target-min` held outside the sett, and
+  `npm run audit:tension` exercises both extremes so the next density-shaped
+  idea cannot do the same thing quietly.
 - **The WebGL pooling check had never checked anything.** Tantu's claim is
   that a page shares exactly one WebGL context however many bleed surfaces sit
   on it. The check walked `document.querySelectorAll("canvas")` and asked each
