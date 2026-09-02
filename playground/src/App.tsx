@@ -44,11 +44,26 @@ import "@aiweave/tantu/fonts.css";
 type Theme = "light" | "dark";
 type Direction = "ltr" | "rtl";
 
-const BEAMS = [
-  { id: "b1", warp: "Cotton 40s", picks: 48, dye: "Madder root", tension: "9.0 N" },
-  { id: "b2", warp: "Cotton 60s", picks: 62, dye: "Indigo vat", tension: "8.4 N" },
-  { id: "b3", warp: "Tussar silk", picks: 71, dye: "Katha bark", tension: "6.2 N" },
-];
+/**
+ * A beam is the whole state of one piece of work. The register is not a
+ * decorative table beside the controls — it *is* what the controls edit, so
+ * putting a beam on the loom loads its tension and its bath, and moving either
+ * writes back into the row you can see.
+ */
+interface Beam {
+  id: string;
+  warp: string;
+  picks: number;
+  dye: BleedDye;
+  /** Percent, the same scale the slider speaks. Newtons are for reading. */
+  tension: number;
+  stage: string;
+}
+
+const WARPS = ["Cotton 40s", "Cotton 60s", "Tussar silk"];
+
+/** Display only. A loom is dressed in newtons; a slider is not. */
+const newtons = (percent: number) => `${(4 + 8 * (percent / 100)).toFixed(1)} N`;
 
 /**
  * The five baths the capillary engine knows how to mix.
@@ -75,40 +90,69 @@ const STAGES = [
   { id: "cut", label: "Cut" },
 ];
 
-/**
- * What the beam holds when nothing has been set on it.
- *
- * Tension opens at 50 — the stock sett, so the first thing anyone sees is the
- * system exactly as it ships rather than a setting someone chose. Cutting the
- * cloth returns the beam to these, which is what makes the confirmation
- * dialog a real decision rather than a demonstration of one.
- */
-const STOCK = { tension: 50, bath: "madder" as BleedDye };
+/** What a freshly dressed beam carries before anyone touches it. */
+const STOCK = { tension: 50, dye: "madder" as BleedDye, picks: 48, stage: "warp" };
 
-/** The app opens mid-shift; a cut beam has to be wound again from nothing. */
-const OPENING_STAGE = "weave";
-const AFTER_CUT_STAGE = "warp";
+/**
+ * The register at the start of the shift. The first beam is at stock tension
+ * so the page opens as the system ships rather than at a setting someone
+ * chose; the other two are mid-shift, which is what a register looks like.
+ */
+const INITIAL_BEAMS: Beam[] = [
+  { id: "b1", warp: "Cotton 40s", picks: 48, dye: "madder", tension: STOCK.tension, stage: "weave" },
+  { id: "b2", warp: "Cotton 60s", picks: 62, dye: "indigo", tension: 68, stage: "dress" },
+  { id: "b3", warp: "Tussar silk", picks: 71, dye: "marigold", tension: 34, stage: "warp" },
+];
 
 export default function App() {
   const [theme, setTheme] = useState<Theme>("light");
   const [direction, setDirection] = useState<Direction>("ltr");
   const [cutting, setCutting] = useState(false);
-  const [tension, setTension] = useState(STOCK.tension);
-  const [bath, setBath] = useState<BleedDye>(STOCK.bath);
-  const [stage, setStage] = useState(OPENING_STAGE);
-  const [cuts, setCuts] = useState(0);
+  const [beams, setBeams] = useState<Beam[]>(INITIAL_BEAMS);
+  const [activeId, setActiveId] = useState<string | null>(INITIAL_BEAMS[0].id);
+  const [cutLog, setCutLog] = useState<string[]>([]);
+  const [dressed, setDressed] = useState(0);
+
+  // One source of truth. Tension, bath and progression are not three
+  // independent settings that happen to sit near a table — they are the beam
+  // the loom is carrying, which is why moving one updates the row.
+  const active = beams.find((b) => b.id === activeId) ?? null;
+  const tension = active?.tension ?? STOCK.tension;
+  const bath = active?.dye ?? STOCK.dye;
+  const stage = active?.stage ?? STOCK.stage;
+
+  const editActive = (patch: Partial<Beam>) =>
+    setBeams((bs) => bs.map((b) => (b.id === activeId ? { ...b, ...patch } : b)));
+
+  /** Dress a new beam and put it straight on the loom, at stock. */
+  function dressBeam() {
+    const n = dressed + 1;
+    const beam: Beam = {
+      id: `n${n}`,
+      warp: WARPS[n % WARPS.length],
+      picks: STOCK.picks,
+      dye: STOCK.dye,
+      tension: STOCK.tension,
+      stage: STOCK.stage,
+    };
+    setDressed(n);
+    setBeams((bs) => [...bs, beam]);
+    setActiveId(beam.id);
+  }
 
   /**
-   * Cut the cloth: the piece comes off the beam and the beam goes back to
-   * stock. Both footer buttons used to call the same close, which made the
-   * word IRREVERSIBLE decoration — a confirmation is only a pattern worth
-   * showing if the two answers lead somewhere different.
+   * Cut the cloth: the piece comes off, and the beam leaves the register for
+   * good. Both footer buttons used to call the same close, which made the word
+   * IRREVERSIBLE decoration — a confirmation is only a pattern worth showing if
+   * the two answers lead somewhere different. The loom takes up whatever is
+   * still dressed, or stands empty.
    */
   function cutTheCloth() {
-    setTension(STOCK.tension);
-    setBath(STOCK.bath);
-    setStage(AFTER_CUT_STAGE);
-    setCuts((n) => n + 1);
+    if (!active) return;
+    const remaining = beams.filter((b) => b.id !== active.id);
+    setBeams(remaining);
+    setActiveId(remaining[0]?.id ?? null);
+    setCutLog((log) => [...log, active.warp]);
     setCutting(false);
   }
 
@@ -177,17 +221,53 @@ export default function App() {
         <TantuCell warpSpan={6}>
           <TantuCard talimCode="BEAM">
             <h2 style={{ fontFamily: "var(--tantu-font-display)", marginTop: 0 }}>Beam register</h2>
+            <p style={{ color: "var(--tantu-ink-secondary)", marginTop: 0 }}>
+              Put a beam on the loom and every control below picks it up. Move the tension or
+              change the bath and the row you are reading changes with it — the register is the
+              state, not a picture of it.
+            </p>
             <TantuTable
               caption="Beams currently dressed"
-              rows={BEAMS}
+              rows={beams}
               rowKey={(r) => r.id}
+              empty="Every beam is cut. Dress another to put something back on the loom."
               columns={[
                 { key: "warp", header: "Warp", cell: (r) => r.warp },
                 { key: "picks", header: "Picks / in", cell: (r) => r.picks },
-                { key: "dye", header: "Dye", cell: (r) => <TantuTag tone="accent">{r.dye}</TantuTag> },
-                { key: "tension", header: "Tension", cell: (r) => r.tension },
+                {
+                  key: "dye",
+                  header: "Dye",
+                  cell: (r) => <TantuTag tone="accent">{labelFor(r.dye)}</TantuTag>,
+                },
+                { key: "tension", header: "Tension", cell: (r) => newtons(r.tension) },
+                {
+                  key: "loom",
+                  header: "On the loom",
+                  cell: (r) =>
+                    r.id === activeId ? (
+                      <TantuTag tone="accent">Dressed</TantuTag>
+                    ) : (
+                      // The visible word is inside the accessible name, which is
+                      // what WCAG 2.5.3 asks for — a row of buttons all reading
+                      // "Dress" is ambiguous to anyone listing them, and an
+                      // aria-label that replaced the word rather than extending
+                      // it would break speech input instead.
+                      <TantuButton
+                        variant="ghost"
+                        aria-label={`Dress ${r.warp}`}
+                        onClick={() => setActiveId(r.id)}
+                      >
+                        Dress
+                      </TantuButton>
+                    ),
+                },
               ]}
             />
+            <div style={{ marginTop: "var(--tantu-knot-3)" }}>
+              <TantuButton variant="secondary" onClick={dressBeam}>
+                Dress a new beam
+              </TantuButton>
+            </div>
           </TantuCard>
         </TantuCell>
 
@@ -195,6 +275,9 @@ export default function App() {
           <TantuCard talimCode="TENSION">
             <h2 style={{ fontFamily: "var(--tantu-font-display)", marginTop: 0 }}>Warp tension</h2>
             <p style={{ color: "var(--tantu-ink-secondary)", marginTop: 0 }}>
+              {active
+                ? `Dressing ${active.warp}, at ${newtons(active.tension)}. `
+                : "No beam on the loom. Dress one in the register to the side. "}
               Drag this and watch the whole page re-sett, not just this card. Tension
               decides how close the threads sit, and every measurement in the system
               descends from that one number — so the gaps, the rules and the
@@ -207,7 +290,8 @@ export default function App() {
                 min={0}
                 max={100}
                 value={tension}
-                onChange={setTension}
+                disabled={!active}
+                onChange={(v) => editActive({ tension: v })}
               />
             </div>
 
@@ -255,10 +339,28 @@ export default function App() {
                   label: "Warp",
                   content: (
                     <div style={{ display: "grid", gap: "var(--tantu-knot-3)", paddingTop: "var(--tantu-knot-2)" }}>
-                      <TantuInput label="Ends per inch" audio={false} defaultValue="48" />
-                      <TantuSelect label="Fibre" defaultValue="cotton">
-                        <option value="cotton">Cotton 40s</option>
-                        <option value="silk">Tussar silk</option>
+                      <TantuInput
+                        label="Ends per inch"
+                        audio={false}
+                        type="number"
+                        min={1}
+                        value={active ? String(active.picks) : ""}
+                        disabled={!active}
+                        onChange={(e) =>
+                          editActive({ picks: Number(e.target.value) || 0 })
+                        }
+                      />
+                      <TantuSelect
+                        label="Fibre"
+                        value={active?.warp ?? WARPS[0]}
+                        disabled={!active}
+                        onChange={(e) => editActive({ warp: e.target.value })}
+                      >
+                        {WARPS.map((w) => (
+                          <option key={w} value={w}>
+                            {w}
+                          </option>
+                        ))}
                       </TantuSelect>
                     </div>
                   ),
@@ -271,8 +373,9 @@ export default function App() {
                       <TantuSelect
                         label="Bath"
                         value={bath}
-                        onChange={(e) => setBath(e.target.value as BleedDye)}
-                        hint="Changes the dye in the vat below."
+                        disabled={!active}
+                        onChange={(e) => editActive({ dye: e.target.value as BleedDye })}
+                        hint="Dyes the beam on the loom, and the vat below."
                       >
                         {BATHS.map((b) => (
                           <option key={b.id} value={b.id}>
@@ -295,10 +398,10 @@ export default function App() {
               <>
                 <h2 style={{ fontFamily: "var(--tantu-font-display)", marginTop: 0 }}>Today</h2>
                 <p>
-                  Three beams dressed.{" "}
-                  {cuts === 0
+                  {beams.length} beam{beams.length === 1 ? "" : "s"} dressed.{" "}
+                  {cutLog.length === 0
                     ? "One cut pending."
-                    : `${cuts} cut${cuts > 1 ? "s" : ""} off the beam.`}
+                    : `${cutLog.length} cut${cutLog.length > 1 ? "s" : ""} off the beam.`}
                 </p>
                 <p style={{ color: "var(--tantu-ink-secondary)" }}>Press the card.</p>
               </>
@@ -412,16 +515,18 @@ export default function App() {
         <TantuCell warpSpan={6}>
           <TantuCard talimCode="RATE">
             <h2 style={{ fontFamily: "var(--tantu-font-display)", marginTop: 0 }}>Picks per inch</h2>
-            <KasutiMatrix
-              caption="By loom, this shift"
-              audio={false}
-              data={[
-                { label: "Loom 1", value: 48 },
-                { label: "Loom 2", value: 62 },
-                { label: "Loom 3", value: 71 },
-                { label: "Loom 4", value: 55 },
-              ]}
-            />
+            {/* Read off the register, so "Ends per inch" in Setup has somewhere
+                visible to land. A chart beside a table that disagrees with it is
+                worse than no chart. */}
+            {beams.length ? (
+              <KasutiMatrix
+                caption="By beam, this shift"
+                audio={false}
+                data={beams.map((b) => ({ label: b.warp, value: b.picks }))}
+              />
+            ) : (
+              <p style={{ color: "var(--tantu-ink-secondary)" }}>Nothing on any loom to count.</p>
+            )}
           </TantuCard>
         </TantuCell>
 
@@ -435,7 +540,15 @@ export default function App() {
               ]}
             />
             <div style={{ marginTop: "var(--tantu-knot-4)" }}>
-              <TantuStepper currentStepId={stage} steps={STAGES} />
+              {/* Each beam carries its own progression, so this moves when a
+                  different beam goes on the loom. Without onChange the stepper
+                  renders its stops disabled, which is the right read when there
+                  is nothing dressed to advance. */}
+              <TantuStepper
+                currentStepId={stage}
+                steps={STAGES}
+                onChange={active ? (id) => editActive({ stage: id }) : undefined}
+              />
             </div>
           </TantuCard>
         </TantuCell>
@@ -445,17 +558,20 @@ export default function App() {
               role="status" below the critical tone, so a reader who cannot see
               the stepper fall back to Wind is still told the cut happened —
               which is the part a destructive confirmation usually forgets. */}
-          {cuts > 0 ? (
+          {cutLog.length > 0 ? (
             <div style={{ marginBottom: "var(--tantu-knot-3)" }}>
               <TantuNotice tone="success" title="Cloth cut">
-                Cut {cuts} came off the beam. Tension is back to stock, the vat is drained to
-                madder, and the progression has fallen back to Wind.
+                Cut {cutLog.length}: {cutLog[cutLog.length - 1]} came off the beam and left the
+                register.{" "}
+                {active
+                  ? `The loom has taken up ${active.warp}.`
+                  : "Nothing is on the loom — dress a beam to start another piece."}
               </TantuNotice>
             </div>
           ) : null}
           <div style={{ display: "flex", gap: "var(--tantu-knot-2)", justifyContent: "flex-end" }}>
             <TantuButton variant="ghost">Save draft</TantuButton>
-            <TantuButton variant="primary" onClick={() => setCutting(true)}>
+            <TantuButton variant="primary" disabled={!active} onClick={() => setCutting(true)}>
               Cut the cloth
             </TantuButton>
           </div>
@@ -479,8 +595,9 @@ export default function App() {
         >
           <p>
             Once the selvedge is crossed the cloth cannot be re-tensioned on this beam. Cutting
-            takes the piece off and returns the beam to stock: the warp tension you set, the
-            bath you chose and the progression through the shift are all lost.
+            takes {active?.warp ?? "the piece"} off and strikes it from the register — the
+            tension you set, the bath you chose and the progression through the shift go with
+            it. The loom takes up whatever is still dressed.
           </p>
           <p>
             Hold Tab — focus stays inside this panel, and Escape hands it back to the button that

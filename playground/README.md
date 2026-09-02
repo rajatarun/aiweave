@@ -27,6 +27,17 @@ Then open http://localhost:5173.
 
 ## What to try
 
+- **Put a different beam on the loom.** The beam register is the app's state,
+  not a table beside it. Pressing *Dress* on a row loads that beam's tension,
+  its bath and its place in the shift; moving the tension slider or changing
+  the bath writes straight back into the row you are reading, and the picks
+  chart is drawn from the same array. Each beam keeps its own progression, so
+  switching away and back does not lose where you were.
+- **Cut a beam, then cut the rest.** Cutting strikes the beam from the register
+  for good and the loom takes up whatever is still dressed. Take it all the way
+  to empty: the controls disable, the sett falls back to stock, and *Dress a new
+  beam* puts something back on. An app whose last row can be removed has an
+  empty state whether or not anyone designed one.
 - **Press the five dye squares in the vat.** This is the part of Tantu nothing
   else in the system does, and it is not a metaphor in the code: the dye front
   follows the Lucas–Washburn wicking law, `L ∝ √t`, which is a genuinely
@@ -57,10 +68,9 @@ Then open http://localhost:5173.
 - **Open "Cut the cloth" and hold Tab.** Focus stays inside the panel — the
   page behind the scrim is unreachable, which is what `aria-modal` promises and
   what the browser does not enforce. Escape hands focus back to the button that
-  opened it. Then set a tension and a bath, and actually press Cut: the piece
-  comes off the beam and the beam goes back to stock, so Cancel and Cut lead
-  somewhere different. A confirmation whose two answers do the same thing is a
-  screenshot of the pattern rather than the pattern.
+  opened it. Cancel and Cut lead somewhere different — a confirmation whose two
+  answers do the same thing is a screenshot of the pattern rather than the
+  pattern — and the outcome is announced through a live region, not only drawn.
 - **Press the "Today" card.** The reverse wicks through as dye spreading into
   cloth, on the Lucas–Washburn law. Half the travel happens in the first third
   of the duration.
