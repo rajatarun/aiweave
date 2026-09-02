@@ -403,7 +403,9 @@ export default function App() {
                     ? "One cut pending."
                     : `${cutLog.length} cut${cutLog.length > 1 ? "s" : ""} off the beam.`}
                 </p>
-                <p style={{ color: "var(--tantu-ink-secondary)" }}>Press the card.</p>
+                <p style={{ color: "var(--tantu-ink-secondary)" }}>
+                  Turn it over — the dye wicks across on the same law as the vat below.
+                </p>
               </>
             }
             reverse={

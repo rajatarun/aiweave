@@ -96,8 +96,13 @@ export const RumalCard: Story = {
           "read in mirror. Turning it over is not a flip — the reverse wicks through as dye " +
           "spreading into cloth, on the Lucas–Washburn law, and the front position is " +
           "genuinely `√t` rather than an ease-out that resembles it.\n\n" +
-          "Press the card. Half the travel is done in the first third of the duration; the " +
-          "rest is the long crawl real cloth shows.",
+          "Press *Turn the cloth*. Half the travel is done in the first third of the duration; " +
+          "the rest is the long crawl real cloth shows. The dye spreads from the trigger's own " +
+          "centre, so a keyboard activation — which carries no pointer coordinates — starts " +
+          "from where the reader actually pressed.\n\n" +
+          "The card is uncontrolled here. Pass `isFlipped` with `onFlipChange` to drive it from " +
+          "outside; pass `isFlipped` alone and no trigger is rendered at all, since a control " +
+          "wired to nothing is worse than no control.",
       },
     },
   },

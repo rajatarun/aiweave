@@ -2113,6 +2113,42 @@ body:has(.tantu-loom-substrate) .tantu-loom {
   pointer-events: auto;
 }
 
+/* The trigger that turns the cloth.
+   It takes --tantu-rumal-ink, the face's own text colour, so one rule reads on
+   cream and on indigo — the pairing each face already declares alongside its
+   dye. Taking the ink at full strength rather than fading it is deliberate:
+   this is 11px uppercase, nowhere near large-text thresholds, so a
+   translucent version would be a contrast failure that only shows up on one
+   of the two faces.
+
+   The focus ring is the exception to the system's ring. Every other control
+   draws --tantu-accent-structural, which is exactly the reverse face's dye —
+   a structural ring on a structural ground is invisible. The face's ink is
+   the only colour guaranteed to read on whichever side is showing. */
+.tantu-rumal-flip {
+  appearance: none;
+  background: none;
+  border: 0;
+  margin-block-start: var(--tantu-knot-2);
+  padding-inline: var(--tantu-knot-1);
+  min-block-size: var(--tantu-target-min);
+  display: inline-flex;
+  align-items: center;
+  color: var(--tantu-rumal-ink);
+  font-family: var(--tantu-font-meta);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  cursor: pointer;
+}
+
+.tantu-rumal-flip:focus-visible {
+  outline: var(--tantu-gauge-ply) solid var(--tantu-rumal-ink);
+  outline-offset: 2px;
+}
+
 /* The static resting shape of each state.
    Without these the component depends on the page-level flip script to ever
    show its reverse: the `isFlipped` prop flipped `data-state` and raised the
