@@ -193,6 +193,38 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
 
 ### Fixed
 
+- **`ChambaRumalCard` could not be turned over.** The component took an
+  `isFlipped` prop and nothing else — no trigger, no state, no animation — so
+  the dye-wick reveal that is the entire point of a Dorukha card was
+  unreachable from React. It existed only as a hand-written script on one
+  static page. Consumers rendered the card, wrote "press the card" underneath
+  it, and shipped a promise the component could not keep; nothing caught it,
+  because a card that never turns still renders, still passes axe, and still
+  looks right in a screenshot.
+
+  The flip is now the component's own, and the growth law is imported rather
+  than retyped: `wickProgress` and `wickRadii` from `lib/bleed-bus` are the
+  same Lucas–Washburn functions the WebGL shader uses, so the DOM front and the
+  GLSL front cannot drift into different physics. The card mounts its own
+  `InkBleedFilter` under a generated id, so the frayed edge works standalone
+  instead of depending on the consumer having rendered a filter with the right
+  name somewhere on the page.
+
+  New props, all optional and all additive: `defaultFlipped`, `onFlipChange`,
+  `flipLabel`, `backLabel`, `trigger`. `isFlipped` keeps its meaning — passing
+  it still makes the card controlled. Passing it *without* `onFlipChange`
+  renders no trigger at all, which is deliberate: a control wired to nothing is
+  worse than no control, and that is precisely the defect being fixed here.
+
+  Two accessibility details came with it. The face not showing is
+  `aria-hidden`, and its trigger is held out of the tab order — so activating
+  the flip moves focus onto the equivalent control on the face now showing,
+  rather than stranding a keyboard reader inside a subtree screen readers have
+  been told to ignore. And `.tantu-rumal-flip` draws its focus ring in
+  `--tantu-rumal-ink`, the face's own text colour, instead of the system's
+  `--tantu-accent-structural` — which is exactly the reverse face's dye, and
+  would have been an invisible ring on the dyed side.
+
 - **Two WCAG 2.5.8 fixes were expressed in a token that could shrink.** The
   stepper step and the slider track each satisfied the 24×24 minimum with
   `min-height: var(--tantu-knot-4)` — correct at the time, because knot-4 was

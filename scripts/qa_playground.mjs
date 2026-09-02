@@ -250,6 +250,41 @@ try {
     `${before.length} vs ${during.length} bytes`,
   );
 
+  /* ---- The shift card turns over --------------------------------------- */
+  // ChambaRumalCard was a controlled prop and nothing else: no trigger, no
+  // state, no animation. The card rendered, passed axe, and could not be
+  // turned — while the copy beneath it said to press it. jsdom cannot see this
+  // one, because what proves the flip real is pixels moving under a clip-path
+  // driven frame by frame.
+  const rumal = page.locator(".tantu-card-rumal").first();
+  const turn = rumal.getByRole("button", { name: "Turn the cloth" });
+  check("the shift card offers a way to turn it", (await turn.count()) === 1);
+
+  const front = await rumal.screenshot();
+  await turn.click();
+  await page.waitForTimeout(260);
+  const wicking = await rumal.screenshot();
+  check(
+    "the dye is mid-travel across the card",
+    Buffer.compare(front, wicking) !== 0,
+    `${front.length} vs ${wicking.length} bytes`,
+  );
+
+  await page.waitForTimeout(1900);
+  check(
+    "it comes to rest showing the reverse",
+    (await rumal.getAttribute("data-state")) === "reverse",
+    await rumal.getAttribute("data-state"),
+  );
+  check(
+    "and focus followed onto the face now showing",
+    (await page.evaluate(() => document.activeElement?.textContent?.trim())) === "Turn back",
+    await page.evaluate(() => document.activeElement?.textContent?.trim()),
+  );
+  await rumal.getByRole("button", { name: "Turn back" }).click();
+  await page.waitForTimeout(2100);
+  check("and turns back", (await rumal.getAttribute("data-state")) === "obverse");
+
   /* ---- Layout: no two-axis scrolling anywhere it matters ---------------- */
   for (const dir of ["ltr", "rtl"]) {
     for (const width of [1280, 768, 390, 320]) {

@@ -85,6 +85,35 @@ const PAGE_LEVEL_RULES = [
   "document-title",
 ];
 
+/**
+ * Run an axe evaluation, waiting out the other client.
+ *
+ * There are two axe callers in the preview iframe, not one. This sweep injects
+ * its own axe-core and calls `axe.run`; `@storybook/addon-a11y`, registered in
+ * .storybook/main.ts, runs axe against each story as it renders. They share
+ * one instance, axe refuses concurrent runs, and whichever arrives second gets
+ * "Axe is already running" — which surfaced as an intermittent CI failure on
+ * whichever story happened to lose the race, unrelated to whatever had
+ * changed. A gate that fails at random is a gate people learn to re-run
+ * instead of read.
+ *
+ * So wait for the other run to finish. Only that one error is retried, and
+ * only a bounded number of times: any other failure, and a run that never
+ * comes free, still fails the sweep. Suppressing the error rather than the
+ * collision would be suppressing real results.
+ */
+async function runAxe(page, evaluator, arg) {
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    try {
+      return await page.evaluate(evaluator, arg);
+    } catch (error) {
+      if (!/Axe is already running/i.test(String(error))) throw error;
+      await page.waitForTimeout(250);
+    }
+  }
+  throw new Error("axe never came free — the addon's own run did not settle");
+}
+
 const failures = [];
 const contrastFailures = [];
 let checked = 0;
@@ -135,7 +164,8 @@ try {
         // Only worth measuring once the story is known to have rendered —
         // axe over an empty frame reports a clean bill of health.
         await page.addScriptTag({ content: AXE_SOURCE });
-        const violations = await page.evaluate(
+        const violations = await runAxe(
+          page,
           async (disabled) =>
             (
               await window.axe.run("#storybook-root", {
@@ -266,7 +296,8 @@ try {
         // the shape of mistake that put a fixed white label on a solid tag.
         // Contrast stays enabled here.
         await phone.addScriptTag({ content: AXE_SOURCE });
-        const lensViolations = await phone.evaluate(
+        const lensViolations = await runAxe(
+          phone,
           async (disabled) =>
             (
               await window.axe.run(".tantu-darshan", {
