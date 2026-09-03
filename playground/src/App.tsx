@@ -114,6 +114,7 @@ export default function App() {
   const [activeId, setActiveId] = useState<string | null>(INITIAL_BEAMS[0].id);
   const [cutLog, setCutLog] = useState<string[]>([]);
   const [dressed, setDressed] = useState(0);
+  const [dyed, setDyed] = useState("");
 
   // One source of truth. Tension, bath and progression are not three
   // independent settings that happen to sit near a table — they are the beam
@@ -125,6 +126,22 @@ export default function App() {
 
   const editActive = (patch: Partial<Beam>) =>
     setBeams((bs) => bs.map((b) => (b.id === activeId ? { ...b, ...patch } : b)));
+
+  /**
+   * Everything in the vat comes out the same colour.
+   *
+   * The register is above the vat, so the rows changing is feedback a reader
+   * has to already be looking at — hence the announcement, which carries
+   * role="status" and so reaches someone who cannot see the table at all.
+   */
+  function dyeEveryBeam() {
+    if (!beams.length) return;
+    setBeams((bs) => bs.map((b) => ({ ...b, dye: bath })));
+    setDyed(
+      `${beams.length} beam${beams.length === 1 ? "" : "s"} went into the ${labelFor(bath)} ` +
+        `bath. The register above carries the new dye on every row.`,
+    );
+  }
 
   /** Dress a new beam and put it straight on the loom, at stock. */
   function dressBeam() {
@@ -550,8 +567,25 @@ export default function App() {
                 that answers the gesture owns it, and the cloth beneath stays dry — press the
                 button, then press beside it.
               </p>
-              <TantuButton variant="primary">Commit the {labelFor(bath)} bath</TantuButton>
+              {/* This button used to read "Commit the madder bath" and have no
+                  handler at all. It was here to demonstrate gesture
+                  arbitration, which it does — but a label that names an action
+                  is a promise, and a vat that cannot dye anything is a strange
+                  thing to put on a page about dyeing. Now it does the work a
+                  vat does: everything in it comes out the same colour. */}
+              <TantuButton variant="primary" disabled={!beams.length} onClick={dyeEveryBeam}>
+                Dye {beams.length === 1 ? "the beam" : `all ${beams.length} beams`}{" "}
+                {labelFor(bath)}
+              </TantuButton>
             </CapillaryBleedSurface>
+
+            {dyed ? (
+              <div style={{ marginTop: "var(--tantu-knot-3)" }}>
+                <TantuNotice tone="success" title="Out of the vat">
+                  {dyed}
+                </TantuNotice>
+              </div>
+            ) : null}
           </TantuCard>
         </TantuCell>
 

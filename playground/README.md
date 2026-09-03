@@ -53,7 +53,9 @@ Then open http://localhost:5173.
 - **Press the button inside the long cloth, then press beside it.** One press
   is one dye front. The innermost thing that answers the gesture owns it and
   the cloth beneath stays dry; that arbitration is a shared bus, not a
-  per-component guess.
+  per-component guess. The button also does what a vat does — everything in it
+  comes out the same colour, so every row in the register takes the new dye at
+  once.
 - **Press the page margin, outside every card.** The ground is cloth too. It
   bleeds only where nothing above it has claimed the gesture.
 - **Six live surfaces, one WebGL context.** Safari caps live contexts and
