@@ -69,7 +69,17 @@ const browser = await launchChromium();
 const AXE_SOURCE = fs.readFileSync(path.resolve("node_modules/axe-core/axe.min.js"), "utf8");
 
 /** Rules that judge a page Tantu does not own, or need a real cascade. */
-const PAGE_LEVEL_RULES = ["region", "landmark-one-main", "page-has-heading-one"];
+/**
+ * Rules this sweep switches off — deliberately empty.
+ *
+ * It used to disable `region`, `landmark-one-main` and `page-has-heading-one`,
+ * inherited from the story sweep where they belong: a story renders a fragment,
+ * so demanding landmarks and an h1 of it is meaningless. The playground is a
+ * whole document and has to satisfy them like any other page. Left disabled,
+ * they hid a real finding on the public site — content sitting in no landmark
+ * at all — that only surfaced once a whole-page sweep ran them.
+ */
+const PAGE_LEVEL_RULES = [];
 
 try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
@@ -364,6 +374,30 @@ try {
   await page.getByRole("button", { name: /^(RTL|LTR)$/ }).click();
   await page.getByRole("button", { name: /^(Dark|Light)$/ }).click();
   await page.waitForTimeout(120);
+
+  /* ---- Drive the states that only exist after someone acts -------------- */
+  // Everything below this line — the restored-draft notice and its button, the
+  // vat's announcement, the cut announcement — is markup no sweep had ever
+  // rendered, because all of it needs a person to press something first. That
+  // is precisely how a 1.19:1 contrast failure once survived every check in
+  // this repository: the offending face was only reachable by flipping a card,
+  // and nothing ever flipped it. So put the page into its fullest state before
+  // axe, focus, target-size and forced-colours run over it.
+  await page.getByRole("button", { name: "Save draft" }).click();
+  await page.reload({ waitUntil: "networkidle" });
+  check(
+    "a saved draft comes back, and says that it is one",
+    (await page.locator(".tantu-notice").filter({ hasText: "Draft restored" }).count()) === 1,
+  );
+  // Cut before dyeing, not after: cutting changes how many beams are in the
+  // register, which is what makes "all 3 beams went into the bath" false, so
+  // the app withdraws that notice. Dyeing second leaves both on screen.
+  await page.getByRole("button", { name: "Cut the cloth" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Cut", exact: true }).click();
+  await page.getByRole("dialog").waitFor({ state: "detached" });
+  await page.getByRole("button", { name: /^Dye / }).click();
+  const showing = await page.locator(".tantu-notice").count();
+  check("every announcement is on screen for the sweeps below", showing >= 3, `${showing} notices`);
 
   /* ---- axe over the real thing, in all four combinations ---------------- */
   // color-contrast stays ENABLED. This is a real browser with a real cascade,

@@ -62,6 +62,18 @@ try {
     );
   const rowFor = async (warp) => (await register()).find((cells) => cells[0] === warp);
 
+  /**
+   * Text of a locator, or "" when it is not there.
+   *
+   * `check(...)`'s detail argument is evaluated before the call, so a bare
+   * `locator.innerText()` on a locator that is absent throws and takes the
+   * whole sweep down with a Playwright timeout — hiding the assertion that was
+   * about to fail behind a stack trace. Which is exactly what happened the
+   * first time these checks were negative-controlled.
+   */
+  const textOf = async (locator) =>
+    (await locator.count()) ? (await locator.innerText()).replace(/\s+/g, " ").trim() : "";
+
   const tension = () =>
     page.evaluate(() => document.documentElement.style.getPropertyValue("--tantu-tension"));
   const stage = () =>
@@ -181,9 +193,19 @@ try {
   check("the outcome is announced, not only drawn",
     (await notice.count()) === 1 && (await notice.getAttribute("role")) === "status");
   check("the notice names the beam that came off",
-    (await notice.innerText()).includes("Cotton 60s"), (await notice.innerText()).replace(/\n/g, " "));
+    (await textOf(notice)).includes("Cotton 60s"), await textOf(notice));
   check("focus returns to the opener",
     (await page.evaluate(() => document.activeElement?.textContent?.trim())) === "Cut the cloth");
+
+  // The sentence describes something that already happened, so it must not
+  // rewrite itself afterwards. Read live off the active beam, "the loom took
+  // up X" silently changed every time a different beam was dressed — turning a
+  // true statement about the past into a false one about a thing the cut
+  // never did.
+  await page.getByRole("button", { name: "Dress Tussar silk" }).click();
+  check("the cut notice does not rewrite itself when another beam is dressed",
+    (await textOf(notice)).includes("took up Cotton 40s"), await textOf(notice));
+  await page.getByRole("button", { name: "Dress Cotton 40s" }).click();
   check("the cut beam leaves the picks chart too",
     !(await chart()).includes("Cotton 60s") && (await chartNames()).length === 2, await chart());
 
@@ -227,8 +249,8 @@ try {
   await pickSpool("Bath", "Copper sulphate");
   const vatButton = page.getByRole("button", { name: /^Dye all 3 beams/ });
   check("the vat button counts what is in it",
-    (await vatButton.count()) === 1 && (await vatButton.innerText()).toLowerCase().includes("copper sulphate"),
-    await vatButton.innerText());
+    (await vatButton.count()) === 1 && (await textOf(vatButton)).toLowerCase().includes("copper sulphate"),
+    await textOf(vatButton));
 
   await vatButton.click();
   const dyedRows = await register();
@@ -239,7 +261,42 @@ try {
   const vatNotice = page.locator(".tantu-notice-success").filter({ hasText: "went into" });
   check("and the vat announces it, not only redraws the table",
     (await vatNotice.count()) === 1 && (await vatNotice.getAttribute("role")) === "status",
-    await vatNotice.innerText());
+    await textOf(vatNotice));
+
+  // "All 3 beams went into the copper bath" stops being true the moment one
+  // beam is re-dyed. A notice outliving its own truth is the same defect as a
+  // dead control, just quieter.
+  await pickSpool("Bath", "Marigold");
+  check("the vat's claim is withdrawn once it stops being true",
+    (await page.locator(".tantu-notice-success").filter({ hasText: "went into" }).count()) === 0);
+
+  // --- The draft survives a reload --------------------------------------
+  // "Save draft" was the last control on the page with no handler at all.
+  await page.getByRole("button", { name: "Save draft" }).click();
+  const savedNotice = page.locator(".tantu-notice").filter({ hasText: "Draft saved at" });
+  check("saving announces that it saved",
+    (await savedNotice.count()) === 1 && (await savedNotice.getAttribute("role")) === "status",
+    await textOf(savedNotice));
+
+  const beforeReload = await register();
+  await page.reload({ waitUntil: "networkidle" });
+  check("the register comes back after a reload",
+    JSON.stringify(await register()) === JSON.stringify(beforeReload),
+    JSON.stringify(await register()));
+  check("and says it is a draft rather than passing it off as the stock register",
+    (await page.locator(".tantu-notice").filter({ hasText: "Draft restored" }).count()) === 1);
+
+  await page.getByRole("button", { name: "Start fresh" }).click();
+  const fresh = await register();
+  check("starting fresh returns the register the app ships with",
+    fresh.length === 3 && fresh[0][0] === "Cotton 40s" && fresh[0][4] === "Dressed",
+    JSON.stringify(fresh));
+  check("and the sett is back to stock", (await tension()) === "0.5", await tension());
+
+  await page.reload({ waitUntil: "networkidle" });
+  check("the discarded draft does not come back",
+    (await register()).length === 3 &&
+      (await page.locator(".tantu-notice").filter({ hasText: "Draft restored" }).count()) === 0);
 } finally {
   await browser.close();
   server.close();

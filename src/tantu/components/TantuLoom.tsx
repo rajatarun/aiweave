@@ -41,10 +41,21 @@ export const TantuLoom = forwardRef<HTMLDivElement, TantuLoomProps>(function Tan
           them landmarks — two unnamed `complementary` regions plus a
           `navigation` region containing no navigation. A screen-reader user
           cycling landmarks got three stops that hold nothing to act on, and
-          the pair collided on axe's landmark-unique rule. The Talim code is
-          still exposed (TalimThread names it); it just no longer claims to be
-          a region of the page. Real navigation belongs in `children`. */}
-      <div className="tantu-selvedge-left">
+          the pair collided on axe's landmark-unique rule. Real navigation
+          belongs in `children`.
+
+          Making them plain divs fixed that and left a smaller problem behind:
+          content in no landmark at all, which is axe's `region`. It went
+          unseen because the story sweep disables that rule (a story is a
+          fragment, so it must) and no whole-page sweep ran it until now.
+
+          So they are decoration, and say so. A Talim code is a provenance
+          ornament — the loom's own stamp on the cloth — not something a reader
+          needs read aloud before the content starts. aria-hidden takes it out
+          of the tree entirely: no phantom landmark, no orphaned content, and
+          nothing announced that a reader cannot act on. It stays fully visible,
+          which is the point of it. */}
+      <div className="tantu-selvedge-left" aria-hidden="true">
         <TalimThread code={viewTalimCode} />
       </div>
 
@@ -56,7 +67,7 @@ export const TantuLoom = forwardRef<HTMLDivElement, TantuLoomProps>(function Tan
         <main className="tantu-loom-content">{children}</main>
       )}
 
-      <div className="tantu-selvedge-right">
+      <div className="tantu-selvedge-right" aria-hidden="true">
         <TalimThread code="END-OF-WEAVE" />
       </div>
 

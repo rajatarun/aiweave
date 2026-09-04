@@ -50,6 +50,50 @@ function check(name, ok, detail = "") {
   if (!ok) failures.push(name);
 }
 
+const AXE_SOURCE = fs.readFileSync(path.resolve("node_modules/axe-core/axe.min.js"), "utf8");
+
+/**
+ * Rules about the document as a whole rather than the components in it. The
+ * page supplies its own landmarks, title and lang; these are disabled in the
+ * story sweep because a story is a fragment, and kept here for exactly the
+ * opposite reason — this is a whole document, so it must satisfy them.
+ */
+const DISABLED_RULES = [];
+
+/**
+ * Run axe, waiting out the other caller.
+ *
+ * Nothing else injects axe into this page today, but the story sweep learned
+ * the hard way that two callers on one instance produce an intermittent "Axe
+ * is already running" that fails whichever check loses the race. Retrying only
+ * that error costs nothing and removes a class of flake before it appears.
+ */
+async function runAxe(page) {
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    try {
+      return await page.evaluate(
+        async (disabled) =>
+          (
+            await window.axe.run(document, {
+              rules: Object.fromEntries(disabled.map((id) => [id, { enabled: false }])),
+              resultTypes: ["violations"],
+            })
+          ).violations.map((v) => ({
+            id: v.id,
+            impact: v.impact,
+            html: v.nodes[0]?.html.slice(0, 110) ?? "",
+            summary: (v.nodes[0]?.failureSummary || "").replace(/\s+/g, " ").slice(0, 180),
+          })),
+        DISABLED_RULES,
+      );
+    } catch (error) {
+      if (!/Axe is already running/i.test(String(error))) throw error;
+      await page.waitForTimeout(250);
+    }
+  }
+  throw new Error("axe never came free");
+}
+
 if (!fs.existsSync("index.html")) {
   console.error("index.html not built — run `npm run build` first");
   process.exit(2);
@@ -544,6 +588,165 @@ try {
     "WCAG 1.4.12 text spacing: no content clipped by the four overrides",
     spacing.count === 0 && spacing.overflow <= 1,
     spacing.count ? `${spacing.count} clipped — ${spacing.clipped.join(", ")}` : `overflow ${spacing.overflow}px`,
+  );
+
+  /* ---- Consequence: the controls have to do the thing they name --------- */
+  // Every check above this line measures how the page *looks*. None of them
+  // presses anything. That gap is how six controls on the playground shipped
+  // rendering perfectly, passing every sweep, and doing nothing at all — and
+  // this page is the public one.
+
+  // Navigation. Each nav control is an in-page anchor; an href pointing at an
+  // id that is not on the page is a link that silently goes nowhere.
+  const nav = await page.evaluate(() =>
+    Array.from(document.querySelectorAll('a[href^="#"]')).map((a) => ({
+      href: a.getAttribute("href"),
+      label: (a.textContent || "").trim().slice(0, 24),
+      lands: Boolean(document.getElementById(a.getAttribute("href").slice(1))),
+    })),
+  );
+  const nowhere = nav.filter((l) => !l.lands);
+  check(
+    "every in-page link lands on a section that exists",
+    nav.length > 0 && nowhere.length === 0,
+    nowhere.length ? nowhere.map((l) => `${l.label} -> ${l.href}`).join(", ") : `${nav.length} links`,
+  );
+
+  // The theme toggle. Asserting the attribute alone would pass on a toggle
+  // that flips a string nothing is bound to, so read a real painted colour.
+  // documentElement, not body: this page paints its ground on the root and
+  // leaves body transparent, so reading body here would compare
+  // rgba(0,0,0,0) with itself and call a working toggle broken.
+  const readTheme = () =>
+    page.evaluate(() => ({
+      theme: document.documentElement.getAttribute("data-theme"),
+      bg: getComputedStyle(document.documentElement).backgroundColor,
+    }));
+  const themeBefore = await readTheme();
+  await page.locator("#theme-toggle").click();
+  await page.waitForFunction(
+    (was) => document.documentElement.getAttribute("data-theme") !== was,
+    themeBefore.theme,
+    { timeout: 5000 },
+  ).catch(() => {});
+  const themeAfter = await readTheme();
+  check(
+    "the theme toggle repaints the page, not just an attribute",
+    themeAfter.theme !== themeBefore.theme && themeAfter.bg !== themeBefore.bg,
+    `${themeBefore.theme}/${themeBefore.bg} -> ${themeAfter.theme}/${themeAfter.bg}`,
+  );
+  await page.locator("#theme-toggle").click();
+  await page.waitForTimeout(120);
+
+  // The dorukha cards. 48 flip triggers on this page, all driven by one
+  // delegated handler — so a selector change breaks every one of them at once,
+  // and nothing here would have noticed.
+  const flips = page.locator(".tantu-rumal-flip");
+  const flipCount = await flips.count();
+  const firstCard = page.locator(".tantu-card-rumal").first();
+  const stateBefore = await firstCard.getAttribute("data-state");
+  await firstCard.locator(".tantu-rumal-flip").first().click();
+  await page.waitForTimeout(2200);
+  const stateAfter = await firstCard.getAttribute("data-state");
+  check(
+    `the ${flipCount} flip triggers are wired, and a card turns over`,
+    flipCount > 0 && stateBefore === "obverse" && stateAfter === "reverse",
+    `${stateBefore} -> ${stateAfter}`,
+  );
+
+  // A reverse face is only reachable by flipping, which is exactly why its
+  // text once measured 1.19:1 while every sweep passed: nothing ever flipped
+  // it. Leave this card turned so the axe pass below sees a dyed face.
+  //
+  // Measure the ratio rather than trusting that a token is set. axe cannot do
+  // this one: the dye is painted by .tantu-rumal-rim-fill, a *sibling* of the
+  // text rather than an ancestor, so axe finds no background on the element's
+  // own chain and reports the pairing incomplete instead of failing it. That
+  // is the exact geometry the 1.19:1 defect hid in.
+  const dyedFace = await page.evaluate(() => {
+    // Scope to the reverse *face*, not the card: a card holds two faces, each
+    // with its own fill, and querying from the card returns the obverse's
+    // cream — which is a comfortable 14.57:1 and measures nothing.
+    const face = document.querySelector(
+      '.tantu-card-rumal[data-state="reverse"] .tantu-rumal-reverse',
+    );
+    if (!face) return null;
+    const content = face.querySelector(".tantu-rumal-content");
+    const fill = face.querySelector(".tantu-rumal-rim-fill");
+    if (!content || !fill) return null;
+
+    const parse = (c) => (c.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
+    const lin = (v) => {
+      const s = v / 255;
+      return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+    };
+    const lum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+    const ink = parse(getComputedStyle(content).color);
+    const dye = parse(getComputedStyle(fill).backgroundColor);
+    if (ink.length < 3 || dye.length < 3) return null;
+    const [hi, lo] = [lum(ink), lum(dye)].sort((a, b) => b - a);
+    return {
+      ratio: (hi + 0.05) / (lo + 0.05),
+      ink: getComputedStyle(content).color,
+      dye: getComputedStyle(fill).backgroundColor,
+    };
+  });
+  check(
+    "text on a turned card clears 4.5:1 against the dye it is printed on",
+    Boolean(dyedFace) && dyedFace.ratio >= 4.5,
+    dyedFace ? `${dyedFace.ratio.toFixed(2)}:1 — ${dyedFace.ink} on ${dyedFace.dye}` : "no reverse face found",
+  );
+
+  /* ---- axe, in all four combinations ----------------------------------- */
+  // The playground gets this. Storybook gets this on all 114 stories. The
+  // public page never did — and it is the one with the visitors on it.
+  // color-contrast stays ENABLED: a real engine is the only place it means
+  // anything. It runs with a card turned, so the dyed face is on screen.
+  for (const theme of ["light", "dark"]) {
+    for (const dir of ["ltr", "rtl"]) {
+      await page.evaluate(
+        ([t, d]) => {
+          document.documentElement.setAttribute("data-theme", t);
+          document.documentElement.setAttribute("dir", d);
+        },
+        [theme, dir],
+      );
+      await page.waitForTimeout(90);
+      await page.addScriptTag({ content: AXE_SOURCE });
+      const violations = await runAxe(page);
+      check(
+        `axe is clean in ${theme}/${dir}`,
+        violations.length === 0,
+        violations.map((v) => `${v.id}(${v.impact}) ${v.html} :: ${v.summary}`).join(" | "),
+      );
+    }
+  }
+  await page.evaluate(() => {
+    document.documentElement.setAttribute("data-theme", "light");
+    document.documentElement.setAttribute("dir", "ltr");
+  });
+
+  /* ---- WCAG 2.2 SC 2.5.8 target size ----------------------------------- */
+  // axe does not implement this one, so measure it. The visually hidden
+  // native control behind a custom one is not the target a pointer aims at.
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.waitForTimeout(80);
+  const undersized = await page.evaluate(() =>
+    Array.from(document.querySelectorAll('button, a[href], input, select, [tabindex="0"]'))
+      .filter((el) => !el.classList.contains("tantu-visually-hidden"))
+      .map((el) => {
+        const r = el.getBoundingClientRect();
+        return {
+          w: Math.round(r.width), h: Math.round(r.height),
+          what: `${el.tagName.toLowerCase()}.${(el.getAttribute("class") || "").split(" ")[0]}`,
+        };
+      })
+      .filter((t) => t.w > 0 && t.h > 0 && (t.w < 24 || t.h < 24)),
+  );
+  check(
+    "every interactive target clears 24x24 (WCAG 2.5.8)",
+    undersized.length === 0,
+    undersized.slice(0, 5).map((t) => `${t.what} ${t.w}x${t.h}`).join(", "),
   );
 } finally {
   await browser.close();

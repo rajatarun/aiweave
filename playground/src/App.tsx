@@ -106,15 +106,78 @@ const INITIAL_BEAMS: Beam[] = [
   { id: "b3", warp: "Tussar silk", picks: 71, dye: "marigold", tension: 34, mordant: true, stage: "warp" },
 ];
 
+/** One cut, recorded as it happened rather than recomputed later. */
+interface Cut {
+  warp: string;
+  tookUp: string | null;
+}
+
+const DRAFT_KEY = "tantu-playground-draft";
+
+interface Draft {
+  savedAt: string;
+  beams: Beam[];
+  activeId: string | null;
+  cutLog: Cut[];
+  dressed: number;
+}
+
+/**
+ * Read a saved draft, or decide there isn't one.
+ *
+ * This is the only place the app touches storage and the place most likely to
+ * fail: a browser set to block site data throws on access rather than
+ * returning null, and a draft written by an older build can be any shape at
+ * all. Both end the same way — no draft — because a playground that
+ * white-screens on a stale key is worse than one that forgets.
+ */
+function readDraft(): Draft | null {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Draft;
+    const beams = parsed?.beams;
+    if (!Array.isArray(beams)) return null;
+    // A shape check, not a schema: enough that the render cannot throw on it.
+    if (beams.some((b) => typeof b?.id !== "string" || typeof b?.warp !== "string")) return null;
+    return {
+      savedAt: typeof parsed.savedAt === "string" ? parsed.savedAt : "",
+      beams,
+      activeId: typeof parsed.activeId === "string" ? parsed.activeId : null,
+      cutLog: Array.isArray(parsed.cutLog) ? parsed.cutLog : [],
+      dressed: typeof parsed.dressed === "number" ? parsed.dressed : 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
+const clockTime = (iso: string) => {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? "an earlier session"
+    : d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+};
+
 export default function App() {
   const [theme, setTheme] = useState<Theme>("light");
   const [direction, setDirection] = useState<Direction>("ltr");
   const [cutting, setCutting] = useState(false);
-  const [beams, setBeams] = useState<Beam[]>(INITIAL_BEAMS);
-  const [activeId, setActiveId] = useState<string | null>(INITIAL_BEAMS[0].id);
-  const [cutLog, setCutLog] = useState<string[]>([]);
-  const [dressed, setDressed] = useState(0);
+
+  // Read once, at first render rather than in an effect: restoring after paint
+  // would show the stock register and then swap it, which reads as a glitch.
+  const [draft] = useState(readDraft);
+  const [beams, setBeams] = useState<Beam[]>(draft?.beams ?? INITIAL_BEAMS);
+  const [activeId, setActiveId] = useState<string | null>(
+    draft ? draft.activeId : INITIAL_BEAMS[0].id,
+  );
+  const [cutLog, setCutLog] = useState<Cut[]>(draft?.cutLog ?? []);
+  const [dressed, setDressed] = useState(draft?.dressed ?? 0);
   const [dyed, setDyed] = useState("");
+  const [restored, setRestored] = useState(draft?.savedAt ?? "");
+  const [saveState, setSaveState] = useState<{ tone: "success" | "caution"; text: string } | null>(
+    null,
+  );
 
   // One source of truth. Tension, bath and progression are not three
   // independent settings that happen to sit near a table — they are the beam
@@ -124,8 +187,13 @@ export default function App() {
   const bath = active?.dye ?? STOCK.dye;
   const stage = active?.stage ?? STOCK.stage;
 
-  const editActive = (patch: Partial<Beam>) =>
+  const editActive = (patch: Partial<Beam>) => {
     setBeams((bs) => bs.map((b) => (b.id === activeId ? { ...b, ...patch } : b)));
+    // "Every beam went into the copper bath" stops being true the moment one
+    // beam is re-dyed. A notice that outlives its own truth is the same defect
+    // as a button that does nothing — it just fails more quietly.
+    setDyed("");
+  };
 
   /**
    * Everything in the vat comes out the same colour.
@@ -143,6 +211,49 @@ export default function App() {
     );
   }
 
+  /**
+   * Keep the draft, so the register survives a reload.
+   *
+   * Storage can refuse — a browser blocking site data throws on write — and
+   * the honest response is to say so rather than show a success notice over a
+   * save that did not happen.
+   */
+  function saveDraft() {
+    const next: Draft = { savedAt: new Date().toISOString(), beams, activeId, cutLog, dressed };
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(next));
+      setSaveState({
+        tone: "success",
+        text:
+          `Draft saved at ${clockTime(next.savedAt)} — ${next.beams.length} beam` +
+          `${next.beams.length === 1 ? "" : "s"} and the shift so far. Reload the page and it ` +
+          `comes back.`,
+      });
+    } catch {
+      setSaveState({
+        tone: "caution",
+        text: "This browser is not storing the draft — site data is blocked for this page.",
+      });
+    }
+    setRestored("");
+  }
+
+  /** Throw the draft away and go back to the register the app ships with. */
+  function startFresh() {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      // Nothing stored is nothing to clear; the reset below still stands.
+    }
+    setBeams(INITIAL_BEAMS);
+    setActiveId(INITIAL_BEAMS[0].id);
+    setCutLog([]);
+    setDressed(0);
+    setDyed("");
+    setRestored("");
+    setSaveState({ tone: "success", text: "Draft discarded. This is the register as it ships." });
+  }
+
   /** Dress a new beam and put it straight on the loom, at stock. */
   function dressBeam() {
     const n = dressed + 1;
@@ -158,6 +269,8 @@ export default function App() {
     setDressed(n);
     setBeams((bs) => [...bs, beam]);
     setActiveId(beam.id);
+    // A new undyed beam falsifies "all N beams went into the bath" too.
+    setDyed("");
   }
 
   /**
@@ -172,7 +285,12 @@ export default function App() {
     const remaining = beams.filter((b) => b.id !== active.id);
     setBeams(remaining);
     setActiveId(remaining[0]?.id ?? null);
-    setCutLog((log) => [...log, active.warp]);
+    // What the loom took up is recorded here, at the moment of the cut. Read
+    // live off `active` instead, the sentence silently rewrote itself every
+    // time a different beam was dressed — so a true statement about the past
+    // turned into a false one about a thing the cut never did.
+    setCutLog((log) => [...log, { warp: active.warp, tookUp: remaining[0]?.warp ?? null }]);
+    setDyed("");
     setCutting(false);
   }
 
@@ -237,6 +355,33 @@ export default function App() {
             logical, and the arrow keys in the tabs below reverse on their own.
           </TantuBanner>
         </TantuCell>
+
+        {/* A restored draft has to say so. Silently loading someone else's
+            register — or your own from a week ago — and presenting it as the
+            app's opening state is the same lie as a control that does nothing:
+            what is on screen is not what it appears to be. */}
+        {restored ? (
+          <TantuCell warpSpan={12}>
+            <TantuNotice tone="info" title="Draft restored">
+              <div
+                style={{
+                  display: "flex",
+                  gap: "var(--tantu-knot-2)",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                <span>
+                  This is a draft you saved at {clockTime(restored)}, not the register the
+                  playground ships with.
+                </span>
+                <TantuButton variant="secondary" onClick={startFresh}>
+                  Start fresh
+                </TantuButton>
+              </div>
+            </TantuNotice>
+          </TantuCell>
+        ) : null}
 
         <TantuCell warpSpan={6}>
           <TantuCard talimCode="BEAM">
@@ -638,16 +783,28 @@ export default function App() {
           {cutLog.length > 0 ? (
             <div style={{ marginBottom: "var(--tantu-knot-3)" }}>
               <TantuNotice tone="success" title="Cloth cut">
-                Cut {cutLog.length}: {cutLog[cutLog.length - 1]} came off the beam and left the
-                register.{" "}
-                {active
-                  ? `The loom has taken up ${active.warp}.`
-                  : "Nothing is on the loom — dress a beam to start another piece."}
+                Cut {cutLog.length}: {cutLog[cutLog.length - 1].warp} came off the beam and left
+                the register.{" "}
+                {cutLog[cutLog.length - 1].tookUp
+                  ? `The loom took up ${cutLog[cutLog.length - 1].tookUp}.`
+                  : "Nothing was left on the loom."}
+              </TantuNotice>
+            </div>
+          ) : null}
+          {saveState ? (
+            <div style={{ marginBottom: "var(--tantu-knot-3)" }}>
+              <TantuNotice
+                tone={saveState.tone}
+                title={saveState.tone === "success" ? "Draft" : "Not saved"}
+              >
+                {saveState.text}
               </TantuNotice>
             </div>
           ) : null}
           <div style={{ display: "flex", gap: "var(--tantu-knot-2)", justifyContent: "flex-end" }}>
-            <TantuButton variant="ghost">Save draft</TantuButton>
+            <TantuButton variant="ghost" onClick={saveDraft}>
+              Save draft
+            </TantuButton>
             <TantuButton variant="primary" disabled={!active} onClick={() => setCutting(true)}>
               Cut the cloth
             </TantuButton>
