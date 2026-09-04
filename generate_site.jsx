@@ -413,10 +413,15 @@ function SiteApp({ reposData, tantuCss }) {
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>AIWeave — Native Tantu UI Design System Ecosystem</title>
+        {/* This page is about AIWeave. The title called it a "UI Design
+            System Ecosystem", which is what Tantu is, not what AIWeave is —
+            so the one line a search result and a shared link actually show
+            described the wrong product. Tantu is what the page is built with;
+            that belongs in the colophon, not the headline. */}
+        <title>AIWeave — AWS-native AI infrastructure, open source</title>
         <meta
           name="description"
-          content="AIWeave AWS AI Infrastructure Tools Ecosystem engineered with native Tantu React Design Library."
+          content="Twelve open-source, AWS-native tools for building production AI systems without proprietary lock-in: fine-tuning, multi-agent orchestration, GraphRAG, tool execution and deployment on Lambda, Bedrock and Step Functions."
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -621,13 +626,19 @@ ${brandLayerCss}
                 child, so hero-warp styling rides on the card, no extra div. */}
             <TantuCard warpSpan={12} reliefLevel="zardozi" className="hero-warp">
               <div style={{ padding: "var(--tantu-knot-2) 0" }}>
-                <TantuTag tone="accent" solid={false}>TANTU DESIGN SYSTEM (REACT NATIVE ENGINE)</TantuTag>
+                {/* The eyebrow above the headline read "TANTU DESIGN SYSTEM
+                    (REACT NATIVE ENGINE)" — the first line of the page, given
+                    over to the toolkit it was built with rather than to what
+                    it is. It names the subject now. */}
+                <TantuTag tone="accent" solid={false}>OPEN-SOURCE AWS-NATIVE AI INFRASTRUCTURE</TantuTag>
                 <h1 className="hero-title" style={{ marginTop: "var(--tantu-knot-3)" }}>AIWeave Infrastructure</h1>
                 <p style={{ fontFamily: "var(--tantu-font-meta)", color: "var(--tantu-zari-pure-gold)", fontSize: "1.1rem" }}>
                   [ BUILD · FINE-TUNE · ORCHESTRATE · DEPLOY ]
                 </p>
                 <p style={{ maxWidth: "680px", margin: "0 auto var(--tantu-knot-4)", fontSize: "0.95rem", color: "var(--tantu-ink-secondary)", lineHeight: 1.8 }}>
-                  Production-ready AWS-native AI infrastructure generated natively with Tantu React Design Library components.
+                  Twelve production-ready tools for building AI systems on AWS primitives — fine-tuning,
+                  multi-agent orchestration, retrieval, tool execution and deployment — with no proprietary
+                  lock-in and no platform between you and your own account.
                 </p>
                 <div style={{ display: "flex", gap: "var(--tantu-knot-2)", justifyContent: "center", flexWrap: "wrap" }}>
                   <a href="#projects" style={{ textDecoration: "none" }}>
@@ -672,7 +683,11 @@ ${brandLayerCss}
                   label: repo.replace("Weave", ""),
                   value: (REPO_META[repo]?.tech ?? []).length,
                 }))}
-                caption="KasutiMatrix — AWS/technology primitives declared per tool, counted-thread style. Series drawn from meta.tech, not estimated."
+                // Was "KasutiMatrix — ... counted-thread style", naming the
+                // component that draws the chart and the embroidery it is
+                // modelled on. A reader here wants to know what the chart
+                // counts, not which component renders it.
+                caption="AWS and technology primitives declared per tool. Counts are read from each project's own manifest, not estimated."
               />
             </TantuCard>
 
@@ -821,16 +836,34 @@ ${brandLayerCss}
                 <strong>AIWeave</strong> is an ecosystem of open-source, AWS-native AI infrastructure tools built for engineers who need production-grade AI systems without proprietary lock-in.
               </p>
               <p style={{ fontSize: "0.95rem", color: "var(--tantu-ink-secondary)", lineHeight: 1.8, marginBottom: "var(--tantu-knot-3)" }}>
-                Every library is composed on AWS primitives: Lambda, Bedrock, Step Functions, DynamoDB, EC2 Spot, API Gateway, S3, and Neptune. Built natively using <strong>Tantu React Design Library Components</strong>.
+                Every library is composed on AWS primitives: Lambda, Bedrock, Step Functions, DynamoDB, EC2 Spot, API Gateway, S3, and Neptune. Each one runs in your own account, under your own IAM, and can be adopted on its own — nothing here requires the rest of the ecosystem.
               </p>
+              {/* These name AIWeave's own stack. The Tantu credit used to sit
+                  among them as a peer of Bedrock and Lambda, which put a UI
+                  library in a list of AI infrastructure; it reads as a
+                  colophon below instead, where a credit belongs. */}
               <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--tantu-knot-1)" }}>
-                <TantuTag tone="accent">JavaScript / React</TantuTag>
+                <TantuTag tone="accent">Python</TantuTag>
                 <TantuTag tone="neutral">AWS Bedrock</TantuTag>
                 <TantuTag tone="neutral">Lambda</TantuTag>
                 <TantuTag tone="neutral">Step Functions</TantuTag>
                 <TantuTag tone="neutral">EC2 Spot</TantuTag>
-                <TantuTag tone="zari">Tantu Native Component Library</TantuTag>
+                <TantuTag tone="neutral">Apache 2.0</TantuTag>
               </div>
+              <p style={{ fontFamily: "var(--tantu-font-meta)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", letterSpacing: "0.06em", marginTop: "var(--tantu-knot-3)", marginBottom: 0 }}>
+                {/* The only bare text link on the page, so it had nothing to
+                    inherit and rendered in default browser blue against the
+                    cream. Takes the accent instead, underlined so it still
+                    reads as a link without relying on colour alone (1.4.1). */}
+                This site is built with{" "}
+                <a
+                  href="https://github.com/rajatarun/aiweave/tree/main/src/tantu"
+                  style={{ color: "var(--tantu-accent-primary)", textUnderlineOffset: "0.25em" }}
+                >
+                  Tantu
+                </a>
+                , an open-source React design system from the same workshop.
+              </p>
             </TantuCard>
 
             {/* Footer */}

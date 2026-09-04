@@ -12,6 +12,7 @@ import http from "node:http";
 import path from "node:path";
 import fs from "node:fs";
 import { launchChromium } from "./chromium.mjs";
+import { undersizedTargets } from "./a11y.mjs";
 
 const ROOT = path.resolve("storybook-static");
 if (!fs.existsSync(path.join(ROOT, "index.json"))) {
@@ -187,24 +188,7 @@ try {
         // implement this rule, so it is measured directly. The visually-hidden
         // native control behind a custom one is excluded — it is not the
         // target a pointer is aimed at.
-        const undersized = await page.evaluate(() =>
-          Array.from(
-            document.querySelectorAll(
-              '#storybook-root button, #storybook-root a[href], #storybook-root input, #storybook-root select, #storybook-root [tabindex="0"]',
-            ),
-          )
-            .filter((el) => !el.classList.contains("tantu-visually-hidden"))
-            .map((el) => {
-              const r = el.getBoundingClientRect();
-              return {
-                w: Math.round(r.width),
-                h: Math.round(r.height),
-                what: `${el.tagName.toLowerCase()}.${(el.getAttribute("class") || "").split(" ")[0]}`,
-              };
-            })
-            .filter((t) => t.w > 0 && t.h > 0 && (t.w < 24 || t.h < 24))
-            .slice(0, 3),
-        );
+        const undersized = (await undersizedTargets(page, "#storybook-root")).slice(0, 3);
         for (const t of undersized) {
           failures.push(
             `${story.id} [${mode.theme}/${mode.direction}] target-size (WCAG 2.2 SC 2.5.8)\n` +
