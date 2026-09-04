@@ -33,6 +33,12 @@ Then open http://localhost:5173.
   the bath writes straight back into the row you are reading, and the picks
   chart is drawn from the same array. Each beam keeps its own progression, so
   switching away and back does not lose where you were.
+- **Save a draft, then reload the page.** The register comes back as you left
+  it, and says so — a restored draft that presented itself as the app's opening
+  state would be the same lie as a control that does nothing: what is on screen
+  would not be what it appears to be. *Start fresh* throws it away. If the
+  browser is blocking site data the save is refused, and the notice says that
+  rather than claiming a success that did not happen.
 - **Cut a beam, then cut the rest.** Cutting strikes the beam from the register
   for good and the loom takes up whatever is still dressed. Take it all the way
   to empty: the controls disable, the sett falls back to stock, and *Dress a new
