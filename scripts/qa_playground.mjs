@@ -69,7 +69,17 @@ const browser = await launchChromium();
 const AXE_SOURCE = fs.readFileSync(path.resolve("node_modules/axe-core/axe.min.js"), "utf8");
 
 /** Rules that judge a page Tantu does not own, or need a real cascade. */
-const PAGE_LEVEL_RULES = ["region", "landmark-one-main", "page-has-heading-one"];
+/**
+ * Rules this sweep switches off — deliberately empty.
+ *
+ * It used to disable `region`, `landmark-one-main` and `page-has-heading-one`,
+ * inherited from the story sweep where they belong: a story renders a fragment,
+ * so demanding landmarks and an h1 of it is meaningless. The playground is a
+ * whole document and has to satisfy them like any other page. Left disabled,
+ * they hid a real finding on the public site — content sitting in no landmark
+ * at all — that only surfaced once a whole-page sweep ran them.
+ */
+const PAGE_LEVEL_RULES = [];
 
 try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });

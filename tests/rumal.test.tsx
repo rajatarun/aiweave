@@ -69,6 +69,49 @@ describe("ChambaRumalCard", () => {
     expect(triggers[1]).toHaveAttribute("tabindex", "-1");
   });
 
+  it("takes a hidden face's own controls out of the tab order", () => {
+    // A face is a slot, and the aiweave site puts a repository link in every
+    // one. Guarding only the flip trigger left those links focusable inside an
+    // aria-hidden subtree — axe's aria-hidden-focus, and in practice Tab
+    // walking a keyboard reader somewhere that announces nothing.
+    render(
+      <ChambaRumalCard
+        obverse={<a href="https://example.com/front">Front link</a>}
+        reverse={<a href="https://example.com/back">Back link</a>}
+      />,
+    );
+    const back = () => document.querySelector('a[href="https://example.com/back"]');
+    const front = () => document.querySelector('a[href="https://example.com/front"]');
+    expect(back()).toHaveAttribute("tabindex", "-1");
+    expect(front()).not.toHaveAttribute("tabindex");
+
+    fireEvent.click(screen.getByRole("button", { name: "Turn the cloth" }));
+
+    expect(front()).toHaveAttribute("tabindex", "-1");
+    expect(back()).not.toHaveAttribute("tabindex");
+  });
+
+  it("gives back the tabindex a control already carried", () => {
+    render(
+      <ChambaRumalCard
+        obverse={<button type="button" tabIndex={3}>Deliberate</button>}
+        reverse={<p>back</p>}
+      />,
+    );
+    // Queried through the DOM: once the obverse is covered it is aria-hidden,
+    // so this button is correctly absent from the accessibility tree and
+    // getByRole cannot reach it — which is the other half of the guarantee.
+    const deliberate = () =>
+      document.querySelector('.tantu-rumal-obverse button[type="button"]:not(.tantu-rumal-flip)');
+    expect(deliberate()).toHaveAttribute("tabindex", "3");
+
+    fireEvent.click(screen.getByRole("button", { name: "Turn the cloth" }));
+    expect(deliberate()).toHaveAttribute("tabindex", "-1");
+
+    fireEvent.click(screen.getByRole("button", { name: "Turn back" }));
+    expect(deliberate()).toHaveAttribute("tabindex", "3");
+  });
+
   it("carries focus onto the face now showing", () => {
     // The face being left is aria-hidden, and the trigger just pressed is
     // inside it — leaving focus there strands a keyboard reader inside a

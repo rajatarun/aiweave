@@ -579,7 +579,11 @@ ${brandLayerCss}
         <TantuLoom viewTalimCode="AIW-HOME-01" shuttle={true}>
             {/* Navigation — only TantuCell/TantuCard/ChambaRumalCard may be a
                 direct child of TantuLoom, so the nav lives inside a cell. */}
-            <TantuCell warpSpan={12}>
+            {/* id="home" is what the HOME nav item points at. Without it that
+                link resolved to nothing and the control silently did nothing —
+                the only one of the four in-page links that was broken, and
+                nothing checked that an href landed on a section that exists. */}
+            <TantuCell warpSpan={12} id="home">
             <nav className="tantu-nav" aria-label="Main navigation">
               <a href="/" className="nav-brand">
                 <svg width="28" height="28" viewBox="0 0 88 88" aria-hidden="true">
@@ -692,9 +696,18 @@ ${brandLayerCss}
                 // reverse both fully worked, not one face and a blank. The
                 // flip button toggles data-state via the plain script below
                 // (this page has no React runtime to drive isFlipped).
+                //
+                // trigger={false} because of that last point. The component
+                // grew a flip button of its own, which is right for a React
+                // consumer and wrong here: this page is rendered to static
+                // HTML and never hydrated, so that button's onClick does not
+                // exist at runtime. Leaving it on shipped two working triggers
+                // and two dead ones per card — 24 controls on the public page
+                // that rendered perfectly and did nothing.
                 <ChambaRumalCard
                   key={repo}
                   warpSpan={6}
+                  trigger={false}
                   className="tantu-relief-kanthi tantu-substrate-porous"
                   obverse={
                     <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "space-between" }}>
@@ -961,6 +974,47 @@ ${brandLayerCss}
                   requestAnimationFrame(frame);
                 }
 
+                /**
+                 * Put a face's controls in or out of the tab order.
+                 *
+                 * Kept in the DOM rather than removed, so focus has somewhere
+                 * to land the instant the face becomes the showing one; the
+                 * original tabindex is stashed so a control that carried one
+                 * gets it back rather than being handed a 0 it never had.
+                 */
+                function setFaceReachable(face, reachable) {
+                  if (!face) return;
+                  var stops = face.querySelectorAll('a[href], button, [tabindex]');
+                  for (var i = 0; i < stops.length; i += 1) {
+                    var el = stops[i];
+                    if (reachable) {
+                      var was = el.getAttribute('data-tab-was');
+                      // No stash means this face was never taken out of the tab
+                      // order, so whatever it carries is the author's — leave
+                      // it. '' is the stash for "carried none", which restores
+                      // as a removal; setting tabindex="" would leave an
+                      // invalid attribute behind.
+                      if (was === null) continue;
+                      if (was === '') el.removeAttribute('tabindex');
+                      else el.setAttribute('tabindex', was);
+                      el.removeAttribute('data-tab-was');
+                    } else {
+                      if (!el.hasAttribute('data-tab-was')) {
+                        el.setAttribute('data-tab-was', el.getAttribute('tabindex') === null ? '' : el.getAttribute('tabindex'));
+                      }
+                      el.setAttribute('tabindex', '-1');
+                    }
+                  }
+                }
+
+                // The reverse face ships covered, so take it out of the tab
+                // order before anyone reaches it — the markup is static and
+                // starts with both faces reachable.
+                var rumalCards = document.querySelectorAll('.tantu-card-rumal');
+                for (var c = 0; c < rumalCards.length; c += 1) {
+                  setFaceReachable(rumalCards[c].querySelector('.tantu-rumal-reverse'), false);
+                }
+
                 document.addEventListener('click', function (event) {
                   var trigger = event.target.closest && event.target.closest('.tantu-rumal-flip');
                   if (!trigger) return;
@@ -986,6 +1040,21 @@ ${brandLayerCss}
                   var outgoing = next === 'reverse' ? obverse : reverse;
                   if (incoming) incoming.setAttribute('aria-hidden', 'false');
                   if (outgoing) outgoing.setAttribute('aria-hidden', 'true');
+
+                  // A face is aria-hidden the moment it is covered, and every
+                  // control inside it — the flip trigger and the repository
+                  // link — stays in the tab order unless something takes it
+                  // out. That is axe's aria-hidden-focus, and it is not
+                  // pedantry: Tab walks a keyboard reader into a face screen
+                  // readers have been told to ignore, so focus lands somewhere
+                  // that announces nothing. Move the whole face in and out of
+                  // the tab order with the dye, then hand focus to the same
+                  // control on the face now showing, which is what the reader
+                  // asked for by pressing it.
+                  setFaceReachable(incoming, true);
+                  setFaceReachable(outgoing, false);
+                  var landing = incoming && incoming.querySelector('.tantu-rumal-flip');
+                  if (landing) landing.focus();
 
                   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                   if (incoming) {

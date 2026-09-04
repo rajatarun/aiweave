@@ -220,6 +220,42 @@ export const ChambaRumalCard = forwardRef<HTMLElement, ChambaRumalCardProps>(fun
     onFlipChange?.(next);
   };
 
+  /**
+   * Keep the covered face out of the tab order.
+   *
+   * The face is aria-hidden, so anything focusable inside it is axe's
+   * aria-hidden-focus: Tab walks a keyboard reader into a subtree screen
+   * readers have been told to ignore, and focus lands somewhere that announces
+   * nothing. The trigger is handled declaratively, but a face is a slot — a
+   * consumer can put a link or a button in one, and on the aiweave site every
+   * card does exactly that. So sweep the whole subtree, stashing any tabindex
+   * a control already carried rather than handing it back a 0 it never had.
+   */
+  useLayoutEffect(() => {
+    for (const [face, showing] of [
+      [obverseRef.current, !flipped],
+      [reverseRef.current, flipped],
+    ] as const) {
+      if (!face) continue;
+      for (const el of face.querySelectorAll<HTMLElement>("a[href], button, [tabindex]")) {
+        if (el.classList.contains("tantu-rumal-flip")) continue; // declarative, above
+        if (showing) {
+          const was = el.dataset.tabWas;
+          // No stash means this face was never taken out of the tab order, so
+          // whatever tabindex it carries is the author's. Removing it here
+          // wiped a deliberate tabIndex the first time a card rendered.
+          if (was === undefined) continue;
+          if (was === "") el.removeAttribute("tabindex");
+          else el.setAttribute("tabindex", was);
+          delete el.dataset.tabWas;
+        } else {
+          if (el.dataset.tabWas === undefined) el.dataset.tabWas = el.getAttribute("tabindex") ?? "";
+          el.setAttribute("tabindex", "-1");
+        }
+      }
+    }
+  }, [flipped, obverse, reverse]);
+
   // The face being left is aria-hidden, and the trigger the reader just
   // pressed is inside it. Moving focus to the same control on the face now
   // showing keeps it somewhere real and matches what the reader asked for.
