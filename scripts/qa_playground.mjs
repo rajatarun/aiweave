@@ -15,6 +15,7 @@ import http from "node:http";
 import path from "node:path";
 import fs from "node:fs";
 import { launchChromium } from "./chromium.mjs";
+import { undersizedTargets } from "./a11y.mjs";
 
 const ROOT = path.resolve("playground/dist");
 if (!fs.existsSync(path.join(ROOT, "index.html"))) {
@@ -441,19 +442,7 @@ try {
   });
 
   /* ---- WCAG 2.2 SC 2.5.8, on the page as shipped ------------------------ */
-  const undersized = await page.evaluate(() =>
-    Array.from(document.querySelectorAll('button, a[href], input, select, [tabindex="0"]'))
-      .filter((el) => !el.classList.contains("tantu-visually-hidden"))
-      .map((el) => {
-        const r = el.getBoundingClientRect();
-        return {
-          w: Math.round(r.width),
-          h: Math.round(r.height),
-          what: `${el.tagName.toLowerCase()}.${(el.getAttribute("class") || "").split(" ")[0]}`,
-        };
-      })
-      .filter((t) => t.w > 0 && t.h > 0 && (t.w < 24 || t.h < 24)),
-  );
+  const undersized = await undersizedTargets(page);
   check(
     "every interactive target clears 24x24 CSS px",
     undersized.length === 0,

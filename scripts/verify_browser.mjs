@@ -13,6 +13,7 @@ import http from "node:http";
 import path from "node:path";
 import fs from "node:fs";
 import { launchChromium } from "./chromium.mjs";
+import { undersizedTargets } from "./a11y.mjs";
 
 const failures = [];
 
@@ -727,22 +728,11 @@ try {
   });
 
   /* ---- WCAG 2.2 SC 2.5.8 target size ----------------------------------- */
-  // axe does not implement this one, so measure it. The visually hidden
-  // native control behind a custom one is not the target a pointer aims at.
+  // axe does not implement this one, so it is measured — see scripts/a11y.mjs
+  // for the criterion, including the Inline exception this check used to miss.
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.waitForTimeout(80);
-  const undersized = await page.evaluate(() =>
-    Array.from(document.querySelectorAll('button, a[href], input, select, [tabindex="0"]'))
-      .filter((el) => !el.classList.contains("tantu-visually-hidden"))
-      .map((el) => {
-        const r = el.getBoundingClientRect();
-        return {
-          w: Math.round(r.width), h: Math.round(r.height),
-          what: `${el.tagName.toLowerCase()}.${(el.getAttribute("class") || "").split(" ")[0]}`,
-        };
-      })
-      .filter((t) => t.w > 0 && t.h > 0 && (t.w < 24 || t.h < 24)),
-  );
+  const undersized = await undersizedTargets(page);
   check(
     "every interactive target clears 24x24 (WCAG 2.5.8)",
     undersized.length === 0,
