@@ -10,18 +10,26 @@ import {
   TantuCell,
   TantuDialog,
   TantuFold,
+  TantuGallery,
+  TantuImage,
   TantuInput,
   TantuLoom,
   TantuMeter,
   TantuNotice,
+  TantuPrice,
+  TantuProductCard,
+  TantuProvenance,
+  TantuQuantity,
   TantuSelect,
   TantuSlider,
   TantuStepper,
   TantuTable,
+  TantuSwatchSet,
   TantuTabs,
   TantuTag,
   TantuToggle,
   TANTU_DYES,
+  resolveDye,
   type BleedDye,
 } from "@weaveaijs/tantu";
 import "@weaveaijs/tantu/styles.css";
@@ -84,6 +92,59 @@ const BATHS: { id: BleedDye; label: string }[] = [
 ];
 
 const labelFor = (id: BleedDye) => BATHS.find((b) => b.id === id)?.label.toLowerCase() ?? id;
+
+/**
+ * What the cloth off each beam is worth.
+ *
+ * Rate per pick by fibre — tussar is hand-reeled and costs what it costs.
+ * Nothing here is decoration: the shop below is the same register read as
+ * stock, so cutting a beam removes the piece from sale and re-dyeing one
+ * re-dyes its photograph.
+ */
+const RATE_PER_PICK: Record<string, number> = {
+  "Cotton 40s": 0.9,
+  "Cotton 60s": 1.15,
+  "Tussar silk": 2.4,
+};
+
+const listPrice = (beam: Beam) =>
+  Math.round(beam.picks * (RATE_PER_PICK[beam.warp] ?? 1) * 100) / 100;
+
+/**
+ * Unmordanted dye is not fixed in the fibre and will fade, so that cloth sells
+ * as seconds at a third off. This is why the shop is wired to the register
+ * rather than to a list of props: turn *Mordant first* on in Setup and the
+ * reduction disappears here, because the fact it was drawn from changed.
+ */
+const shopPrice = (beam: Beam) =>
+  beam.mordant
+    ? { amount: listPrice(beam) }
+    : { amount: Math.round(listPrice(beam) * 66) / 100, compareAt: listPrice(beam) };
+
+/** Metres the beam yielded — the ceiling on how many anyone can buy. */
+const yardage = (beam: Beam) => Math.max(1, Math.round(beam.picks / 16));
+
+/**
+ * A photograph of the cloth, woven at the density the register records and
+ * dyed the colour the vat is actually mixed to.
+ */
+const clothPhoto = (colour: string, picks: number, ground: string) => {
+  const gap = Math.max(6, Math.round(560 / picks));
+  const warp = [];
+  for (let x = 0; x < 400; x += gap) warp.push(`<line x1="${x}" y1="0" x2="${x}" y2="500"/>`);
+  const weft = [];
+  for (let y = 0; y < 500; y += gap) weft.push(`<line x1="0" y1="${y}" x2="400" y2="${y}"/>`);
+  return (
+    "data:image/svg+xml;utf8," +
+    encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500">` +
+        `<rect width="400" height="500" fill="${ground}"/>` +
+        `<g stroke="${colour}" stroke-width="${Math.max(1, gap / 3)}" opacity="0.85">${warp.join("")}</g>` +
+        `<g stroke="${colour}" stroke-width="${Math.max(1, gap / 3)}" opacity="0.55">${weft.join("")}</g>` +
+        `</svg>`,
+    )
+  );
+};
 
 const STAGES = [
   { id: "warp", label: "Wind" },
@@ -303,6 +364,20 @@ export default function App() {
     document.documentElement.setAttribute("dir", direction);
     document.documentElement.style.setProperty("--tantu-tension", String(tension / 100));
   }, [theme, direction, tension]);
+
+  // The shop's photographs are dyed from the same custom properties the
+  // shader reads, so re-dyeing the system through CSS moves the cloth in the
+  // photograph, the bleed and the swatch together.
+  //
+  // Resolved in an effect rather than during render because the effect above
+  // is what writes data-theme: reading the cascade mid-render would return
+  // the *previous* theme's dye and never correct itself, since nothing
+  // re-renders once that attribute lands. Declared after it, so it runs after
+  // it.
+  const [vat, setVat] = useState<Record<string, string>>({});
+  useEffect(() => {
+    setVat(Object.fromEntries(BATHS.map((b) => [b.id, resolveDye(b.id, document.documentElement)])));
+  }, [theme]);
 
   return (
     <>
@@ -772,6 +847,132 @@ export default function App() {
                 onChange={active ? (id) => editActive({ stage: id }) : undefined}
               />
             </div>
+          </TantuCard>
+        </TantuCell>
+
+        <TantuCell warpSpan={12}>
+          <TantuCard talimCode="SHOP">
+            <h2 style={{ fontFamily: "var(--tantu-font-display)", marginTop: 0 }}>Off the loom</h2>
+            <p style={{ color: "var(--tantu-ink-secondary)", marginTop: 0 }}>
+              The same register, read as stock. Cut a beam and its cloth leaves the shop; change a
+              bath and the photograph is re-dyed with it; turn <em>Mordant first</em> off and that
+              piece drops to seconds, because unfixed dye fades.
+            </p>
+            {beams.length ? (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(12, minmax(0, 1fr))",
+                  gap: "var(--tantu-knot-3)",
+                  marginTop: "var(--tantu-knot-3)",
+                }}
+              >
+                {beams.map((beam, index) => (
+                  <TantuProductCard
+                    key={beam.id}
+                    warpSpan={4}
+                    eager={index === 0}
+                    title={`${beam.warp}, ${labelFor(beam.dye)}`}
+                    href={`#${beam.id}`}
+                    src={clothPhoto(vat[beam.dye] ?? "#8a7f6c", beam.picks, "var(--tantu-kora-mud)")}
+                    alt={`${beam.warp} in ${labelFor(beam.dye)}, woven at ${beam.picks} picks to the inch.`}
+                    note={`${beam.picks} picks · ${yardage(beam)} m · ${newtons(beam.tension)}`}
+                    price={{ ...shopPrice(beam), currency: "GBP", locale: "en-GB", unit: "per metre" }}
+                    flags={
+                      beam.mordant ? null : <TantuTag tone="caution">Unfixed dye</TantuTag>
+                    }
+                  />
+                ))}
+              </div>
+            ) : (
+              <p style={{ color: "var(--tantu-ink-secondary)" }}>
+                Every beam is cut. Nothing to sell until something is dressed.
+              </p>
+            )}
+          </TantuCard>
+        </TantuCell>
+
+        <TantuCell warpSpan={12}>
+          <TantuCard talimCode="PIECE">
+            <h2 style={{ fontFamily: "var(--tantu-font-display)", marginTop: 0 }}>
+              {active ? `${active.warp}, ${labelFor(active.dye)}` : "No piece on the loom"}
+            </h2>
+            {active ? (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "minmax(0, 20rem) minmax(0, 1fr)",
+                  gap: "var(--tantu-knot-6)",
+                  alignItems: "start",
+                }}
+              >
+                <TantuGallery
+                  frames={[
+                    {
+                      id: "face",
+                      src: clothPhoto(vat[active.dye] ?? "#8a7f6c", active.picks, "var(--tantu-kora-mud)"),
+                      alt: `The cloth square on, ${active.picks} picks to the inch.`,
+                    },
+                    {
+                      id: "ground",
+                      src: clothPhoto(vat[active.dye] ?? "#8a7f6c", Math.round(active.picks / 2), "var(--tantu-kora-raw)"),
+                      alt: "The same cloth against the light, showing how open the weave is.",
+                    },
+                  ]}
+                />
+
+                <div style={{ display: "grid", gap: "var(--tantu-knot-4)" }}>
+                  <TantuPrice
+                    {...shopPrice(active)}
+                    currency="GBP"
+                    locale="en-GB"
+                    unit="per metre"
+                  />
+
+                  {/* Not a second copy of the bath control — the same one. This
+                      writes to the beam on the loom, so the Setup select, the
+                      register row, the vat below and this set all move
+                      together. A swatch that only coloured itself would be the
+                      dead control this app was built to stop shipping. */}
+                  <TantuSwatchSet
+                    label="Bath"
+                    value={active.dye}
+                    onChange={(id) => editActive({ dye: id as BleedDye })}
+                    options={BATHS.map((bathOption) => ({
+                      id: bathOption.id,
+                      label: bathOption.label,
+                      swatch: `var(${TANTU_DYES[bathOption.id].token})`,
+                    }))}
+                  />
+
+                  <TantuQuantity
+                    label="Metres"
+                    defaultValue={1}
+                    min={1}
+                    max={yardage(active)}
+                  />
+
+                  <TantuProvenance
+                    title="At the loom"
+                    entries={[
+                      { term: "Fibre", detail: active.warp },
+                      { term: "Sett", detail: `${active.picks} picks to the inch` },
+                      { term: "Bath", detail: labelFor(active.dye) },
+                      { term: "Mordant", detail: active.mordant ? "Fixed before dyeing" : "None — dye unfixed" },
+                      { term: "Tension", detail: newtons(active.tension) },
+                      { term: "Off the beam", detail: `${yardage(active)} m` },
+                    ]}
+                  >
+                    Every line here is read from the beam on the loom, not written beside it. Put a
+                    different beam on and this block describes that one instead.
+                  </TantuProvenance>
+                </div>
+              </div>
+            ) : (
+              <p style={{ color: "var(--tantu-ink-secondary)" }}>
+                Dress a beam to see the piece it is making.
+              </p>
+            )}
           </TantuCard>
         </TantuCell>
 
