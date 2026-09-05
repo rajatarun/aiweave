@@ -230,3 +230,96 @@ jobs:
       - name: Output Storybook URL
         run: |
           echo "Storybook: https://${BUCKET}/storybook/"
+
+  playground:
+    name: Publish the playground to aiweave.org/playground/
+    runs-on: ubuntu-latest
+    env:
+      BUCKET: aiweave.org
+    # Its own job for the same reason Storybook has one: three deliverables
+    # ship from this repository and a failure in any of them should not hold
+    # the other two. Storybook answers "what is in the box"; this answers what
+    # it is like to build something with it, which is the question that decides
+    # adoption — so it belongs on the domain beside the site, not only on
+    # Netlify.
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      # Both projects: the playground is a nested npm project, and the root
+      # install is what provides the Tantu source it aliases.
+      - run: npm ci
+      - run: npm --prefix playground ci
+
+      # No font build step: fonts/ is committed build output, and tantu-ci
+      # already fails the branch if what is committed differs from what
+      # build.py produces. Rebuilding here would add defcon, ufo2ft and a
+      # Python toolchain to a deploy job to reproduce bytes the checkout
+      # already has.
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::239571291755:role/teamweave-github-actions-sam-deployer
+          aws-region: us-east-1
+
+      # Vite writes absolute asset URLs, so a bundle built for the domain root
+      # asks for /assets/... and 404s the moment it is served from /playground/
+      # — the HTML loads and nothing but unstyled text appears.
+      #
+      # Built in the default mode, which aliases Tantu at ../src: this is a
+      # demonstration of what the repository does *now*, including components
+      # that have not been released yet. The published package is proven
+      # separately by `npm run build:npm`, which the verify sweep covers.
+      - name: Build the playground for /playground/
+        env:
+          PLAYGROUND_BASE_PATH: /playground/
+        run: npm --prefix playground run build
+
+      - name: The build really is rooted at /playground/
+        run: |
+          if ! grep -q '"/playground/assets/' playground/dist/index.html; then
+            echo "::error::index.html does not reference /playground/assets/ — PLAYGROUND_BASE_PATH did not take effect"
+            grep -oE '(src|href)="[^"]*"' playground/dist/index.html | head
+            exit 1
+          fi
+          echo "playground assets are correctly prefixed"
+
+      # --delete so a removed asset does not linger. Scoped to the playground/
+      # prefix, so the site's own objects and storybook/ are untouched.
+      - name: Upload
+        run: |
+          aws s3 sync playground/dist/ "s3://${BUCKET}/playground/" \
+            --delete \
+            --cache-control "public, max-age=86400"
+
+      # Same two corrections the other uploads need: S3's MIME guess for
+      # .woff2/.woff is not reliable across CLI versions and Safari rejects a
+      # font served with the wrong type, while index.html must not be cached
+      # or a deploy stays invisible until the browser gives up its copy.
+      - name: Re-upload fonts with correct content types
+        run: |
+          for ext in woff2 woff ttf; do
+            aws s3 cp "s3://${BUCKET}/playground/" "s3://${BUCKET}/playground/" \
+              --recursive --exclude "*" --include "*.${ext}" \
+              --content-type "font/${ext}" \
+              --cache-control "public, max-age=86400" \
+              --metadata-directive REPLACE
+          done
+
+      - name: Re-upload HTML as no-cache
+        run: |
+          aws s3 cp "s3://${BUCKET}/playground/" "s3://${BUCKET}/playground/" \
+            --recursive --exclude "*" --include "*.html" \
+            --content-type "text/html; charset=utf-8" \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --metadata-directive REPLACE
+
+      - name: Output playground URL
+        run: |
+          echo "Playground: https://${BUCKET}/playground/"

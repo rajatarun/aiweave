@@ -30,7 +30,22 @@ import path from "node:path";
  */
 const fromNpm = process.env.TANTU_FROM_NPM === "1";
 
+/**
+ * Where the built app will be served from.
+ *
+ * Vite writes absolute asset URLs, so a bundle built for the domain root asks
+ * for /assets/... and 404s the moment it is served out of a subdirectory —
+ * the page loads, the HTML is fine, and nothing but unstyled text appears.
+ * Same reason Storybook takes STORYBOOK_BASE_PATH, and the deploy asserts the
+ * prefix really landed rather than trusting that the variable was set.
+ *
+ * Unset for local development and for the audit builds, which serve from the
+ * root and should keep measuring exactly what a developer sees.
+ */
+const base = process.env.PLAYGROUND_BASE_PATH || "/";
+
 export default defineConfig({
+  base,
   plugins: [react()],
   resolve: {
     // The playground is a nested npm project, so `react` resolves from its own
