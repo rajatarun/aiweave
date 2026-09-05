@@ -1,5 +1,5 @@
 import { forwardRef, type ChangeEvent, type InputHTMLAttributes, type ReactNode } from "react";
-import { getLoomAudio } from "../lib/loom-audio";
+import { getLoomAudio } from "../lib/loom-audio.js";
 
 export type TantuToggleVariant = "checkbox" | "radio" | "switch";
 

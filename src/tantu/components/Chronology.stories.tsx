@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { TantuPhad } from "./TantuPhad";
-import { TantuPanchang } from "./TantuPanchang";
+import { TantuPhad } from "./TantuPhad.js";
+import { TantuPanchang } from "./TantuPanchang.js";
 
 const meta = {
   title: "Chronology/Time as cloth",

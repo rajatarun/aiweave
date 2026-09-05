@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { TantuTabs } from "./TantuTabs";
-import { TantuFold } from "./TantuFold";
-import { TantuStepper } from "./TantuStepper";
-import { TantuPagination } from "./TantuPagination";
-import { TantuTrail } from "./TantuTrail";
+import { TantuTabs } from "./TantuTabs.js";
+import { TantuFold } from "./TantuFold.js";
+import { TantuStepper } from "./TantuStepper.js";
+import { TantuPagination } from "./TantuPagination.js";
+import { TantuTrail } from "./TantuTrail.js";
 
 const meta = {
   title: "Navigation/Moving through the cloth",

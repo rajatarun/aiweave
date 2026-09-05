@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { InkBleedFilter } from "./InkBleedFilter";
+import { InkBleedFilter } from "./InkBleedFilter.js";
 import {
   bleedMotionAllowed,
   fibreFrom,
@@ -19,7 +19,7 @@ import {
   wickCoverRadius,
   wickProgress,
   wickRadii,
-} from "../lib/bleed-bus";
+} from "../lib/bleed-bus.js";
 
 export type ChambaRumalCardWarpSpan = 1 | 2 | 3 | 4 | 6 | 12;
 

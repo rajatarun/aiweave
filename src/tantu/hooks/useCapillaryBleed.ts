@@ -4,8 +4,8 @@ import {
   createCapillaryBleed,
   type CapillaryBleedHandle,
   type CapillaryBleedOptions,
-} from "../lib/capillary-bleed";
-import { shouldBleed, type BleedLayer } from "../lib/bleed-bus";
+} from "../lib/capillary-bleed.js";
+import { shouldBleed, type BleedLayer } from "../lib/bleed-bus.js";
 
 export interface UseCapillaryBleedOptions extends CapillaryBleedOptions {
   /**

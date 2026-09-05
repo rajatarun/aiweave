@@ -8,6 +8,13 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [0.2.0] — 2026-09-05
+
+First release that can actually be installed. Everything below shipped in
+this version; the sections are unchanged from when they were written.
+
 ### Changed — BREAKING in spirit, not in API
 
 - **Fonts are decoupled from the design system.** The stylesheet named three
@@ -34,6 +41,34 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
   enforces.
 
 ### Added
+
+- **The package is installable.** `main`, `types` and `exports` pointed at
+  `index.ts`, and the tarball was 64 raw `.ts`/`.tsx` files. That worked for
+  the only two consumers that had ever existed — vitest, and the playground's
+  Vite alias — because both compile TSX out of the source tree and resolve
+  extensionless specifiers. It generalises to nothing: `node_modules` is
+  excluded from transpilation almost everywhere by default, and `"type":
+  "module"` with extensionless relative imports is not valid ESM regardless.
+
+  `npm run build:package` now emits real ESM and real declarations to `dist/`
+  via `tsconfig.build.json`, preserving the module structure so consumers can
+  still tree-shake. Every relative specifier in the source carries a `.js`
+  extension — the convention `lib/capillary-bleed.ts` already used. The build
+  runs inside `npm run verify`, because a library that does not compile to
+  something installable is not shippable whatever its tests say.
+
+  Also fixed while packaging: ten Storybook files (~55 KB) were shipping and
+  dragging `@storybook/react-vite` into consumers' type resolution; the
+  manifest claimed Apache-2.0 with no licence text in the tarball, since npm
+  only picks one up from the package root; and 108 source maps pointed at
+  sources the package does not ship.
+
+- **The hooks are reachable.** `useCapillaryBleed`, `useDarshanLens` and
+  `useMakuShuttle` shipped from the first version and were importable from
+  nowhere — `index.ts` did not re-export them and the `exports` map blocks
+  deep imports, so ~38 KB travelled to every consumer as dead weight. They are
+  exported now rather than dropped: a consumer building its own composite
+  widget wants the same keyboard routing and dye engine the built-ins use.
 
 - **The loom separated from the cloth.** Tantu is one tradition expressed on a
   general structure, and until now the two were the same names and the same

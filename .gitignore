@@ -13,3 +13,6 @@ storybook-static/
 # Playground build output
 playground/dist/
 playground/node_modules/
+
+# Build artefact: produced by `npm run build:package`, published, never committed.
+src/tantu/dist/

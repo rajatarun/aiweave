@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { TantuLoom } from "./TantuLoom";
-import { TantuCell } from "./TantuCell";
-import { TantuCard } from "./TantuCard";
-import { ChambaRumalCard } from "./ChambaRumalCard";
-import { TantuStack, TantuCut, TantuMasthead } from "./TantuLayout";
-import { TalimThread } from "./TalimThread";
+import { TantuLoom } from "./TantuLoom.js";
+import { TantuCell } from "./TantuCell.js";
+import { TantuCard } from "./TantuCard.js";
+import { ChambaRumalCard } from "./ChambaRumalCard.js";
+import { TantuStack, TantuCut, TantuMasthead } from "./TantuLayout.js";
+import { TalimThread } from "./TalimThread.js";
 
 const meta = {
   title: "Layout/The loom",

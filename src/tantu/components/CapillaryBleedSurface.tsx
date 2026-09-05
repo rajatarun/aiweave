@@ -8,10 +8,10 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 
-import { createCapillaryBleed, type CapillaryBleedHandle } from "../lib/capillary-bleed";
-import { registerBleedNode, shouldBleed } from "../lib/bleed-bus";
-import { resolveDye, type TantuDye } from "../lib/dye";
-import { InkBleedFilter } from "./InkBleedFilter";
+import { createCapillaryBleed, type CapillaryBleedHandle } from "../lib/capillary-bleed.js";
+import { registerBleedNode, shouldBleed } from "../lib/bleed-bus.js";
+import { resolveDye, type TantuDye } from "../lib/dye.js";
+import { InkBleedFilter } from "./InkBleedFilter.js";
 
 /**
  * Dye primitives available to a bleed surface, drawn live from the vat.

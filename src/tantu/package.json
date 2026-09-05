@@ -1,32 +1,35 @@
 {
   "name": "@aiweave/tantu",
-  "version": "0.1.0",
-  "description": "Tantu \u2014 a React design system that treats the interface as handloom cloth: token-driven, theme-aware, WCAG AA verified.",
+  "version": "0.2.0",
+  "description": "Tantu — a React design system that treats the interface as handloom cloth: token-driven, theme-aware, WCAG AA verified.",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": [
     "*.css"
   ],
-  "main": "./index.ts",
-  "types": "./index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./index.ts",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
     "./styles.css": "./styles/tantu.css",
     "./fonts.css": "./styles/fonts.css",
+    "./tokens/tantu.tokens.json": "./tokens/tantu.tokens.json",
+    "./tokens/tokens-studio.json": "./tokens/tokens-studio.json",
     "./package.json": "./package.json"
   },
   "files": [
-    "components",
-    "hooks",
-    "lib",
+    "dist",
     "styles",
-    "tokens",
     "fonts",
-    "index.ts",
+    "tokens",
     "README.md",
     "CHANGELOG.md",
     "VERSIONING.md",
-    "ACCESSIBILITY-CONFORMANCE-REPORT.md"
+    "ACCESSIBILITY-CONFORMANCE-REPORT.md",
+    "LICENSE"
   ],
   "peerDependencies": {
     "react": ">=18",
@@ -60,5 +63,12 @@
   "homepage": "https://github.com/rajatarun/aiweave/tree/main/src/tantu#readme",
   "bugs": {
     "url": "https://github.com/rajatarun/aiweave/issues"
+  },
+  "module": "./dist/index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "prepublishOnly": "cd ../.. && npm run verify"
   }
 }

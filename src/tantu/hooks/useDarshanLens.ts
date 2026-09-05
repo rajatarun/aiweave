@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getLoomAudio, panForX } from "../lib/loom-audio";
+import { getLoomAudio, panForX } from "../lib/loom-audio.js";
 
 export interface DarshanTransform {
   /** Lens offset over the cloth, in device pixels. */

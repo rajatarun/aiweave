@@ -1,5 +1,5 @@
 import { useCallback, useMemo, type HTMLAttributes } from "react";
-import { getLoomAudio, panForX } from "../lib/loom-audio";
+import { getLoomAudio, panForX } from "../lib/loom-audio.js";
 
 export interface PanchangMark {
   /** ISO date (YYYY-MM-DD) the mark binds to. */

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { getLoomAudio } from "../lib/loom-audio";
+import { getLoomAudio } from "../lib/loom-audio.js";
 
 export interface KasutiPoint {
   /** Weft coordinate label rendered in Kasuti caps beneath the matrix. */

@@ -11,8 +11,8 @@ import {
   type InputHTMLAttributes,
   type ReactNode,
 } from "react";
-import { getLoomAudio } from "../lib/loom-audio";
-import { inlineFlip, inlineStartPadding } from "../lib/direction";
+import { getLoomAudio } from "../lib/loom-audio.js";
+import { inlineFlip, inlineStartPadding } from "../lib/direction.js";
 
 export interface TantuInputProps extends InputHTMLAttributes<HTMLInputElement> {
   /** Kasuti-stitched field label. */

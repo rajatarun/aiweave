@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { TantuMakuShuttle } from "./TantuMakuShuttle";
-import { TantuDarshanLens } from "./TantuDarshanLens";
-import { TantuTraceSearch } from "./TantuTraceSearch";
-import { TantuGuptBandhan } from "./TantuGuptBandhan";
-import { TantuAcousticToggle } from "./TantuAcousticToggle";
-import { TantuAcousticPalette } from "./TantuAcousticPalette";
-import { TantuCard } from "./TantuCard";
-import { TantuButton } from "./TantuButton";
+import { TantuMakuShuttle } from "./TantuMakuShuttle.js";
+import { TantuDarshanLens } from "./TantuDarshanLens.js";
+import { TantuTraceSearch } from "./TantuTraceSearch.js";
+import { TantuGuptBandhan } from "./TantuGuptBandhan.js";
+import { TantuAcousticToggle } from "./TantuAcousticToggle.js";
+import { TantuAcousticPalette } from "./TantuAcousticPalette.js";
+import { TantuCard } from "./TantuCard.js";
+import { TantuButton } from "./TantuButton.js";
 
 const meta = {
   title: "Atmosphere/The room around the loom",

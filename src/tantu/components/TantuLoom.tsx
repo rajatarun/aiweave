@@ -1,7 +1,7 @@
 import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
-import { TalimThread } from "./TalimThread";
-import { TantuMakuShuttle } from "./TantuMakuShuttle";
-import { TantuDarshanLens } from "./TantuDarshanLens";
+import { TalimThread } from "./TalimThread.js";
+import { TantuMakuShuttle } from "./TantuMakuShuttle.js";
+import { TantuDarshanLens } from "./TantuDarshanLens.js";
 
 export interface TantuLoomProps extends HTMLAttributes<HTMLDivElement> {
   /** The root instruction code for this specific view (e.g., "SYS-01-INIT"). */
