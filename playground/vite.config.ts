@@ -4,11 +4,32 @@ import path from "node:path";
 
 /**
  * The playground consumes Tantu the way an application would — through the
- * package name, not a relative path into the repo. The alias below is what a
- * consumer's `node_modules` provides; pointing it at the source keeps the
- * playground honest about the published entry point (`.` and `./styles.css`)
- * while still hot-reloading when a component changes.
+ * package name, not a relative path into the repo.
+ *
+ * Two modes, because the playground has two jobs that pull in opposite
+ * directions.
+ *
+ *   default            Alias the package name at ../src/tantu. The playground
+ *                      exercises the WORKING TREE, which is what four audit
+ *                      scripts depend on: verify_core, verify_tension,
+ *                      verify_playground_beams and qa_playground all measure
+ *                      playground/dist. Point those at the published package
+ *                      and they would happily certify npm's copy while a
+ *                      regression sat uncaught in src/ — verify_core exists
+ *                      precisely to catch that, so it must never be measuring
+ *                      a release instead of the branch.
+ *
+ *   TANTU_FROM_NPM=1   Drop the alias and resolve @weaveaijs/tantu from
+ *                      node_modules like any other dependency. This is the
+ *                      mode that proves the published package really does
+ *                      build a working application, and the one a person gets
+ *                      if they copy this directory somewhere else.
+ *
+ * `npm run build:npm` is the second mode. Both are expected to work; only the
+ * first is what `npm run verify` measures.
  */
+const fromNpm = process.env.TANTU_FROM_NPM === "1";
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -19,11 +40,13 @@ export default defineConfig({
     // consumer's bundler does for them via the peer dependency; here it has to
     // be said out loud because the alias sidesteps package resolution.
     dedupe: ["react", "react-dom"],
-    alias: {
-      "@weaveaijs/tantu/styles.css": path.resolve(__dirname, "../src/tantu/styles/tantu.css"),
-      "@weaveaijs/tantu/fonts.css": path.resolve(__dirname, "../src/tantu/styles/fonts.css"),
-      "@weaveaijs/tantu": path.resolve(__dirname, "../src/tantu/index.ts"),
-    },
+    alias: fromNpm
+      ? {}
+      : {
+          "@weaveaijs/tantu/styles.css": path.resolve(__dirname, "../src/tantu/styles/tantu.css"),
+          "@weaveaijs/tantu/fonts.css": path.resolve(__dirname, "../src/tantu/styles/fonts.css"),
+          "@weaveaijs/tantu": path.resolve(__dirname, "../src/tantu/index.ts"),
+        },
   },
   // The typefaces are build output living at the repo root. Serving that
   // directory as the playground's public dir means there is no second copy to

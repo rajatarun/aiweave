@@ -51,6 +51,17 @@ export * from "./components/JamdaniBlock.js";
 export * from "./components/PatolaField.js";
 export * from "./components/TantuPhad.js";
 export * from "./components/TantuPanchang.js";
+// Commerce. Structural, and deliberately named for what each one does rather
+// than for any cloth or region: a shop in Oaxaca and a shop in Kutch reach for
+// the same seven, and dress them through the pack.
+export * from "./components/TantuImage.js";
+export * from "./components/TantuPrice.js";
+export * from "./components/TantuQuantity.js";
+export * from "./components/TantuSwatchSet.js";
+export * from "./components/TantuGallery.js";
+export * from "./components/TantuProvenance.js";
+export * from "./components/TantuProductCard.js";
+
 export * from "./components/TantuBleedCanvas.js";
 export * from "./components/CapillaryBleedSurface.js";
 export * from "./components/InkBleedFilter.js";

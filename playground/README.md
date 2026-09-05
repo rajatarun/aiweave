@@ -103,11 +103,29 @@ reader's machine already has, and the layout, colour and motion are unchanged.
 Worth trying: it is the clearest demonstration of what the system is versus
 what its skin is.
 
-`vite.config.ts` aliases those two specifiers at the source tree, which is what
-a consumer's `node_modules` would provide — so the playground exercises the real
-export surface while still hot-reloading when a component changes.
+Two modes, because this directory has two jobs that pull in opposite
+directions:
 
-Two things in that config are worth reading before copying it:
+```
+npm run dev          # default: Tantu from ../src, hot-reloading
+npm run dev:npm      # from node_modules, exactly as a consumer gets it
+npm run build:npm    # the same, built
+```
+
+The default aliases the package name at `../src/tantu`, so the playground
+exercises the **working tree**. That is not a convenience — four audit scripts
+measure `playground/dist`: `verify_core`, `verify_tension`,
+`verify_playground_beams` and `qa_playground`. Point them at the published
+package and they would certify npm's copy while a regression sat uncaught in
+`src/`, which is the exact failure `verify_core` exists to prevent.
+
+`TANTU_FROM_NPM=1` drops the alias and resolves `@weaveaijs/tantu` from
+`node_modules` like any other dependency. That is the mode that proves the
+published package really does build a working application — and it does: the
+whole QA sweep (42 checks) and the beam consequence audit (45) pass against a
+playground built entirely from the registry copy.
+
+Two things in the config are worth reading before copying it:
 
 - **`resolve.dedupe`.** The playground is a nested npm project, so `react`
   resolves from its own `node_modules` for app code and from the repo root for
@@ -120,15 +138,16 @@ Two things in that config are worth reading before copying it:
 
 ## Opening it in StackBlitz
 
-The playground depends on the source tree next to it, so it is not
-self-contained. To open it in a browser IDE, point StackBlitz at the whole
-repository rather than this directory:
+To open the repository's own copy in a browser IDE — the one wired to the
+source tree, so edits to a component show up here — point StackBlitz at the
+whole repository rather than this directory:
 
 ```
 https://stackblitz.com/github/rajatarun/aiweave
 ```
 
-then run `npm install && npm run playground` in its terminal. Once
-`@weaveaijs/tantu` is published to npm this directory becomes standalone — swap
-the two aliases in `vite.config.ts` for a real dependency and it will boot on
-its own.
+then run `npm install && npm run playground` in its terminal.
+
+`@weaveaijs/tantu` is on npm now, so this directory is also standalone: copy it
+anywhere, `npm install`, and run `npm run dev:npm`. It resolves the design
+system from the registry and needs nothing else from this repository.

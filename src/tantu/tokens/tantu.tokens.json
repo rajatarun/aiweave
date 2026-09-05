@@ -137,6 +137,15 @@
         "caution": {
           "$value": "#945412",
           "$type": "color"
+        },
+        "reduction": {
+          "$value": "#82231d",
+          "$type": "color",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--tantu-madder-root"
+            }
+          }
         }
       },
       "grid": {
@@ -613,6 +622,10 @@
         },
         "caution": {
           "$value": "#c36f18",
+          "$type": "color"
+        },
+        "reduction": {
+          "$value": "#d98878",
           "$type": "color"
         }
       },
