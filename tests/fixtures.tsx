@@ -33,7 +33,9 @@ import {
   TantuDarshanLens,
   TantuDialog,
   TantuFold,
+  TantuGallery,
   TantuGuptBandhan,
+  TantuImage,
   TantuInput,
   TantuLoom,
   TantuMakuShuttle,
@@ -44,6 +46,10 @@ import {
   TantuPanchang,
   TantuPhad,
   TantuPopover,
+  TantuPrice,
+  TantuProductCard,
+  TantuProvenance,
+  TantuQuantity,
   TantuRupture,
   TantuSeal,
   TantuSelect,
@@ -51,6 +57,7 @@ import {
   TantuSpindle,
   TantuStack,
   TantuStepper,
+  TantuSwatchSet,
   TantuTable,
   TantuTabs,
   TantuTag,
@@ -74,6 +81,18 @@ export interface Specimen {
    */
   axeNote?: string;
 }
+
+/* A photograph as a data URI. The sweeps run with no network, and a specimen
+   that reaches for a remote file fails for a reason that has nothing to do
+   with the component. */
+const CLOTH =
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500">' +
+      '<rect width="400" height="500" fill="#c9d4e2"/>' +
+      '<path d="M0 0h400v500H0z" fill="none" stroke="#1d3a5c" stroke-width="2"/>' +
+      "</svg>",
+  );
 
 const TABLE_ROWS = [
   { id: "r1", warp: "Cotton 40s", picks: 48, dye: "Madder root" },
@@ -244,6 +263,73 @@ export const SPECIMENS: Specimen[] = [
     ),
   },
   { name: "TantuTag", element: <TantuTag>Selvedge</TantuTag> },
+  {
+    name: "TantuImage",
+    element: <TantuImage src={CLOTH} alt="Indigo cotton, the weave seen square on." ratio="4 / 5" />,
+  },
+  {
+    name: "TantuPrice",
+    element: <TantuPrice amount={51.9} compareAt={85} currency="GBP" locale="en-GB" />,
+  },
+  {
+    name: "TantuQuantity",
+    element: <TantuQuantity label="Quantity" defaultValue={1} min={1} max={4} />,
+  },
+  {
+    name: "TantuSwatchSet",
+    element: (
+      <TantuSwatchSet
+        label="Dye"
+        value="indigo"
+        options={[
+          { id: "indigo", label: "Indigo", swatch: "var(--tantu-indigo-vat)" },
+          { id: "madder", label: "Madder", swatch: "var(--tantu-madder-root)" },
+          { id: "iron", label: "Iron black", swatch: "var(--tantu-kala-iron)", available: false },
+        ]}
+      />
+    ),
+  },
+  {
+    name: "TantuGallery",
+    element: (
+      <TantuGallery
+        frames={[
+          { id: "square", src: CLOTH, alt: "The cloth square on, showing the weave density." },
+          { id: "edge", src: CLOTH, alt: "The selvedge, where the weft turns." },
+        ]}
+      />
+    ),
+  },
+  {
+    name: "TantuProvenance",
+    element: (
+      <TantuProvenance
+        title="At the loom"
+        entries={[
+          { term: "Woven by", detail: "Rehmat Bibi" },
+          { term: "Workshop", detail: "Bhujodi, Kachchh" },
+          { term: "Fibre", detail: "Kala cotton, undyed warp" },
+        ]}
+        mark="Handloom Mark — registered"
+      />
+    ),
+  },
+  {
+    name: "TantuProductCard",
+    element: (
+      <TantuProductCard
+        title="Bhujodi shawl, indigo"
+        href="#bhujodi"
+        src={CLOTH}
+        alt="Indigo shawl, the weave seen square on."
+        note="Kachchh · extra-weft"
+        price={{ amount: 85, currency: "GBP", locale: "en-GB" }}
+      />
+    ),
+    axeNote:
+      "A card is one piece in a collection and carries no landmark of its own; " +
+      "the grid it sits in is the region, and that is measured by the Collection story.",
+  },
   { name: "TantuSeal", element: <TantuSeal name="Rukmini Devi" /> },
   {
     name: "TantuAvatarGroup",

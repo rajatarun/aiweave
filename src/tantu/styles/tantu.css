@@ -46,6 +46,14 @@
      nobody had written this one. Deepened to 5.11 / 4.54 / 4.62 across the
      three grounds; the notice and banner rules it also feeds only improve. */
   --tantu-state-caution: #945412;
+  /* A reduced price as *text*. TantuPrice first used --tantu-madder-root
+     directly, and a dye primitive is theme-invariant by definition: 7.32:1
+     on the light grounds, 1.99:1 on the dark ones. The rendered-contrast
+     sweep caught it on the first story that shipped a sale price — the same
+     way it caught the caution tag above, and for the same reason. The
+     primitive is left alone; this semantic role carries the readable value
+     and the dark theme lifts it. */
+  --tantu-state-reduction: var(--tantu-madder-root);
   /* Zari as *text*. The tag used --tantu-zari-tarnish directly, and a dye
      primitive is theme-invariant by definition: 3.33:1 on the light ground.
      The primitive is left alone — a dozen decorative strokes on dark
@@ -350,6 +358,10 @@
      5.09 / 4.78 / 4.53 and 5.07 / 4.77 / 4.52 across the three dark grounds. */
   --tantu-state-success: #4e9263;
   --tantu-state-caution: #c36f18;
+  /* Madder lifted off the dark grounds the same way — kept in the madder
+     family rather than blended toward white, so a reduction still reads as
+     red rather than pink. 7.00 / 6.58 / 6.24. */
+  --tantu-state-reduction: #d98878;
   --tantu-border-embroidery: #9e7d3b;
 
   --tantu-color-surface: #1a1714;
@@ -4081,5 +4093,461 @@ textarea.tantu-maku-focus {
   .tantu-patola-cell,
   .tantu-kasuti-canvas {
     forced-color-adjust: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMMERCE
+   ─────────────────────────────────────────────────────────────────────────
+   The shop vocabulary: cloth in a frame, a sum of money, which one, how many,
+   who made it, and one piece in a collection.
+
+   Everything here is structural. Nothing in this section names a craft, a
+   region or a tradition, so a pack may re-dye all of it without forking a
+   single rule.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Cloth in a frame ───────────────────────────────────────────────────── */
+
+.tantu-image {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--tantu-kora-mud);
+  /* The frame holds its proportion before the file lands, so nothing below
+     it moves when the file decodes. */
+  inline-size: 100%;
+}
+
+.tantu-image-file {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  /* Fades in rather than snapping, so a long catalogue does not flicker as
+     the reader scrolls through it. */
+  opacity: 0;
+  transition: opacity var(--tantu-motion-capillary);
+}
+
+.tantu-image-ready .tantu-image-file {
+  opacity: 1;
+}
+
+/* The woven placeholder — the loom's own thread grid, held until the
+   photograph arrives. Not a shimmer: this system already has a texture. */
+.tantu-image:not(.tantu-image-bare):not(.tantu-image-ready)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      var(--tantu-grid-thread) 0 1px,
+      transparent 1px var(--tantu-knot-2)
+    ),
+    repeating-linear-gradient(
+      to right,
+      var(--tantu-grid-thread) 0 1px,
+      transparent 1px var(--tantu-knot-2)
+    );
+  opacity: 0.5;
+}
+
+.tantu-image-missing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  block-size: 100%;
+  padding: var(--tantu-knot-3);
+  font-family: var(--tantu-font-meta);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--tantu-ink-secondary);
+  background-color: var(--tantu-kora-mud);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tantu-image-file {
+    transition: none;
+    opacity: 1;
+  }
+}
+
+/* ── A sum of money ─────────────────────────────────────────────────────── */
+
+.tantu-price {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--tantu-knot-2);
+  font-family: var(--tantu-font-body);
+  /* Prices line up down a column of cards. */
+  font-variant-numeric: tabular-nums;
+  color: var(--tantu-ink-primary);
+}
+
+.tantu-price-now {
+  font-weight: 600;
+}
+
+.tantu-price-was {
+  text-decoration: line-through;
+  color: var(--tantu-ink-secondary);
+  font-size: 0.875em;
+}
+
+.tantu-price-reduced .tantu-price-now {
+  color: var(--tantu-state-reduction);
+}
+
+.tantu-price-unit {
+  font-family: var(--tantu-font-meta);
+  font-size: 0.75em;
+  color: var(--tantu-ink-secondary);
+}
+
+/* ── How many ───────────────────────────────────────────────────────────── */
+
+.tantu-quantity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tantu-knot-1);
+}
+
+.tantu-quantity-label {
+  font-family: var(--tantu-font-meta);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tantu-ink-secondary);
+}
+
+.tantu-quantity-body {
+  display: inline-flex;
+  align-items: stretch;
+  inline-size: fit-content;
+  border: var(--tantu-gauge-filament) solid var(--tantu-border-hairline);
+  background-color: var(--tantu-bg-elevated);
+}
+
+.tantu-quantity-step {
+  /* WCAG 2.5.8. The system's own floor, not a number invented here. */
+  min-inline-size: var(--tantu-target-min);
+  min-block-size: var(--tantu-target-min);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--tantu-ink-primary);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tantu-quantity-step:hover:not(:disabled) {
+  background-color: var(--tantu-bg-surface-active);
+}
+
+.tantu-quantity-step:focus-visible {
+  outline: var(--tantu-gauge-ply) solid var(--tantu-accent-structural);
+  outline-offset: -2px;
+}
+
+.tantu-quantity-step:disabled {
+  color: var(--tantu-ink-secondary);
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tantu-quantity-field {
+  inline-size: 3.5rem;
+  min-block-size: var(--tantu-target-min);
+  padding: 0 var(--tantu-knot-1);
+  border: 0;
+  border-inline: var(--tantu-gauge-filament) solid var(--tantu-border-hairline);
+  background: transparent;
+  color: var(--tantu-ink-primary);
+  font-family: var(--tantu-font-body);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.tantu-quantity-field:focus-visible {
+  outline: var(--tantu-gauge-ply) solid var(--tantu-accent-structural);
+  outline-offset: -2px;
+}
+
+/* ── Which one ──────────────────────────────────────────────────────────── */
+
+.tantu-swatchset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tantu-knot-2);
+}
+
+.tantu-swatchset-label {
+  font-family: var(--tantu-font-meta);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tantu-ink-secondary);
+}
+
+.tantu-swatchset-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tantu-knot-2);
+}
+
+.tantu-swatch {
+  min-inline-size: var(--tantu-target-min);
+  min-block-size: var(--tantu-target-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--tantu-knot-2);
+  border: var(--tantu-gauge-filament) solid var(--tantu-border-hairline);
+  background-color: var(--tantu-bg-elevated);
+  color: var(--tantu-ink-primary);
+  font-family: var(--tantu-font-body);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.tantu-swatch:focus-visible {
+  outline: var(--tantu-gauge-ply) solid var(--tantu-accent-structural);
+  outline-offset: 2px;
+}
+
+.tantu-swatch-on {
+  border-color: var(--tantu-accent-structural);
+  border-width: var(--tantu-gauge-ply);
+  background-color: var(--tantu-bg-surface-active);
+}
+
+/* Sold out. Muted and struck, but still a real, focusable, discoverable
+   control — the shopper needs to find out that this is the one they wanted. */
+.tantu-swatch-spent {
+  cursor: not-allowed;
+  color: var(--tantu-ink-secondary);
+  background-image: linear-gradient(
+    to top left,
+    transparent calc(50% - 0.5px),
+    var(--tantu-border-hairline) calc(50% - 0.5px) calc(50% + 0.5px),
+    transparent calc(50% + 0.5px)
+  );
+}
+
+.tantu-swatchset-chips .tantu-swatch {
+  padding: var(--tantu-knot-1);
+}
+
+.tantu-swatch-chip {
+  display: block;
+  inline-size: var(--tantu-knot-4);
+  block-size: var(--tantu-knot-4);
+  background-color: var(--swatch, var(--tantu-kora-raw));
+  /* A pale dye against a pale ground needs an edge or it vanishes. */
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.18);
+}
+
+.tantu-swatch-spent .tantu-swatch-chip {
+  opacity: 0.4;
+}
+
+/* ── The cloth from several sides ───────────────────────────────────────── */
+
+.tantu-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tantu-knot-2);
+}
+
+.tantu-gallery-plate {
+  background-color: var(--tantu-kora-mud);
+}
+
+.tantu-gallery-rail {
+  display: flex;
+  gap: var(--tantu-knot-2);
+  overflow-x: auto;
+  /* A rail that scrolls must be reachable by keyboard, or axe is right to
+     complain and a keyboard user is right to be stuck. The buttons inside
+     make it focusable, so the container itself needs no tabindex. */
+  padding-block-end: var(--tantu-knot-1);
+}
+
+.tantu-gallery-thumb {
+  flex: 0 0 auto;
+  inline-size: var(--tantu-knot-12);
+  padding: 0;
+  border: var(--tantu-gauge-filament) solid transparent;
+  background: none;
+  cursor: pointer;
+}
+
+.tantu-gallery-thumb:focus-visible {
+  outline: var(--tantu-gauge-ply) solid var(--tantu-accent-structural);
+  outline-offset: 2px;
+}
+
+.tantu-gallery-thumb-on {
+  border-color: var(--tantu-accent-structural);
+  border-width: var(--tantu-gauge-ply);
+}
+
+/* ── Who made it ────────────────────────────────────────────────────────── */
+
+.tantu-provenance {
+  padding: var(--tantu-knot-4);
+  background-color: var(--tantu-bg-elevated);
+  border-inline-start: var(--tantu-gauge-cord) solid var(--tantu-accent-structural);
+}
+
+.tantu-provenance-title {
+  margin: 0 0 var(--tantu-knot-3);
+  font-family: var(--tantu-font-display);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--tantu-ink-primary);
+}
+
+.tantu-provenance-list {
+  margin: 0;
+  display: grid;
+  gap: var(--tantu-knot-2);
+}
+
+.tantu-provenance-pair {
+  display: grid;
+  grid-template-columns: minmax(6rem, 10rem) 1fr;
+  gap: var(--tantu-knot-3);
+  align-items: baseline;
+}
+
+.tantu-provenance-term {
+  font-family: var(--tantu-font-meta);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tantu-ink-secondary);
+}
+
+.tantu-provenance-detail {
+  margin: 0;
+  font-family: var(--tantu-font-body);
+  font-size: 0.875rem;
+  color: var(--tantu-ink-primary);
+}
+
+.tantu-provenance-mark {
+  margin: var(--tantu-knot-3) 0 0;
+  padding-block-start: var(--tantu-knot-2);
+  border-block-start: var(--tantu-gauge-filament) solid var(--tantu-border-hairline);
+  font-family: var(--tantu-font-meta);
+  font-size: 0.75rem;
+  color: var(--tantu-ink-zari);
+}
+
+.tantu-provenance-note {
+  margin-block-start: var(--tantu-knot-3);
+  font-family: var(--tantu-font-body);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--tantu-ink-secondary);
+}
+
+@media (max-width: 40rem) {
+  .tantu-provenance-pair {
+    grid-template-columns: 1fr;
+    gap: var(--tantu-knot-1);
+  }
+}
+
+/* ── One piece in a collection ──────────────────────────────────────────── */
+
+.tantu-product {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tantu-knot-2);
+  background-color: var(--tantu-bg-elevated);
+}
+
+.tantu-product[data-warp-span="2"]  { grid-column: span 2; }
+.tantu-product[data-warp-span="3"]  { grid-column: span 3; }
+.tantu-product[data-warp-span="4"]  { grid-column: span 4; }
+.tantu-product[data-warp-span="6"]  { grid-column: span 6; }
+.tantu-product[data-warp-span="12"] { grid-column: span 12; }
+
+.tantu-product-plate {
+  position: relative;
+}
+
+.tantu-product-flags {
+  position: absolute;
+  inset-block-start: var(--tantu-knot-2);
+  inset-inline-start: var(--tantu-knot-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tantu-knot-1);
+  /* Above the stretched link, or the flags cannot be read by a pointer that
+     hovers a tooltip on them. */
+  z-index: 1;
+}
+
+.tantu-product-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tantu-knot-1);
+  padding: var(--tantu-knot-3);
+}
+
+.tantu-product-title {
+  margin: 0;
+  font-family: var(--tantu-font-display);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.tantu-product-link {
+  color: var(--tantu-ink-primary);
+  text-decoration: none;
+}
+
+/* The whole card is the target; the title is the only link. One tab stop
+   per card, named by the piece. */
+.tantu-product-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.tantu-product-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.tantu-product-link:focus-visible {
+  outline: var(--tantu-gauge-ply) solid var(--tantu-accent-structural);
+  outline-offset: 3px;
+}
+
+.tantu-product-note {
+  margin: 0;
+  font-family: var(--tantu-font-meta);
+  font-size: 0.75rem;
+  color: var(--tantu-ink-secondary);
+}
+
+.tantu-product-price {
+  margin-block-start: var(--tantu-knot-1);
+}
+
+@media (max-width: 48rem) {
+  .tantu-product[data-warp-span] {
+    grid-column: span 6;
   }
 }

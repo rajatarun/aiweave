@@ -47,13 +47,39 @@ export function collectUndersizedTargets(rootSelector) {
     return neighbouringText.trim().length > 0;
   };
 
+  /**
+   * The stretched link: an `::after` pinned to all four edges of the nearest
+   * positioned ancestor, which is how a card gets one tab stop whose accessible
+   * name is the title while the whole card still accepts the press.
+   *
+   * SC 2.5.8 measures "the region of the display that will accept a pointer
+   * action", and for these that region is the card — but the element's own
+   * `getBoundingClientRect()` does not include a pseudo-element, so measuring
+   * the anchor reports the width of its text and fails a target that is
+   * actually 300px tall. Same shape of mistake as the Inline exception above:
+   * correct arithmetic on the wrong box.
+   *
+   * Deliberately narrow — an absolutely positioned pseudo pinned on all four
+   * sides, nothing looser. Take the stretch away and the anchor is measured on
+   * its own again, so the check still bites.
+   */
+  const stretchedRegion = (el) => {
+    for (const pseudo of ["::after", "::before"]) {
+      const style = getComputedStyle(el, pseudo);
+      if (!style || style.content === "none" || style.position !== "absolute") continue;
+      const pinned = ["top", "right", "bottom", "left"].every((side) => style[side] === "0px");
+      if (pinned && el.offsetParent) return el.offsetParent.getBoundingClientRect();
+    }
+    return null;
+  };
+
   return Array.from(root.querySelectorAll(SELECTOR))
     // The visually hidden native control behind a custom one is not the target
     // a pointer is aimed at; the visible custom control is, and it is measured.
     .filter((el) => !el.classList.contains("tantu-visually-hidden"))
     .filter((el) => !isInlineInSentence(el))
     .map((el) => {
-      const r = el.getBoundingClientRect();
+      const r = stretchedRegion(el) ?? el.getBoundingClientRect();
       return {
         w: Math.round(r.width),
         h: Math.round(r.height),

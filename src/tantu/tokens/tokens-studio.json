@@ -100,6 +100,10 @@
       "value": "#945412",
       "type": "color"
     },
+    "tantu.state.reduction": {
+      "value": "#82231d",
+      "type": "color"
+    },
     "tantu.ink.zari": {
       "value": "#7a602d",
       "type": "color"
@@ -424,6 +428,10 @@
     },
     "tantu.state.caution": {
       "value": "#c36f18",
+      "type": "color"
+    },
+    "tantu.state.reduction": {
+      "value": "#d98878",
       "type": "color"
     },
     "tantu.ink.zari": {
