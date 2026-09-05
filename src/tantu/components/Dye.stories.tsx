@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { CapillaryBleedSurface } from "./CapillaryBleedSurface";
-import { TantuBleedCanvas } from "./TantuBleedCanvas";
-import { InkBleedFilter } from "./InkBleedFilter";
-import { TantuButton } from "./TantuButton";
-import { TantuCard } from "./TantuCard";
-import { wickProgress } from "../lib/bleed-bus";
+import { CapillaryBleedSurface } from "./CapillaryBleedSurface.js";
+import { TantuBleedCanvas } from "./TantuBleedCanvas.js";
+import { InkBleedFilter } from "./InkBleedFilter.js";
+import { TantuButton } from "./TantuButton.js";
+import { TantuCard } from "./TantuCard.js";
+import { wickProgress } from "../lib/bleed-bus.js";
 
 const meta = {
   title: "Dye/Capillary bleed",

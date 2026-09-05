@@ -1,5 +1,5 @@
 import { useCallback, useId, useState, type HTMLAttributes, type ReactNode } from "react";
-import { inlineArrowStep } from "../lib/direction";
+import { inlineArrowStep } from "../lib/direction.js";
 
 export interface TantuTabItem {
   id: string;

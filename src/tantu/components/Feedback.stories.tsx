@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { TantuTag } from "./TantuTag";
-import { TantuSeal } from "./TantuSeal";
-import { TantuAvatarGroup } from "./TantuAvatarGroup";
-import { TantuMeter } from "./TantuMeter";
-import { TantuNotice } from "./TantuNotice";
-import { TantuBanner } from "./TantuBanner";
-import { TantuRupture } from "./TantuRupture";
-import { SikkuKolamLoader } from "./SikkuKolamLoader";
-import { TantuUnwoven, TantuSpindle } from "./TantuLoading";
+import { TantuTag } from "./TantuTag.js";
+import { TantuSeal } from "./TantuSeal.js";
+import { TantuAvatarGroup } from "./TantuAvatarGroup.js";
+import { TantuMeter } from "./TantuMeter.js";
+import { TantuNotice } from "./TantuNotice.js";
+import { TantuBanner } from "./TantuBanner.js";
+import { TantuRupture } from "./TantuRupture.js";
+import { SikkuKolamLoader } from "./SikkuKolamLoader.js";
+import { TantuUnwoven, TantuSpindle } from "./TantuLoading.js";
 
 const meta = {
   title: "Feedback/State of the weave",

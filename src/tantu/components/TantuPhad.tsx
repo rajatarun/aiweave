@@ -8,7 +8,7 @@ import {
   type HTMLAttributes,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import { getLoomAudio, panForX } from "../lib/loom-audio";
+import { getLoomAudio, panForX } from "../lib/loom-audio.js";
 
 export interface PhadEvent {
   id: string;

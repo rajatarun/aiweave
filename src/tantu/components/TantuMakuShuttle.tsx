@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
-import { useMakuShuttle, type MakuShuttleOptions } from "../hooks/useMakuShuttle";
-import { InkBleedFilter } from "./InkBleedFilter";
+import { useMakuShuttle, type MakuShuttleOptions } from "../hooks/useMakuShuttle.js";
+import { InkBleedFilter } from "./InkBleedFilter.js";
 
 export interface TantuMakuShuttleProps extends MakuShuttleOptions {}
 

@@ -1,0 +1,134 @@
+name: Release
+
+# Publishes @weaveaijs/tantu to npm.
+#
+# Triggered by a version tag, never by a push to main. A registry version is
+# permanent — it can be deprecated but not replaced — so the irreversible step
+# stays behind a deliberate human action rather than happening every time
+# someone merges.
+#
+#   npm version minor --workspace-free   # or edit src/tantu/package.json
+#   git tag v0.2.0 && git push --tags
+#
+# workflow_dispatch runs everything except the publish, so the release path
+# itself can be exercised without spending a version number on finding out
+# that it works.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Pack and verify only — do not publish"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  # Required for npm provenance: the OIDC token is what links the published
+  # tarball to this workflow and this commit, so a consumer can verify where
+  # the package came from rather than trusting the registry entry.
+  id-token: write
+
+jobs:
+  publish:
+    name: verify, pack, publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Same reason as the CI workflow: jsdom 30 needs an API Node 20
+          # never shipped.
+          node-version: "22"
+          cache: "npm"
+          registry-url: "https://registry.npmjs.org"
+
+      - run: npm ci
+
+      # The tag is the version claim, and package.json is the version that
+      # actually ships. Nothing reconciles the two automatically, so tagging
+      # v0.3.0 against a manifest still reading 0.2.0 would publish 0.2.0 —
+      # or fail on a duplicate — with the tag pointing at a version that does
+      # not exist. Check before doing anything expensive.
+      - name: The tag and the manifest agree
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG=$(node -p "require('./src/tantu/package.json').version")
+          echo "tag: $TAG   manifest: $PKG"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "::error::tag v$TAG does not match src/tantu/package.json ($PKG)"
+            exit 1
+          fi
+
+      - name: Install Chromium for the browser checks
+        run: npx playwright install --with-deps chromium
+
+      # The whole gate, not a subset. `prepublishOnly` runs this again on the
+      # publish step itself, which protects a manual `npm publish` from
+      # someone's laptop; running it here as well means a failure costs a
+      # workflow rather than being discovered mid-publish.
+      - name: Verify
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run verify
+
+      # Packing proves the archive builds. It does not prove anyone can use
+      # it, which is a different question and the one that matters — so
+      # install the tarball into a clean directory and import it under Node
+      # ESM, the strictest consumer there is.
+      - name: The tarball is actually consumable
+        run: |
+          set -e
+          TGZ=$(cd src/tantu && npm pack --pack-destination "$RUNNER_TEMP" | tail -1)
+          echo "packed $TGZ"
+          mkdir -p "$RUNNER_TEMP/consumer" && cd "$RUNNER_TEMP/consumer"
+          echo '{"name":"consumer","private":true,"type":"module","version":"1.0.0"}' > package.json
+          npm install --silent "$RUNNER_TEMP/$TGZ" react@^19 react-dom@^19
+          cat > probe.mjs <<'PROBE'
+          import * as Tantu from "@weaveaijs/tantu";
+          import { renderToStaticMarkup } from "react-dom/server";
+          import { createElement as h } from "react";
+          import { readFileSync } from "node:fs";
+
+          const need = ["TantuButton", "TantuLoom", "ChambaRumalCard", "TANTU_DYES",
+                        "FIBRES", "wickProgress", "fibreFrom", "useDarshanLens"];
+          const missing = need.filter((n) => !(n in Tantu));
+          if (missing.length) {
+            console.error("missing exports:", missing.join(", "));
+            process.exit(1);
+          }
+          const html = renderToStaticMarkup(h(Tantu.TantuButton, { variant: "primary" }, "Weave"));
+          if (!html.includes("tantu-btn")) {
+            console.error("TantuButton did not render:", html);
+            process.exit(1);
+          }
+          const css = readFileSync(new URL(import.meta.resolve("@weaveaijs/tantu/styles.css")), "utf8");
+          if (!css.includes("--weave-sett")) {
+            console.error("styles.css did not resolve to the real stylesheet");
+            process.exit(1);
+          }
+          console.log(`ok — ${Object.keys(Tantu).length} exports, rendered, ${css.length} bytes of CSS`);
+          PROBE
+          node probe.mjs
+
+      - name: Publish to npm
+        if: startsWith(github.ref, 'refs/tags/v') && inputs.dry_run != true
+        working-directory: src/tantu
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # --provenance needs a public repository; on a private one npm rejects
+        # the publish rather than publishing without it, so nothing is
+        # half-released if this is wrong — drop the flag and re-tag.
+        run: npm publish --provenance --access public
+
+      - name: What would have been published
+        if: ${{ !(startsWith(github.ref, 'refs/tags/v') && inputs.dry_run != true) }}
+        working-directory: src/tantu
+        run: |
+          echo "Dry run — nothing published."
+          npm pack --dry-run

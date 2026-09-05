@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { TantuInput } from "./TantuInput";
-import { TantuTextarea } from "./TantuTextarea";
-import { TantuSelect } from "./TantuSelect";
-import { TantuToggle } from "./TantuToggle";
-import { TantuSlider } from "./TantuSlider";
+import { TantuInput } from "./TantuInput.js";
+import { TantuTextarea } from "./TantuTextarea.js";
+import { TantuSelect } from "./TantuSelect.js";
+import { TantuToggle } from "./TantuToggle.js";
+import { TantuSlider } from "./TantuSlider.js";
 
 const meta = {
   title: "Controls/Form controls",

@@ -149,3 +149,84 @@ jobs:
         run: |
           echo "Website: http://${BUCKET}.s3-website-us-east-1.amazonaws.com"
           echo "Custom domain (after DNS): https://aiweave.org"
+
+  storybook:
+    name: Publish Storybook to aiweave.org/storybook/
+    runs-on: ubuntu-latest
+    env:
+      BUCKET: aiweave.org
+    # A separate job, not extra steps on the site deploy: a Storybook failure
+    # should not stop aiweave.org from shipping, and vice versa. Both are
+    # already gated by the Tantu workflow, which builds Storybook and renders
+    # every story on each push and pull request.
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Node 20 reached end of life in April 2026; new jobs start on 22.
+          node-version: "22"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::239571291755:role/teamweave-github-actions-sam-deployer
+          aws-region: us-east-1
+
+      # Storybook is served from a subdirectory, so the preview bundle has to
+      # be built knowing that. .storybook/main.ts reads this and hands it to
+      # Vite as `base`; without it every asset in iframe.html would request
+      # /assets/... at the domain root and 404. The manager's own URLs are
+      # already relative, so only the preview needs telling.
+      - name: Build Storybook for /storybook/
+        env:
+          STORYBOOK_BASE_PATH: /storybook/
+        run: npm run build:storybook
+
+      - name: The build really is rooted at /storybook/
+        run: |
+          if ! grep -q '"/storybook/assets/' storybook-static/iframe.html; then
+            echo "::error::iframe.html does not reference /storybook/assets/ — STORYBOOK_BASE_PATH did not take effect"
+            grep -oE 'src="[^"]*"' storybook-static/iframe.html | head
+            exit 1
+          fi
+          echo "preview assets are correctly prefixed"
+
+      # --delete so a removed story does not linger as a stale page. Scoped to
+      # the storybook/ prefix, so the site's own objects are untouched.
+      - name: Upload
+        run: |
+          aws s3 sync storybook-static/ "s3://${BUCKET}/storybook/" \
+            --delete \
+            --cache-control "public, max-age=86400"
+
+      # Fonts and HTML need saying explicitly, for the same reason the site
+      # upload does: S3's MIME guess for .woff2/.woff is not reliable across
+      # CLI versions and Safari rejects a font served with the wrong type,
+      # while the two HTML entry points must not be cached or a deploy is
+      # invisible until the browser gives up its copy.
+      - name: Re-upload fonts with correct content types
+        run: |
+          for ext in woff2 woff ttf; do
+            aws s3 cp "s3://${BUCKET}/storybook/" "s3://${BUCKET}/storybook/" \
+              --recursive --exclude "*" --include "*.${ext}" \
+              --content-type "font/${ext}" \
+              --cache-control "public, max-age=86400" \
+              --metadata-directive REPLACE
+          done
+
+      - name: Re-upload HTML as no-cache
+        run: |
+          aws s3 cp "s3://${BUCKET}/storybook/" "s3://${BUCKET}/storybook/" \
+            --recursive --exclude "*" --include "*.html" \
+            --content-type "text/html; charset=utf-8" \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --metadata-directive REPLACE
+
+      - name: Output Storybook URL
+        run: |
+          echo "Storybook: https://${BUCKET}/storybook/"

@@ -1,5 +1,5 @@
 import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
-import { TantuSeal } from "./TantuSeal";
+import { TantuSeal } from "./TantuSeal.js";
 
 export interface TantuAvatarGroupProps extends HTMLAttributes<HTMLDivElement> {
   /** Weavers to display as a cluster of seals. */

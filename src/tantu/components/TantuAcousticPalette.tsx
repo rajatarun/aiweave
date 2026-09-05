@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type HTMLAttributes } from "react";
-import { getLoomAudio, KNOT_MS, panForX, type LoomVoice } from "../lib/loom-audio";
-import { inlineArrowStep } from "../lib/direction";
+import { getLoomAudio, KNOT_MS, panForX, type LoomVoice } from "../lib/loom-audio.js";
+import { inlineArrowStep } from "../lib/direction.js";
 
 type PaletteMode = "strike" | "sustain";
 

@@ -227,8 +227,8 @@ requests. The three Tantu faces are a separate, optional import that rebinds
 those roles.
 
 ```tsx
-import "@aiweave/tantu/styles.css";   // the whole system, no fonts
-import "@aiweave/tantu/fonts.css";    // optional: the Tantu typefaces
+import "@weaveaijs/tantu/styles.css";   // the whole system, no fonts
+import "@weaveaijs/tantu/fonts.css";    // optional: the Tantu typefaces
 ```
 
 This is not tidiness. The faces are unicase, cover 88 codepoints, and are
@@ -276,7 +276,7 @@ not cover for non-Latin scripts, is in
 
 ## The library as a package
 
-Tantu is published from `src/tantu/` as `@aiweave/tantu`. Its
+Tantu is published from `src/tantu/` as `@weaveaijs/tantu`. Its
 [README](src/tantu/README.md), [changelog](src/tantu/CHANGELOG.md) and
 [versioning contract](src/tantu/VERSIONING.md) live there. The versioning
 document is worth reading before changing a token name or a component's DOM —

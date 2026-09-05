@@ -166,7 +166,7 @@ export const Typography: Story = {
           "does it — which is what lets the system ship with no font files at all. Out of the " +
           "box every role resolves to a stack the reader's machine already has.\n\n" +
           "This Storybook opts into the three Tantu faces (it imports " +
-          "`@aiweave/tantu/fonts.css`), so what you see below is the branded rendering. A " +
+          "`@weaveaijs/tantu/fonts.css`), so what you see below is the branded rendering. A " +
           "consuming application that skips that import gets the same system in the reader's " +
           "own faces, and rebinding a role — `--tantu-font-display: \"Playfair Display\", " +
           "serif` — swaps it everywhere at once.\n\n" +

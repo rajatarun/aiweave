@@ -12,6 +12,11 @@ dye wicks through cotton — on the Lucas–Washburn law, not an easing curve.
 47 components. Every one of them verified against WCAG 2.1 AA in both themes
 and both writing directions, on every commit.
 
+**Browse every component: [aiweave.org/storybook](https://aiweave.org/storybook/)**
+— all 114 story renders, in both themes and both writing directions, with the
+accessibility panel live. Evaluating a design system should cost one click
+rather than a clone and an install.
+
 **In production on [aiweave.org](https://aiweave.org).** The loom, the cells,
 both card variants, the buttons, tags, meters, stepper and the ink-bleed
 engine render that site, server-side, out of this source tree rather than a
@@ -20,7 +25,7 @@ One real production user is one more than most new design systems have, and it
 means Tantu's defects are the maintainer's defects first.
 
 ```
-npm install @aiweave/tantu
+npm install @weaveaijs/tantu
 ```
 
 **Try it before you install it:**
@@ -29,8 +34,8 @@ working application built on Tantu — a loom's shift record, not a component
 gallery — with theme and writing-direction switches in its own chrome.
 
 ```tsx
-import { TantuLoom, TantuCard, TantuButton } from "@aiweave/tantu";
-import "@aiweave/tantu/styles.css";   // no font files, no network requests
+import { TantuLoom, TantuCard, TantuButton } from "@weaveaijs/tantu";
+import "@weaveaijs/tantu/styles.css";   // no font files, no network requests
 
 export function Page() {
   return (
@@ -75,7 +80,7 @@ Use your own typeface by rebinding a role, and the whole system follows:
 ### The Tantu typefaces are opt-in
 
 ```tsx
-import "@aiweave/tantu/fonts.css";   // optional
+import "@weaveaijs/tantu/fonts.css";   // optional
 ```
 
 That one import ships the three faces and rebinds the three display roles.
@@ -137,7 +142,7 @@ Building your own composite widget on top of Tantu? The same helpers the
 built-in ones use are exported:
 
 ```ts
-import { inlineArrowStep, isRtl } from "@aiweave/tantu";
+import { inlineArrowStep, isRtl } from "@weaveaijs/tantu";
 
 // +1 towards the end of the collection, -1 towards its start, 0 for any
 // other key — reversed under RTL, per the WAI-ARIA Authoring Practices.

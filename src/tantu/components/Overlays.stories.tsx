@@ -1,9 +1,9 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { TantuDialog } from "./TantuDialog";
-import { TantuPopover } from "./TantuPopover";
-import { TantuTooltip } from "./TantuTooltip";
-import { TantuButton } from "./TantuButton";
+import { TantuDialog } from "./TantuDialog.js";
+import { TantuPopover } from "./TantuPopover.js";
+import { TantuTooltip } from "./TantuTooltip.js";
+import { TantuButton } from "./TantuButton.js";
 
 const meta = {
   title: "Overlays/Panels cut from the substrate",

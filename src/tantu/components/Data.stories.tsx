@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { TantuTable } from "./TantuTable";
-import { KasutiMatrix } from "./KasutiMatrix";
-import { JamdaniBlock } from "./JamdaniBlock";
-import { PatolaField } from "./PatolaField";
+import { TantuTable } from "./TantuTable.js";
+import { KasutiMatrix } from "./KasutiMatrix.js";
+import { JamdaniBlock } from "./JamdaniBlock.js";
+import { PatolaField } from "./PatolaField.js";
 
 const meta = {
   title: "Data/Counted threads",

@@ -23,13 +23,13 @@ import {
   TantuToggle,
   TANTU_DYES,
   type BleedDye,
-} from "@aiweave/tantu";
-import "@aiweave/tantu/styles.css";
+} from "@weaveaijs/tantu";
+import "@weaveaijs/tantu/styles.css";
 // Optional. The design system is complete without it — the type roles resolve
 // to stacks the reader's machine already has. This line is what opting into
 // the three Tantu typefaces looks like; delete it and the app still works,
 // just in the reader's own faces.
-import "@aiweave/tantu/fonts.css";
+import "@weaveaijs/tantu/fonts.css";
 
 /**
  * A working application, not a component gallery.

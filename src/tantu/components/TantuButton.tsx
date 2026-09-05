@@ -1,8 +1,8 @@
 import { forwardRef, useCallback, useRef, type ButtonHTMLAttributes, type PointerEvent as ReactPointerEvent } from "react";
 
-import { createCapillaryBleed, type CapillaryBleedHandle } from "../lib/capillary-bleed";
-import { registerBleedNode, shouldBleed } from "../lib/bleed-bus";
-import { resolveDye, type TantuDye } from "../lib/dye";
+import { createCapillaryBleed, type CapillaryBleedHandle } from "../lib/capillary-bleed.js";
+import { registerBleedNode, shouldBleed } from "../lib/bleed-bus.js";
+import { resolveDye, type TantuDye } from "../lib/dye.js";
 import { useEffect } from "react";
 
 export type TantuButtonVariant = "primary" | "secondary" | "ghost";

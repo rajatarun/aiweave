@@ -10,7 +10,7 @@ import {
   type ReactNode,
   type SelectHTMLAttributes,
 } from "react";
-import { getLoomAudio } from "../lib/loom-audio";
+import { getLoomAudio } from "../lib/loom-audio.js";
 
 export interface TantuSelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: ReactNode;

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { TantuButton } from "./TantuButton";
+import { TantuButton } from "./TantuButton.js";
 
 const meta = {
   title: "Controls/Button",

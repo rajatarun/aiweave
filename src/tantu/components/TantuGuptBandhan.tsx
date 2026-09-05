@@ -9,7 +9,7 @@ import {
   type MouseEvent as ReactMouseEvent,
   type ReactNode,
 } from "react";
-import { getLoomAudio, panForX } from "../lib/loom-audio";
+import { getLoomAudio, panForX } from "../lib/loom-audio.js";
 
 export type GuptBandhanState = "sealed" | "cipher" | "breached";
 

@@ -1,6 +1,6 @@
 # Versioning
 
-`@aiweave/tantu` follows [Semantic Versioning 2.0.0](https://semver.org/).
+`@weaveaijs/tantu` follows [Semantic Versioning 2.0.0](https://semver.org/).
 Semver is a contract about what breaks, and a design system's surface is wider
 than its TypeScript signatures — a token rename or a changed DOM structure can
 break a consumer just as thoroughly as a removed prop. This document says what
@@ -11,7 +11,7 @@ counts.
 Four things, and a change to any of them is a change to the API:
 
 1. **The exported module surface** — every component, hook, type and function
-   reachable from `@aiweave/tantu`.
+   reachable from `@weaveaijs/tantu`.
 2. **The token names** — every `--tantu-*` and `--font-*` custom property
    declared in `styles/tantu.css`. Consumers override these to theme the
    system; renaming one silently reverts their theme to the default.
@@ -62,7 +62,7 @@ resolve to are not: the fallback stacks may change to track platform fonts
 without a major, in the same way a token colour may move to meet a contrast
 minimum.
 
-`@aiweave/tantu/fonts.css` is a separate export on purpose, and it stays one.
+`@weaveaijs/tantu/fonts.css` is a separate export on purpose, and it stays one.
 Folding the brand typefaces into `styles.css` would be a breaking change even
 though nothing about the API moved, because importing the design system would
 begin fetching three font files a consumer never asked for.

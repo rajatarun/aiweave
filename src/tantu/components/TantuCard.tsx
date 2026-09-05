@@ -1,5 +1,5 @@
 import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
-import { TalimThread } from "./TalimThread";
+import { TalimThread } from "./TalimThread.js";
 
 
 export type TantuCardWarpSpan = 1 | 2 | 3 | 4 | 6 | 12;

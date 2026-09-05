@@ -20,9 +20,9 @@ export default defineConfig({
     // be said out loud because the alias sidesteps package resolution.
     dedupe: ["react", "react-dom"],
     alias: {
-      "@aiweave/tantu/styles.css": path.resolve(__dirname, "../src/tantu/styles/tantu.css"),
-      "@aiweave/tantu/fonts.css": path.resolve(__dirname, "../src/tantu/styles/fonts.css"),
-      "@aiweave/tantu": path.resolve(__dirname, "../src/tantu/index.ts"),
+      "@weaveaijs/tantu/styles.css": path.resolve(__dirname, "../src/tantu/styles/tantu.css"),
+      "@weaveaijs/tantu/fonts.css": path.resolve(__dirname, "../src/tantu/styles/fonts.css"),
+      "@weaveaijs/tantu": path.resolve(__dirname, "../src/tantu/index.ts"),
     },
   },
   // The typefaces are build output living at the repo root. Serving that

@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { getLoomAudio, panForX } from "../lib/loom-audio";
+import { getLoomAudio, panForX } from "../lib/loom-audio.js";
 
 export interface TantuTraceSearchProps {
   /**

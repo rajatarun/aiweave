@@ -5,8 +5,8 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
 } from "react";
-import { useDarshanLens } from "../hooks/useDarshanLens";
-import { TalimThread } from "./TalimThread";
+import { useDarshanLens } from "../hooks/useDarshanLens.js";
+import { TalimThread } from "./TalimThread.js";
 
 /**
  * Accessible names for the lens controls. They are the only text Tantu writes

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ButtonHTMLAttributes } from "react";
-import { getLoomAudio } from "../lib/loom-audio";
+import { getLoomAudio } from "../lib/loom-audio.js";
 
 const STORAGE_KEY = "tantu:acoustic-muted";
 

@@ -3,7 +3,7 @@
  *
  * The rule these tests hold: **the stylesheet names no typeface.** Components
  * bind to roles — display, mono, meta, body — that resolve to stacks every
- * machine already has, so `@aiweave/tantu/styles.css` is a complete, working
+ * machine already has, so `@weaveaijs/tantu/styles.css` is a complete, working
  * design system with zero font files and zero network requests. The three
  * Tantu faces are an opt-in layer that rebinds those roles.
  *

@@ -1,4 +1,4 @@
-import { useCapillaryBleed } from "../hooks/useCapillaryBleed";
+import { useCapillaryBleed } from "../hooks/useCapillaryBleed.js";
 
 export interface TantuBleedCanvasProps {
   /** Dye colour as #rrggbb. Defaults to indigo. */

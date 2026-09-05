@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { getLoomAudio, panForX, type LoomAudioOptions } from "../lib/loom-audio";
+import { getLoomAudio, panForX, type LoomAudioOptions } from "../lib/loom-audio.js";
 
 /**
  * The Weaver's Shuttle (Maku) — keyboard navigation as a physical weft throw.

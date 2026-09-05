@@ -1,0 +1,54 @@
+{
+  // Builds the publishable package.
+  //
+  // The library was consumed two ways for its whole life — vitest, and the
+  // playground's Vite alias — and both resolve extensionless specifiers and
+  // compile TSX out of the source tree. That is why `main` and `types` pointed
+  // at `index.ts`: shipping the source worked for the only two consumers that
+  // existed. It does not generalise. A consumer running `tsc`, or Node ESM, or
+  // webpack, or Next without `transpilePackages`, gets a package it cannot
+  // load — `node_modules` is excluded from transpilation almost everywhere by
+  // default, and `"type": "module"` with extensionless relative imports is not
+  // valid ESM regardless.
+  //
+  // So: emit real JavaScript and real declarations, preserving the module
+  // structure so a consumer can still tree-shake. Every relative specifier in
+  // the source now carries a `.js` extension, which TypeScript maps back to
+  // `.ts`/`.tsx` when typechecking and leaves untouched when emitting — the
+  // convention `lib/capillary-bleed.ts` already used before this existed.
+  //
+  // CSS and fonts are not compiled: they ship from `styles/` and `fonts/`
+  // alongside `dist/`, which is why `styles/fonts.css` can keep referring to
+  // `../fonts/*.woff2`.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "declaration": true,
+    // No source maps. They would point at .ts/.tsx files the package does not
+    // ship, so every one of the 108 they produced was a map to nothing — dead
+    // weight that degrades stepping into the library rather than helping it.
+    // Shipping the sources to fix that is the other option; it doubles the
+    // tarball to make debugging marginally nicer, which is the wrong trade for
+    // a design system.
+    "declarationMap": false,
+    "sourceMap": false,
+    "outDir": "src/tantu/dist",
+    "rootDir": "src/tantu",
+    "noEmit": false,
+    "skipLibCheck": true,
+    "types": []
+  },
+  "include": ["src/tantu/**/*.ts", "src/tantu/**/*.tsx"],
+  // Stories are development surface. They were shipping — ten files, ~55 KB —
+  // which dragged @storybook/react-vite into every consumer's type resolution
+  // for no benefit to anyone installing the package.
+  "exclude": [
+    "src/tantu/**/*.stories.tsx",
+    "src/tantu/dist"
+  ]
+}
