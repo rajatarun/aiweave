@@ -100,42 +100,86 @@
      setting nothing changes nothing. */
   --tantu-tension: 0.5;
 
+  /* ---- THE LOOM ------------------------------------------------------
+     Everything from here to the accessibility floor is structural: true
+     of woven cloth anywhere, not of Indian handloom in particular. It
+     carries the --weave- prefix to say so.
+
+     Why the split. Tantu is one tradition expressed on a general
+     structure, and until now the two were the same names. Separating
+     them costs nothing today — every --tantu- token below still resolves
+     to the value it always did, and consumers never see the difference —
+     and it is what makes a second tradition possible later without
+     forking the lattice.
+
+     Sett is settable under either name. --tantu-tension stays the
+     documented input and keeps its default here, so every page that sets
+     it goes on working untouched; --weave-sett reads from it, and can
+     itself be set on any subtree to re-sett a region. */
+  --weave-sett: var(--tantu-tension);
+
   /* The thread every measurement descends from.
 
      Quantised to whole pixels because a fractional thread does not
      exist — the same rule JamdaniBlock already applies when it rounds a
      column to whole picks. The unrounded declaration is the fallback for
      engines without round(); it lands on the historic 6px at the default
-     tension, so the worst case is a system that simply does not respond
+     sett, so the worst case is a system that simply does not respond
      to the dial rather than one that breaks. */
-  --tantu-thread: 6px;
-  --tantu-thread: round(calc(8px - 4px * var(--tantu-tension)), 1px);
+  --weave-thread: 6px;
+  --weave-thread: round(calc(8px - 4px * var(--weave-sett)), 1px);
 
-  /* 3b. BASE-6 WARP & WEFT SPACING LATTICE
+  /* BASE-6 WARP & WEFT SPACING LATTICE
      Deliberately non-linear: x1,2,3,4 then x6,8,12.
      knot-5 and knot-7 are intentionally absent — do not "fix" the gap.
-     At the default tension these are 6/12/18/24/36/48/72, unchanged. */
-  --tantu-knot-1: calc(var(--tantu-thread) * 1);
-  --tantu-knot-2: calc(var(--tantu-thread) * 2);
-  --tantu-knot-3: calc(var(--tantu-thread) * 3);
-  --tantu-knot-4: calc(var(--tantu-thread) * 4);
-  --tantu-knot-6: calc(var(--tantu-thread) * 6);
-  --tantu-knot-8: calc(var(--tantu-thread) * 8);
-  --tantu-knot-12: calc(var(--tantu-thread) * 12);
+     At the default sett these are 6/12/18/24/36/48/72, unchanged. */
+  --weave-knot-1: calc(var(--weave-thread) * 1);
+  --weave-knot-2: calc(var(--weave-thread) * 2);
+  --weave-knot-3: calc(var(--weave-thread) * 3);
+  --weave-knot-4: calc(var(--weave-thread) * 4);
+  --weave-knot-6: calc(var(--weave-thread) * 6);
+  --weave-knot-8: calc(var(--weave-thread) * 8);
+  --weave-knot-12: calc(var(--weave-thread) * 12);
 
-  /* 4. THREAD GAUGES
+  /* THREAD GAUGES
      Only the heavy gauges answer the dial. A filament is a hairline at
-     any tension: below 1px it renders blurry or vanishes on a
+     any sett: below 1px it renders blurry or vanishes on a
      non-retina screen, and physical fidelity is not worth an invisible
      border. The ply holds at 2px for the same reason — it is the focus
      ring's weight, and a focus ring that thins under a density setting
      is an accessibility regression wearing a metaphor. */
-  --tantu-gauge-filament: 1px;
-  --tantu-gauge-ply: 2px;
-  --tantu-gauge-cord: 4px;
-  --tantu-gauge-cord: round(calc(5px - 2px * var(--tantu-tension)), 1px);
-  --tantu-gauge-braid: 6px;
-  --tantu-gauge-braid: round(calc(7px - 2px * var(--tantu-tension)), 1px);
+  --weave-gauge-filament: 1px;
+  --weave-gauge-ply: 2px;
+  --weave-gauge-cord: 4px;
+  --weave-gauge-cord: round(calc(5px - 2px * var(--weave-sett)), 1px);
+  --weave-gauge-braid: 6px;
+  --weave-gauge-braid: round(calc(7px - 2px * var(--weave-sett)), 1px);
+
+  /* FIBRE — the material the wicking law runs in.
+     Mirrors FIBRES.cotton in lib/bleed-bus.ts, which is the source of
+     truth for the shader. Declared here so a tradition can state its
+     cloth in one place alongside its dyes, and so the DOM-driven bleed
+     paths can read it from the cascade like every other token. Cotton,
+     which is what the system rendered before the axis existed. */
+  --weave-fibre: cotton;
+  --weave-anisotropy: 0.18;
+  --weave-wick-t0: 0.04;
+
+  /* ---- THIS CLOTH ----------------------------------------------------
+     Tantu's names for the lattice above. Aliases, not copies: there is
+     one lattice and these are what it is called here. */
+  --tantu-thread: var(--weave-thread);
+  --tantu-knot-1: var(--weave-knot-1);
+  --tantu-knot-2: var(--weave-knot-2);
+  --tantu-knot-3: var(--weave-knot-3);
+  --tantu-knot-4: var(--weave-knot-4);
+  --tantu-knot-6: var(--weave-knot-6);
+  --tantu-knot-8: var(--weave-knot-8);
+  --tantu-knot-12: var(--weave-knot-12);
+  --tantu-gauge-filament: var(--weave-gauge-filament);
+  --tantu-gauge-ply: var(--weave-gauge-ply);
+  --tantu-gauge-cord: var(--weave-gauge-cord);
+  --tantu-gauge-braid: var(--weave-gauge-braid);
 
   /* 4b. THE ACCESSIBILITY FLOOR — deliberately outside the sett.
      WCAG 2.2 SC 2.5.8 asks for 24x24 CSS px, and a hit area is made of
@@ -149,7 +193,8 @@
      Hence a token of its own rather than a knot that happens to be the
      right size. Tension governs how the cloth looks. It does not get a
      vote on whether a person can hit the control. */
-  --tantu-target-min: 24px;
+  --weave-target-min: 24px;
+  --tantu-target-min: var(--weave-target-min);
 
   /* 5. TYPOGRAPHIC SPECIFICATIONS — roles, not typefaces
      ------------------------------------------------------------------
@@ -607,7 +652,7 @@ h3.tantu-heading-kalam {
      display tracking deliberately do not follow, because reflowing
      paragraphs every time someone changes a density setting is a
      usability problem, not fidelity. 0.08em at the default tension. */
-  letter-spacing: calc(0.1em - 0.04em * var(--tantu-tension));
+  letter-spacing: calc(0.1em - 0.04em * var(--weave-sett));
   color: var(--tantu-ink-secondary);
 }
 

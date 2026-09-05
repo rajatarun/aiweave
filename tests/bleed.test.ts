@@ -20,6 +20,9 @@ import {
   wickRadii,
   WICK_ANISOTROPY,
   WICK_T0,
+  FIBRES,
+  fibreSpec,
+  type TantuFibre,
 } from "../src/tantu/lib/bleed-bus";
 import { FRAGMENT_SHADER } from "../src/tantu/lib/capillary-bleed";
 
@@ -124,31 +127,95 @@ describe("wickCoverRadius", () => {
   });
 });
 
-describe("the shader cannot drift from wickProgress", () => {
-  // GLSL cannot call wickProgress() — the shader in capillary-bleed.ts
-  // reimplements the Lucas–Washburn formula by hand, and used to reimplement
-  // its two constants by hand too: WICK_T0 and WICK_ANISOTROPY were each
-  // typed a second time as bare GLSL literals, held in step with these
-  // exports by nothing but a comment. Nothing checked the two copies still
-  // agreed after an edit to either.
+describe("the shader takes its fibre as a parameter, not a constant", () => {
+  // History: WICK_T0 and WICK_ANISOTROPY were each typed a second time as
+  // bare GLSL literals, held in step with these exports by nothing but a
+  // comment. That was fixed by interpolating the exports into the shader
+  // source, and this block used to extract those interpolated numbers and
+  // compare them.
   //
-  // capillary-bleed.ts now imports both constants and interpolates them into
-  // the shader source, so there is structurally one number rather than two
-  // that happen to match — but that only holds as long as nobody reverts to
-  // a hand-typed literal. This extracts whatever numeric value actually
-  // landed in the compiled shader text and compares it against the live
-  // export, independently of how it got there, so a reintroduced hardcoded
-  // copy — correct or not — fails here rather than silently drifting.
-  it("T0 in the shader is WICK_T0, not a second copy of it", () => {
-    const match = FRAGMENT_SHADER.match(/float T0 = ([\d.]+);/);
-    expect(match, "expected `float T0 = <value>;` in FRAGMENT_SHADER").not.toBeNull();
-    expect(Number(match![1])).toBeCloseTo(WICK_T0, 10);
+  // Both are uniforms now, which retires the drift question entirely — you
+  // cannot desynchronise one number — and answers a larger one. Compiled in,
+  // the constants were not merely duplicated, they were *frozen*: every
+  // surface on every page wicked like cotton because cotton is what those
+  // figures describe. So what needs guarding is no longer "do the copies
+  // agree" but "is it still a parameter at all".
+  it("declares both fibre values as uniforms", () => {
+    expect(FRAGMENT_SHADER).toMatch(/uniform\s+float\s+u_wickT0\s*;/);
+    expect(FRAGMENT_SHADER).toMatch(/uniform\s+float\s+u_anisotropy\s*;/);
   });
 
-  it("the anisotropy stretch in the shader is WICK_ANISOTROPY, not a second copy of it", () => {
-    const match = FRAGMENT_SHADER.match(/d\.x \/= 1\.0 \+ ([\d.]+) \* growth;/);
-    expect(match, "expected `d.x /= 1.0 + <value> * growth;` in FRAGMENT_SHADER").not.toBeNull();
-    expect(Number(match![1])).toBeCloseTo(WICK_ANISOTROPY, 10);
+  it("reads them, rather than a literal baked into the source", () => {
+    expect(FRAGMENT_SHADER).toMatch(/float\s+T0\s*=\s*u_wickT0\s*;/);
+    expect(FRAGMENT_SHADER).toMatch(/d\.x\s*\/=\s*1\.0\s*\+\s*u_anisotropy\s*\*\s*growth\s*;/);
+  });
+
+  it("has no hardcoded copy of either value left in it", () => {
+    // The regression this exists to catch: someone re-inlines a literal for
+    // convenience and the axis silently stops being an axis again.
+    expect(FRAGMENT_SHADER).not.toMatch(/float\s+T0\s*=\s*[\d.]+\s*;/);
+    expect(FRAGMENT_SHADER).not.toMatch(/1\.0\s*\+\s*[\d.]+\s*\*\s*growth/);
+  });
+});
+
+describe("fibre — the wicking law's constants are a material, not a law", () => {
+  it("cotton is exactly what the system rendered before the axis existed", () => {
+    // The non-breaking guarantee. Every consumer that has ever drawn a bleed
+    // drew it with these two numbers; if they move, existing pages change.
+    expect(FIBRES.cotton.anisotropy).toBe(0.18);
+    expect(FIBRES.cotton.t0).toBe(0.04);
+    expect(WICK_ANISOTROPY).toBe(FIBRES.cotton.anisotropy);
+    expect(WICK_T0).toBe(FIBRES.cotton.t0);
+  });
+
+  it("defaults to cotton when asked for nothing, or for something unknown", () => {
+    expect(fibreSpec()).toEqual(FIBRES.cotton);
+    expect(fibreSpec(null)).toEqual(FIBRES.cotton);
+    expect(fibreSpec("hemp" as never)).toEqual(FIBRES.cotton);
+  });
+
+  it("changes the shape of the front, not just its size", () => {
+    // The consequence check. An axis that only renamed something would pass
+    // every other test in this file.
+    const cotton = wickRadii(100, 1, "cotton");
+    const silk = wickRadii(100, 1, "silk");
+    const felt = wickRadii(100, 1, "felt");
+
+    // Same weft reach, different warp reach: that is anisotropy.
+    expect(silk.ry).toBe(cotton.ry);
+    expect(silk.rx).toBeGreaterThan(cotton.rx);
+
+    // Felt was never woven, so it has no axis to run along: a circle.
+    expect(felt.rx).toBe(felt.ry);
+    expect(cotton.rx).toBeGreaterThan(cotton.ry);
+  });
+
+  it("orders the fibres the way their morphology does", () => {
+    // Continuous filament conducts furthest; crimped staple least; matted
+    // fibre not at all. These are calibrated design values rather than
+    // measurements, but the ordering is the part that carries meaning.
+    const axial = (f: TantuFibre) => FIBRES[f].anisotropy;
+    expect(axial("silk")).toBeGreaterThan(axial("linen"));
+    expect(axial("linen")).toBeGreaterThan(axial("cotton"));
+    expect(axial("cotton")).toBeGreaterThan(axial("wool"));
+    expect(axial("wool")).toBeGreaterThan(axial("felt"));
+    expect(axial("felt")).toBe(0);
+  });
+
+  it("a slower fibre takes longer to get going", () => {
+    // t0 is the inertial crossover: bigger means a later, gentler start.
+    const early = wickProgress(0.05, FIBRES.silk.t0);
+    const late = wickProgress(0.05, FIBRES.wool.t0);
+    expect(early).toBeGreaterThan(late);
+  });
+
+  it("covers the box whatever the fibre, which is what coverRadius promises", () => {
+    for (const fibre of Object.keys(FIBRES) as TantuFibre[]) {
+      const cover = wickCoverRadius(300, 200, 150, 100, fibre);
+      const { rx, ry } = wickRadii(cover, 1, fibre);
+      // The corner must be inside the ellipse the front has reached.
+      expect((150 / rx) ** 2 + (100 / ry) ** 2).toBeLessThanOrEqual(1.0001);
+    }
   });
 });
 

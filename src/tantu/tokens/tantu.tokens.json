@@ -200,60 +200,125 @@
       },
       "thread": {
         "$value": "6px",
-        "$type": "dimension"
+        "$type": "dimension",
+        "$extensions": {
+          "tantu": {
+            "aliasOf": "--weave-thread"
+          }
+        }
       },
       "knot": {
         "1": {
           "$value": "6px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-knot-1"
+            }
+          }
         },
         "2": {
           "$value": "12px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-knot-2"
+            }
+          }
         },
         "3": {
           "$value": "18px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-knot-3"
+            }
+          }
         },
         "4": {
           "$value": "24px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-knot-4"
+            }
+          }
         },
         "6": {
           "$value": "36px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-knot-6"
+            }
+          }
         },
         "8": {
           "$value": "48px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-knot-8"
+            }
+          }
         },
         "12": {
           "$value": "72px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-knot-12"
+            }
+          }
         }
       },
       "gauge": {
         "filament": {
           "$value": "1px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-gauge-filament"
+            }
+          }
         },
         "ply": {
           "$value": "2px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-gauge-ply"
+            }
+          }
         },
         "cord": {
           "$value": "4px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-gauge-cord"
+            }
+          }
         },
         "braid": {
           "$value": "6px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-gauge-braid"
+            }
+          }
         }
       },
       "target": {
         "min": {
           "$value": "24px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-target-min"
+            }
+          }
         }
       },
       "font": {
@@ -324,6 +389,89 @@
         "unspool": {
           "$value": "240ms",
           "$type": "duration"
+        }
+      }
+    },
+    "weave": {
+      "sett": {
+        "$value": "0.5",
+        "$type": "number",
+        "$extensions": {
+          "tantu": {
+            "aliasOf": "--tantu-tension"
+          }
+        }
+      },
+      "thread": {
+        "$value": "6px",
+        "$type": "dimension"
+      },
+      "knot": {
+        "1": {
+          "$value": "6px",
+          "$type": "dimension"
+        },
+        "2": {
+          "$value": "12px",
+          "$type": "dimension"
+        },
+        "3": {
+          "$value": "18px",
+          "$type": "dimension"
+        },
+        "4": {
+          "$value": "24px",
+          "$type": "dimension"
+        },
+        "6": {
+          "$value": "36px",
+          "$type": "dimension"
+        },
+        "8": {
+          "$value": "48px",
+          "$type": "dimension"
+        },
+        "12": {
+          "$value": "72px",
+          "$type": "dimension"
+        }
+      },
+      "gauge": {
+        "filament": {
+          "$value": "1px",
+          "$type": "dimension"
+        },
+        "ply": {
+          "$value": "2px",
+          "$type": "dimension"
+        },
+        "cord": {
+          "$value": "4px",
+          "$type": "dimension"
+        },
+        "braid": {
+          "$value": "6px",
+          "$type": "dimension"
+        }
+      },
+      "fibre": {
+        "$value": "cotton",
+        "$type": "string"
+      },
+      "anisotropy": {
+        "$value": "0.18",
+        "$type": "number"
+      },
+      "wick": {
+        "t0": {
+          "$value": "0.04",
+          "$type": "number"
+        }
+      },
+      "target": {
+        "min": {
+          "$value": "24px",
+          "$type": "dimension"
         }
       }
     }
@@ -529,60 +677,125 @@
       },
       "thread": {
         "$value": "6px",
-        "$type": "dimension"
+        "$type": "dimension",
+        "$extensions": {
+          "tantu": {
+            "aliasOf": "--weave-thread"
+          }
+        }
       },
       "knot": {
         "1": {
           "$value": "6px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-knot-1"
+            }
+          }
         },
         "2": {
           "$value": "12px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-knot-2"
+            }
+          }
         },
         "3": {
           "$value": "18px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-knot-3"
+            }
+          }
         },
         "4": {
           "$value": "24px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-knot-4"
+            }
+          }
         },
         "6": {
           "$value": "36px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-knot-6"
+            }
+          }
         },
         "8": {
           "$value": "48px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-knot-8"
+            }
+          }
         },
         "12": {
           "$value": "72px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-knot-12"
+            }
+          }
         }
       },
       "gauge": {
         "filament": {
           "$value": "1px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-gauge-filament"
+            }
+          }
         },
         "ply": {
           "$value": "2px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-gauge-ply"
+            }
+          }
         },
         "cord": {
           "$value": "4px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-gauge-cord"
+            }
+          }
         },
         "braid": {
           "$value": "6px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-gauge-braid"
+            }
+          }
         }
       },
       "target": {
         "min": {
           "$value": "24px",
-          "$type": "dimension"
+          "$type": "dimension",
+          "$extensions": {
+            "tantu": {
+              "aliasOf": "--weave-target-min"
+            }
+          }
         }
       },
       "font": {
@@ -653,6 +866,89 @@
         "unspool": {
           "$value": "240ms",
           "$type": "duration"
+        }
+      }
+    },
+    "weave": {
+      "sett": {
+        "$value": "0.5",
+        "$type": "number",
+        "$extensions": {
+          "tantu": {
+            "aliasOf": "--tantu-tension"
+          }
+        }
+      },
+      "thread": {
+        "$value": "6px",
+        "$type": "dimension"
+      },
+      "knot": {
+        "1": {
+          "$value": "6px",
+          "$type": "dimension"
+        },
+        "2": {
+          "$value": "12px",
+          "$type": "dimension"
+        },
+        "3": {
+          "$value": "18px",
+          "$type": "dimension"
+        },
+        "4": {
+          "$value": "24px",
+          "$type": "dimension"
+        },
+        "6": {
+          "$value": "36px",
+          "$type": "dimension"
+        },
+        "8": {
+          "$value": "48px",
+          "$type": "dimension"
+        },
+        "12": {
+          "$value": "72px",
+          "$type": "dimension"
+        }
+      },
+      "gauge": {
+        "filament": {
+          "$value": "1px",
+          "$type": "dimension"
+        },
+        "ply": {
+          "$value": "2px",
+          "$type": "dimension"
+        },
+        "cord": {
+          "$value": "4px",
+          "$type": "dimension"
+        },
+        "braid": {
+          "$value": "6px",
+          "$type": "dimension"
+        }
+      },
+      "fibre": {
+        "$value": "cotton",
+        "$type": "string"
+      },
+      "anisotropy": {
+        "$value": "0.18",
+        "$type": "number"
+      },
+      "wick": {
+        "t0": {
+          "$value": "0.04",
+          "$type": "number"
+        }
+      },
+      "target": {
+        "min": {
+          "$value": "24px",
+          "$type": "dimension"
         }
       }
     }

@@ -14,6 +14,7 @@ import {
 import { InkBleedFilter } from "./InkBleedFilter";
 import {
   bleedMotionAllowed,
+  fibreFrom,
   holdAmbientBleed,
   wickCoverRadius,
   wickProgress,
@@ -153,11 +154,16 @@ export const ChambaRumalCard = forwardRef<HTMLElement, ChambaRumalCardProps>(fun
     face.style.setProperty("--tantu-rumal-ox", `${ox}%`);
     face.style.setProperty("--tantu-rumal-oy", `${oy}%`);
 
+    // The cloth this card is cut from, read off the cascade the same way the
+    // dyes are. A page that re-fibres a region gets wick fronts the right
+    // shape for it without this component knowing a fibre's name.
+    const cloth = fibreFrom(face);
+
     // The front reaches the farthest corner exactly as the droplet's lifetime
     // ends, so the whole duration is visible travel rather than off-card growth.
     const w = face.offsetWidth;
     const h = face.offsetHeight;
-    const coverRy = wickCoverRadius(w, h, (w * ox) / 100, (h * oy) / 100);
+    const coverRy = wickCoverRadius(w, h, (w * ox) / 100, (h * oy) / 100, cloth);
 
     const settle = () => {
       face.style.setProperty("--tantu-rumal-rx", `${REST_R}px`);
@@ -182,7 +188,7 @@ export const ChambaRumalCard = forwardRef<HTMLElement, ChambaRumalCardProps>(fun
     const step = (now: number) => {
       if (start === null) start = now;
       const t = Math.min(1, (now - start) / duration);
-      const { rx, ry } = wickRadii(coverRy, wickProgress(t));
+      const { rx, ry } = wickRadii(coverRy, wickProgress(t, cloth.t0), cloth);
       face.style.setProperty("--tantu-rumal-rx", `${rx.toFixed(2)}px`);
       face.style.setProperty("--tantu-rumal-ry", `${ry.toFixed(2)}px`);
       // Fray holds almost full strength while the front travels and settles

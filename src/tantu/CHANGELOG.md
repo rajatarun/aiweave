@@ -35,6 +35,48 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
 
 ### Added
 
+- **The loom separated from the cloth.** Tantu is one tradition expressed on a
+  general structure, and until now the two were the same names and the same
+  numbers. The structural lattice now carries a `--weave-` prefix — `sett`,
+  `thread`, `knot-N`, `gauge-*`, `target-min` — and every `--tantu-` token is
+  an alias onto it rather than a copy. Nothing existing moves: all 60
+  previously exported tokens resolve to exactly the values they always did,
+  which `scripts/verify_core.mjs` asserts against the historic scale.
+
+  `--tantu-tension` remains the documented input and keeps its default, so
+  every consumer that sets it works untouched. `--weave-sett` reads from it
+  and can itself be set on any subtree to re-sett a region.
+
+- **`--weave-fibre` — the wicking law's constants are a material, not a law.**
+  Lucas–Washburn describes liquid in any porous medium, which is why it is in
+  the core. The two numbers parametrising it are not universal at all: `0.18`
+  and `0.04` describe *cotton*, and they were compiled into the fragment
+  shader as literals. That did not merely duplicate them, it froze them —
+  every surface on every page wicked like cotton because cotton was the only
+  cloth the engine could express.
+
+  Both are `uniform float`s now, fed from a `FIBRES` table in `lib/bleed-bus`:
+  cotton, linen, silk, wool and felt. `createCapillaryBleed` takes a `fibre`
+  option; `wickRadii` and `wickCoverRadius` take a fibre or a spec; and
+  `fibreFrom(element)` reads `--weave-anisotropy` / `--weave-wick-t0` off the
+  live cascade exactly as `resolveDye` already reads pigment, so re-fibring a
+  region in CSS moves the DOM wick fronts inside it. `ChambaRumalCard` uses
+  it, which is what makes the CSS tokens consequential rather than
+  declarative.
+
+  Felt is the row that proves the axis is real rather than cosmetic: matted
+  fibre was never woven, so it has no thread axes to conduct along and its
+  front stays a perfect circle. The audit measures `rx/ry` mid-flight and
+  requires exactly 1.0 for felt against 1.24 for a woven cloth.
+
+  These are calibrated design values, not published measurements — as `0.18`
+  always was. What is claimed is the ordering and relative spacing, which
+  follow from fibre morphology. Cotton's row is fixed by a test, because
+  every existing consumer renders against it.
+
+  Nothing is deprecated and no public name changed meaning, so this ships as
+  a minor.
+
 - **`--tantu-tension` — density as a physical parameter rather than a set of
   presets.** A weaver sets warp tension before anything else, and it decides
   the sett: how close the threads sit. Slack warp, open cloth; taut warp,
