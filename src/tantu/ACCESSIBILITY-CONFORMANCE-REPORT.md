@@ -20,7 +20,7 @@
 
 ---
 
-**Name of Product/Version:** Tantu Design System, `@aiweave/tantu` 0.1.0
+**Name of Product/Version:** Tantu Design System, `@weaveaijs/tantu` 0.1.0
 **Report Date:** 2026-08-26
 **Product Description:** A React component library and design-token set. 47
 components, three custom typefaces, a token-driven theme system with light and

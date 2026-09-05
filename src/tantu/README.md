@@ -20,7 +20,7 @@ One real production user is one more than most new design systems have, and it
 means Tantu's defects are the maintainer's defects first.
 
 ```
-npm install @aiweave/tantu
+npm install @weaveaijs/tantu
 ```
 
 **Try it before you install it:**
@@ -29,8 +29,8 @@ working application built on Tantu — a loom's shift record, not a component
 gallery — with theme and writing-direction switches in its own chrome.
 
 ```tsx
-import { TantuLoom, TantuCard, TantuButton } from "@aiweave/tantu";
-import "@aiweave/tantu/styles.css";   // no font files, no network requests
+import { TantuLoom, TantuCard, TantuButton } from "@weaveaijs/tantu";
+import "@weaveaijs/tantu/styles.css";   // no font files, no network requests
 
 export function Page() {
   return (
@@ -75,7 +75,7 @@ Use your own typeface by rebinding a role, and the whole system follows:
 ### The Tantu typefaces are opt-in
 
 ```tsx
-import "@aiweave/tantu/fonts.css";   // optional
+import "@weaveaijs/tantu/fonts.css";   // optional
 ```
 
 That one import ships the three faces and rebinds the three display roles.
@@ -137,7 +137,7 @@ Building your own composite widget on top of Tantu? The same helpers the
 built-in ones use are exported:
 
 ```ts
-import { inlineArrowStep, isRtl } from "@aiweave/tantu";
+import { inlineArrowStep, isRtl } from "@weaveaijs/tantu";
 
 // +1 towards the end of the collection, -1 towards its start, 0 for any
 // other key — reversed under RTL, per the WAI-ARIA Authoring Practices.

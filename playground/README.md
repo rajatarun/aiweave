@@ -92,9 +92,9 @@ Through the package name and the published entry points, not a relative path
 into the repo:
 
 ```tsx
-import { TantuLoom, TantuCard } from "@aiweave/tantu";
-import "@aiweave/tantu/styles.css";
-import "@aiweave/tantu/fonts.css";   // optional
+import { TantuLoom, TantuCard } from "@weaveaijs/tantu";
+import "@weaveaijs/tantu/styles.css";
+import "@weaveaijs/tantu/fonts.css";   // optional
 ```
 
 That second line is the only thing tying this app to the Tantu typefaces.
@@ -129,6 +129,6 @@ https://stackblitz.com/github/rajatarun/aiweave
 ```
 
 then run `npm install && npm run playground` in its terminal. Once
-`@aiweave/tantu` is published to npm this directory becomes standalone — swap
+`@weaveaijs/tantu` is published to npm this directory becomes standalone — swap
 the two aliases in `vite.config.ts` for a real dependency and it will boot on
 its own.

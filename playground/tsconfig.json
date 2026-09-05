@@ -13,13 +13,13 @@
     "skipLibCheck": true,
     "noEmit": true,
     "paths": {
-      "@aiweave/tantu": [
+      "@weaveaijs/tantu": [
         "../src/tantu/index.ts"
       ],
-      "@aiweave/tantu/styles.css": [
+      "@weaveaijs/tantu/styles.css": [
         "../src/tantu/styles/tantu.css"
       ],
-      "@aiweave/tantu/fonts.css": [
+      "@weaveaijs/tantu/fonts.css": [
         "../src/tantu/styles/fonts.css"
       ]
     }

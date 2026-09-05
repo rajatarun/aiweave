@@ -1,5 +1,5 @@
 {
-  "name": "@aiweave/tantu",
+  "name": "@weaveaijs/tantu",
   "version": "0.2.0",
   "description": "Tantu — a React design system that treats the interface as handloom cloth: token-driven, theme-aware, WCAG AA verified.",
   "license": "Apache-2.0",
