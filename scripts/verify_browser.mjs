@@ -703,23 +703,33 @@ try {
   // public page never did — and it is the one with the visitors on it.
   // color-contrast stays ENABLED: a real engine is the only place it means
   // anything. It runs with a card turned, so the dyed face is on screen.
-  for (const theme of ["light", "dark"]) {
-    for (const dir of ["ltr", "rtl"]) {
-      await page.evaluate(
-        ([t, d]) => {
-          document.documentElement.setAttribute("data-theme", t);
-          document.documentElement.setAttribute("dir", d);
-        },
-        [theme, dir],
-      );
-      await page.waitForTimeout(90);
-      await page.addScriptTag({ content: AXE_SOURCE });
-      const violations = await runAxe(page);
-      check(
-        `axe is clean in ${theme}/${dir}`,
-        violations.length === 0,
-        violations.map((v) => `${v.id}(${v.impact}) ${v.html} :: ${v.summary}`).join(" | "),
-      );
+  // Two widths, and the narrow one is not a formality. Some violations only
+  // exist once content overflows its box: a horizontally scrolling region that
+  // no keyboard can reach reports clean while it happens to fit, and serious
+  // the moment it does not. This sweep ran at 1280 only, so it passed on a
+  // local build with a handful of repositories and failed in CI, where the
+  // real GitHub data is wider — the defect was always there and the width
+  // decided whether anything could see it.
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const theme of ["light", "dark"]) {
+      for (const dir of ["ltr", "rtl"]) {
+        await page.evaluate(
+          ([t, d]) => {
+            document.documentElement.setAttribute("data-theme", t);
+            document.documentElement.setAttribute("dir", d);
+          },
+          [theme, dir],
+        );
+        await page.waitForTimeout(90);
+        await page.addScriptTag({ content: AXE_SOURCE });
+        const violations = await runAxe(page);
+        check(
+          `axe is clean in ${theme}/${dir} at ${width}px`,
+          violations.length === 0,
+          violations.map((v) => `${v.id}(${v.impact}) ${v.html} :: ${v.summary}`).join(" | "),
+        );
+      }
     }
   }
   await page.evaluate(() => {
