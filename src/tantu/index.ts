@@ -40,6 +40,7 @@ export * from "./components/TantuTag.js";
 export * from "./components/TantuSeal.js";
 export * from "./components/TantuAvatarGroup.js";
 export * from "./components/TantuMeter.js";
+export * from "./components/TantuBandhani.js";
 export * from "./components/TantuNotice.js";
 export * from "./components/TantuBanner.js";
 export * from "./components/TantuTable.js";

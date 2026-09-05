@@ -2,7 +2,9 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { TantuTag } from "./TantuTag.js";
 import { TantuSeal } from "./TantuSeal.js";
 import { TantuAvatarGroup } from "./TantuAvatarGroup.js";
+import { useEffect, useState } from "react";
 import { TantuMeter } from "./TantuMeter.js";
+import { TantuBandhani } from "./TantuBandhani.js";
 import { TantuNotice } from "./TantuNotice.js";
 import { TantuBanner } from "./TantuBanner.js";
 import { TantuRupture } from "./TantuRupture.js";
@@ -89,6 +91,51 @@ export const Meter: Story = {
       {/* Omitting `value` is what makes it indeterminate — the shuttle passes
           rather than filling to a figure. */}
       <TantuMeter label="Drawing the beam" />
+    </div>
+  ),
+};
+
+function LiveBandhani() {
+  const [strength, setStrength] = useState(0.1);
+  useEffect(() => {
+    const start = performance.now();
+    let frame: number;
+    const tick = (now: number) => {
+      // A simple back-and-forth sweep, standing in for a live reading —
+      // exactly the shape a consumer polling a sensor or an audio
+      // analyser would feed this prop every frame.
+      const t = (now - start) / 1800;
+      setStrength((Math.sin(t) + 1) / 2);
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  return <TantuBandhani label="Live reading" strength={strength} />;
+}
+
+export const Bandhani: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "A live 0..1 reading as a resist-dye ring: the bound knot at centre never takes " +
+          "colour, and the ring around it grows and deepens with `strength`. Meant to be " +
+          "driven every frame — the sweep below re-renders on a `requestAnimationFrame` loop, " +
+          "the same cadence a caller polling an audio level or a sensor would use.\n\n" +
+          "`state=\"notice\"` is a second dye, not a brighter version of the first, so it still " +
+          "reads under forced colours and without relying on the ring's size alone. The value " +
+          "is exposed as `role=\"meter\"` (read on demand, not spoken on every change — it " +
+          "would otherwise flood a screen reader at animation-frame rates); the `notice` " +
+          "transition is what goes through the polite live region instead.",
+      },
+    },
+  },
+  render: () => (
+    <div style={{ display: "flex", gap: "3rem", alignItems: "center", flexWrap: "wrap" }}>
+      <LiveBandhani />
+      <TantuBandhani label="Signal strength" strength={0.85} />
+      <TantuBandhani label="Signal strength" strength={0.3} state="notice" />
     </div>
   ),
 };

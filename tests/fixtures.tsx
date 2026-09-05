@@ -24,6 +24,7 @@ import {
   TantuAcousticPalette,
   TantuAcousticToggle,
   TantuAvatarGroup,
+  TantuBandhani,
   TantuBanner,
   TantuBleedCanvas,
   TantuButton,
@@ -338,6 +339,10 @@ export const SPECIMENS: Specimen[] = [
   {
     name: "TantuMeter",
     element: <TantuMeter label="Warp tension" value={62} />,
+  },
+  {
+    name: "TantuBandhani",
+    element: <TantuBandhani label="Signal strength" strength={0.62} state="notice" />,
   },
   {
     name: "TantuNotice",
