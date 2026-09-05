@@ -18,6 +18,26 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
   transitions go through a separate polite live region, since they're sparse
   enough to announce where the continuous value isn't.
 
+- **`TantuBleedCanvas` forwards its capillary handle.** The component drove
+  `useCapillaryBleed` internally and returned nothing, so the loom substrate
+  could only ever answer a pointer — even though the engine underneath has
+  always taken coordinates. A ref now exposes `{ bleed, bleedAt }`
+  (`TantuBleedCanvasHandle`), the same handle shape `CapillaryBleedSurface`
+  publishes, so a consumer can wick dye from an arriving message, a completed
+  step or a threshold crossing rather than only from a press. Additive: every
+  existing usage passes no ref and is untouched.
+
+  The programmatic path deliberately skips `shouldBleed()` — there is no
+  gesture to arbitrate, no event to claim and no target whose owner could
+  outrank the substrate — but honours `bleedMotionAllowed()` **inside the
+  handle**, not at the call site. Reduced motion is a standing user
+  preference rather than a contest between responders, and the substrate is
+  ambient motion across the whole viewport that carries no meaning when it
+  stays still. `CapillaryBleedSurface`'s handle still passes straight
+  through: it dyes a bounded region a consumer deliberately wrapped around
+  content, where the bleed can be the response itself. Both are documented in
+  the components' JSDoc.
+
 ## [0.2.0] — 2026-09-05
 
 First release that can actually be installed. Everything below shipped in
