@@ -8,7 +8,15 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **`TantuBandhani`** — a live 0..1 measurement as a resist-dye ring: the
+  bound knot at centre stays pale while a ring around it grows and deepens
+  with `strength`, driven by the caller's own value rather than an internal
+  clock. `state` (`"steady" | "notice"`) is a second dye rather than a
+  brighter version of the first. Exposed as `role="meter"`; `state`
+  transitions go through a separate polite live region, since they're sparse
+  enough to announce where the continuous value isn't.
 
 ## [0.2.0] — 2026-09-05
 
