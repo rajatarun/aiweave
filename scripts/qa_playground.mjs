@@ -403,39 +403,47 @@ try {
   /* ---- axe over the real thing, in all four combinations ---------------- */
   // color-contrast stays ENABLED. This is a real browser with a real cascade,
   // which is the only place that rule means anything.
-  for (const theme of ["light", "dark"]) {
-    for (const dir of ["ltr", "rtl"]) {
-      await page.evaluate(
-        ([t, d]) => {
-          document.documentElement.setAttribute("data-theme", t);
-          document.documentElement.setAttribute("dir", d);
-        },
-        [theme, dir],
-      );
-      await page.waitForTimeout(80);
-      await page.addScriptTag({ content: AXE_SOURCE });
-      const violations = await page.evaluate(
-        async (disabled) =>
-          (
-            await window.axe.run(document, {
-              rules: Object.fromEntries(disabled.map((id) => [id, { enabled: false }])),
-              resultTypes: ["violations"],
-            })
-          ).violations.map((v) => ({
-            id: v.id,
-            impact: v.impact,
-            html: v.nodes[0]?.html.slice(0, 100) ?? "",
-            summary: (v.nodes[0]?.failureSummary || "").replace(/\s+/g, " ").slice(0, 160),
-          })),
-        PAGE_LEVEL_RULES,
-      );
-      check(
-        `axe is clean in ${theme}/${dir}`,
-        violations.length === 0,
-        violations.map((v) => `${v.id}(${v.impact}) ${v.html} :: ${v.summary}`).join(" | "),
-      );
+  // Both widths, for the reason the site sweep learned the hard way: some
+  // violations only exist once content overflows its box, so a check that
+  // only ever runs wide reports clean on a defect that is always present and
+  // merely invisible at that size.
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const theme of ["light", "dark"]) {
+      for (const dir of ["ltr", "rtl"]) {
+        await page.evaluate(
+          ([t, d]) => {
+            document.documentElement.setAttribute("data-theme", t);
+            document.documentElement.setAttribute("dir", d);
+          },
+          [theme, dir],
+        );
+        await page.waitForTimeout(80);
+        await page.addScriptTag({ content: AXE_SOURCE });
+        const violations = await page.evaluate(
+          async (disabled) =>
+            (
+              await window.axe.run(document, {
+                rules: Object.fromEntries(disabled.map((id) => [id, { enabled: false }])),
+                resultTypes: ["violations"],
+              })
+            ).violations.map((v) => ({
+              id: v.id,
+              impact: v.impact,
+              html: v.nodes[0]?.html.slice(0, 100) ?? "",
+              summary: (v.nodes[0]?.failureSummary || "").replace(/\s+/g, " ").slice(0, 160),
+            })),
+          PAGE_LEVEL_RULES,
+        );
+        check(
+          `axe is clean in ${theme}/${dir} at ${width}px`,
+          violations.length === 0,
+          violations.map((v) => `${v.id}(${v.impact}) ${v.html} :: ${v.summary}`).join(" | "),
+        );
+      }
     }
   }
+  await page.setViewportSize({ width: 1280, height: 900 });
   await page.evaluate(() => {
     document.documentElement.setAttribute("data-theme", "light");
     document.documentElement.setAttribute("dir", "ltr");

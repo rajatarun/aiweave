@@ -298,7 +298,21 @@ function StaticKasutiChart({ data, rows = 6, caption }) {
           body a floor width and let it scroll horizontally inside its own
           card instead of destroying the label text — the same
           overflow-x:auto-on-the-wide-thing pattern as a responsive table. */}
-      <div style={{ overflowX: "auto" }}>
+      {/* Focusable, because it scrolls. A region that scrolls and cannot be
+          reached by keyboard is WCAG 2.1.1: a pointer user drags it, a
+          keyboard user cannot get to it at all. axe reports it as
+          scrollable-region-focusable, and it only fires once the content is
+          actually wider than the box — which is why this passed locally,
+          where the build has fewer repositories than CI fetches, and failed
+          in CI. role="group" rather than "region" deliberately: a region is
+          a landmark, and this is a scroll box, not a section of the page. */}
+      <div
+        className="tantu-scroll-x"
+        style={{ overflowX: "auto" }}
+        tabIndex={0}
+        role="group"
+        aria-label={caption ?? "Chart"}
+      >
         <div style={{ minWidth: `${Math.max(KASUTI_VIEW_W, data.length * 90)}px` }}>
           <svg
             className="tantu-kasuti-canvas"
@@ -489,6 +503,16 @@ ${brandLayerCss}
               gap: var(--tantu-knot-4);
               padding: var(--tantu-knot-6) 0;
             }
+            /* A scroll box is focusable so a keyboard can reach it, which
+               means it needs a focus indicator like any other stop. Uses the
+               system's own two-tone ring rather than the browser default,
+               which is a thin blue line on cream. */
+            .tantu-scroll-x:focus-visible {
+              outline: var(--tantu-gauge-ply) solid var(--tantu-zari-pure-gold);
+              outline-offset: 2px;
+              box-shadow: 0 0 0 calc(var(--tantu-gauge-ply) + 2px) var(--tantu-focus-contrast);
+            }
+
             nav.tantu-nav {
               display: flex;
               align-items: center;
