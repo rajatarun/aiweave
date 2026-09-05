@@ -50,25 +50,19 @@
  * silently. That is the same class of bug `resolve.dedupe` fixes for React
  * in playground/vite.config.ts. Nothing here detects it.
  */
-import { WICK_T0, WICK_ANISOTROPY } from "./bleed-bus.js";
+import { fibreSpec, DEFAULT_FIBRE, type TantuFibre } from "./bleed-bus.js";
 
 export const TANTU_MAX_BLEEDS = 6;
 
-/**
- * GLSL ES 1.00 parses a bare `0` as an integer token, not a float, and some
- * drivers reject `1.0 + 0 * growth` in a context that expects a float. Every
- * value WICK_T0 and WICK_ANISOTROPY hold today happens to already contain a
- * decimal point, so this has never fired — but the shader source is built by
- * interpolating whatever JS gives `String()`, and nothing stops either
- * constant from becoming a whole number later. Guaranteeing the decimal
- * point here means that day is a no-op instead of a WebGL compile failure
- * silently caught by getDyeVat()'s own fallback (which would just make every
- * bleed surface quietly stop rendering, dye-free, everywhere at once).
+/*
+ * There used to be a glslFloat() helper here, guaranteeing a decimal point
+ * when a JS number was interpolated into the shader source: GLSL ES 1.00
+ * parses a bare `0` as an integer token and some drivers reject
+ * `1.0 + 0 * growth`. Nothing interpolates numbers into the source any more,
+ * so the hazard is gone with it — which is just as well, because the felt
+ * fibre's anisotropy is exactly 0 and would have been the first value ever
+ * to trip it.
  */
-function glslFloat(n: number): string {
-  const s = String(n);
-  return s.includes(".") ? s : `${s}.0`;
-}
 
 export interface CapillaryBleedOptions {
   /** Dye colour as #rrggbb. Defaults to madder root. */
@@ -81,6 +75,12 @@ export interface CapillaryBleedOptions {
   fray?: number;
   /** Peak opacity of the saturated substrate. */
   saturation?: number;
+  /**
+   * The cloth being dyed. Decides how far the front runs along the thread
+   * axes and how quickly it starts. Defaults to cotton, which is what this
+   * engine did unconditionally before the axis existed.
+   */
+  fibre?: TantuFibre;
 }
 
 export interface CapillaryBleedHandle {
@@ -114,6 +114,8 @@ uniform float u_maxRadius;
 uniform float u_fray;
 uniform float u_saturation;
 uniform float u_dpr;
+uniform float u_wickT0;      // fibre: inertial/viscous crossover
+uniform float u_anisotropy;  // fibre: how far the front runs along the threads
 
 float hash(vec2 p) {
   return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
@@ -175,10 +177,12 @@ void main() {
     // its own peak speed an exponential front is 92% stopped by t=0.75,
     // where Washburn still holds ~24%.
     //
-    // T0 is WICK_T0 from bleed-bus.ts, interpolated at module load rather
-    // than retyped — see this file's header comment for why that stopped
-    // being two numbers kept in step by hand.
-    float T0 = ${glslFloat(WICK_T0)};
+    // T0 arrives as a uniform. It used to be interpolated into the shader
+    // source at module load from WICK_T0 — one source, but a frozen one:
+    // baking it in meant every surface on every page wicked like cotton,
+    // because cotton is what that constant describes. See FIBRES in
+    // bleed-bus.ts.
+    float T0 = u_wickT0;
     float s0 = sqrt(T0);
     float growth = (sqrt(t + T0) - s0) / (sqrt(1.0 + T0) - s0);
     float radius = u_maxRadius * growth;
@@ -186,9 +190,10 @@ void main() {
     vec2 d = threadWarp(p - b.xy, b.w);
 
     // Slight orthogonal stretch — the lattice conducts, the bias resists.
-    // The 0.18 is WICK_ANISOTROPY, same reasoning as T0 above: one number,
-    // imported, not two that happen to agree today.
-    d.x /= 1.0 + ${glslFloat(WICK_ANISOTROPY)} * growth;
+    // How much is the fibre's business, so it is a uniform like T0. Felt
+    // passes 0 here and the front stays perfectly round, which is correct:
+    // matted fibre has no warp or weft to climb.
+    d.x /= 1.0 + u_anisotropy * growth;
 
     float dist = length(d);
 
@@ -265,6 +270,8 @@ interface SurfacePass {
   maxRadius: number;
   fray: number;
   saturation: number;
+  wickT0: number;
+  anisotropy: number;
   time: number;
   bleeds: Float32Array;
 }
@@ -339,6 +346,8 @@ function getDyeVat(): DyeVat | null {
     fray: gl.getUniformLocation(program, "u_fray"),
     saturation: gl.getUniformLocation(program, "u_saturation"),
     dpr: gl.getUniformLocation(program, "u_dpr"),
+    wickT0: gl.getUniformLocation(program, "u_wickT0"),
+    anisotropy: gl.getUniformLocation(program, "u_anisotropy"),
   };
 
   // The shared frame never shrinks — resizing a WebGL drawing buffer is the
@@ -368,6 +377,8 @@ function getDyeVat(): DyeVat | null {
       gl!.uniform1f(u.maxRadius, pass.maxRadius);
       gl!.uniform1f(u.fray, pass.fray);
       gl!.uniform1f(u.saturation, pass.saturation);
+      gl!.uniform1f(u.wickT0, pass.wickT0);
+      gl!.uniform1f(u.anisotropy, pass.anisotropy);
       gl!.uniform1f(u.time, pass.time);
       gl!.uniform4fv(u.bleeds, pass.bleeds);
 
@@ -422,6 +433,8 @@ export function createCapillaryBleed(
   const maxRadius = options.maxRadius ?? 220;
   const fray = options.fray ?? 0.65;
   const saturation = options.saturation ?? 0.85;
+  // Resolved once at construction: a surface is one cloth for its lifetime.
+  const cloth = fibreSpec(options.fibre ?? DEFAULT_FIBRE);
 
   // A 2D context is cheap and uncapped — Safari only rations WebGL.
   const ctx = canvas.getContext("2d");
@@ -470,6 +483,8 @@ export function createCapillaryBleed(
         maxRadius,
         fray,
         saturation,
+        wickT0: cloth.t0,
+        anisotropy: cloth.anisotropy,
         time: now,
         bleeds,
       });

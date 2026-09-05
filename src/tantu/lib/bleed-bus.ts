@@ -56,25 +56,128 @@
  */
 
 /* ------------------------------------------------------------------ */
+/* FIBRE — the material the law is running in.                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The wicking law is universal; its constants are a material.
+ *
+ * Lucas–Washburn describes liquid in any porous medium, which is why it is
+ * in the core. The two numbers that parametrise it are not universal at all:
+ * they describe *cotton*, and they were hardcoded as though every cloth in
+ * the world were cotton. Silk's long smooth filament conducts further and
+ * straighter; wool's crimped, scaled staple resists and starts slower; felt
+ * was never woven, so it has no thread axes to conduct along and its front
+ * stays circular.
+ *
+ * A note on where these numbers come from, because it matters: they are
+ * calibrated design values, not published measurements. The figure they
+ * replace — 0.18 — was one too. What is claimed here is the *ordering* and
+ * the relative spacing, which follow from fibre morphology; what is not
+ * claimed is that any of them is the coefficient a laboratory would report.
+ * Anyone fitting these to real cloth should treat the table as a starting
+ * point, and cotton's row as the one that must not move without a reason,
+ * since every existing consumer renders against it.
+ */
+export interface FibreSpec {
+  /**
+   * How much further the front reaches along the thread axes than on the
+   * bias, at full spread. 0 means no preferred direction at all.
+   */
+  anisotropy: number;
+  /**
+   * Crossover from the inertial regime into the viscous one, as a fraction
+   * of the droplet's lifetime. Pure Washburn has infinite front speed at
+   * t=0; real cloth does not, because inertia dominates the first instant
+   * before viscous drag takes over. Regularising with a small t0 keeps the
+   * start quick but finite. Denser, more resistant fibres start later.
+   */
+  t0: number;
+}
+
+export type TantuFibre = "cotton" | "linen" | "silk" | "wool" | "felt";
+
+export const FIBRES: Record<TantuFibre, FibreSpec> = {
+  /** The historic values. Every consumer that has ever rendered used these. */
+  cotton: { anisotropy: 0.18, t0: 0.04 },
+  /** Bast fibre: long, straight, strongly axial, and quick to take up. */
+  linen: { anisotropy: 0.26, t0: 0.03 },
+  /** A continuous filament — the most directional and the fastest onset. */
+  silk: { anisotropy: 0.3, t0: 0.02 },
+  /** Crimped and scaled: resists, holds, and starts slowly. */
+  wool: { anisotropy: 0.07, t0: 0.09 },
+  /**
+   * Not woven. Matted fibre has no warp and no weft, so there is no axis to
+   * conduct along and the front stays round. This row is the reason the axis
+   * is real rather than cosmetic: it is the one value that visibly changes
+   * the shape of the dye front rather than its degree.
+   */
+  felt: { anisotropy: 0, t0: 0.06 },
+};
+
+export const DEFAULT_FIBRE: TantuFibre = "cotton";
+
+/* ------------------------------------------------------------------ */
 /* THE WICK LAW — how far the wet front has travelled, 0..1.           */
 /* ------------------------------------------------------------------ */
 
 /**
- * Crossover from the inertial regime into the viscous one, as a fraction of
- * the droplet's lifetime. Pure Washburn has infinite front speed at t=0;
- * real cloth does not, because inertia dominates the first instant before
- * viscous drag takes over. Regularising with a small t0 keeps the start
- * quick but finite.
+ * Cotton's crossover, kept as a named export because it is the default the
+ * whole system was built against and consumers import it. Reads from the
+ * fibre table rather than repeating the literal, so there is still exactly
+ * one place the number lives.
  */
-export const WICK_T0 = 0.04;
+export const WICK_T0 = FIBRES[DEFAULT_FIBRE].t0;
 
 /**
- * Fabric conducts along warp and weft faster than on the bias, so a real
- * wicking front is not a circle — it stretches along the thread axes. Same
- * constant the shader applies in capillary-bleed.ts, kept here so the CSS
- * and GLSL paths cannot drift apart.
+ * Cotton's anisotropy. Same reasoning as WICK_T0 — one source, and the
+ * shader now takes it as a uniform rather than compiling a copy in.
  */
-export const WICK_ANISOTROPY = 0.18;
+export const WICK_ANISOTROPY = FIBRES[DEFAULT_FIBRE].anisotropy;
+
+/**
+ * Resolve a fibre to its spec, falling back to the default.
+ *
+ * Accepts a name or a spec, so a caller that read its numbers off the
+ * cascade can pass them straight through without inventing a fibre name for
+ * them.
+ */
+export function fibreSpec(fibre?: TantuFibre | FibreSpec | null): FibreSpec {
+  // Discriminated on `string` rather than `object`, and cast rather than
+  // narrowed: this file is compiled twice — once by the app's strict config
+  // and once standalone by `build:client-assets` for the no-bundler page —
+  // and control-flow narrowing does not survive both. The second pass is
+  // what caught it.
+  if (fibre && typeof fibre !== "string") return fibre as FibreSpec;
+  const named = fibre as TantuFibre | null | undefined;
+  return (named && FIBRES[named]) || FIBRES[DEFAULT_FIBRE];
+}
+
+/**
+ * Read the cloth off the live cascade.
+ *
+ * The dyes already work this way — resolveDye() reads the pigment from the
+ * element being stained, so re-dyeing a subtree in CSS moves the bleed with
+ * it. The fibre is the same kind of property and gets the same treatment:
+ * set --weave-anisotropy on a region and the DOM wick fronts inside it
+ * change shape, without that region needing to know a fibre's name.
+ *
+ * Falls back to cotton per-value, so a page that declares neither, or only
+ * one, still renders exactly as it always did.
+ */
+export function fibreFrom(scope?: Element | null): FibreSpec {
+  const base = FIBRES[DEFAULT_FIBRE];
+  if (typeof window === "undefined") return base;
+  const style = getComputedStyle(scope ?? document.documentElement);
+  const read = (prop: string, fallback: number) => {
+    const value = parseFloat(style.getPropertyValue(prop));
+    return Number.isFinite(value) ? value : fallback;
+  };
+  return {
+    anisotropy: read("--weave-anisotropy", base.anisotropy),
+    t0: read("--weave-wick-t0", base.t0),
+  };
+}
 
 /**
  * Lucas–Washburn wicking, normalised so wickProgress(1) === 1.
@@ -99,18 +202,31 @@ export function wickProgress(t: number, t0: number = WICK_T0): number {
 /**
  * Radii for an anisotropic wet front at progress `p` (0..1), given the
  * radius that would just cover the cloth along the weft axis. Returns px.
+ *
+ * `fibre` decides how far the front runs along the thread axes; omitted, it
+ * is cotton, which is what every caller got before the axis existed.
  */
-export function wickRadii(coverRy: number, p: number): { rx: number; ry: number } {
+export function wickRadii(
+  coverRy: number,
+  p: number,
+  fibre?: TantuFibre | FibreSpec | null,
+): { rx: number; ry: number } {
   const ry = coverRy * p;
-  return { rx: ry * (1 + WICK_ANISOTROPY * p), ry };
+  return { rx: ry * (1 + fibreSpec(fibre).anisotropy * p), ry };
 }
 
 /**
- * The weft-axis radius at which the front, stretched by WICK_ANISOTROPY,
- * just reaches every corner of a w x h box from (cx, cy).
+ * The weft-axis radius at which the front, stretched by the fibre's
+ * anisotropy, just reaches every corner of a w x h box from (cx, cy).
  */
-export function wickCoverRadius(w: number, h: number, cx: number, cy: number): number {
-  const k = 1 + WICK_ANISOTROPY;
+export function wickCoverRadius(
+  w: number,
+  h: number,
+  cx: number,
+  cy: number,
+  fibre?: TantuFibre | FibreSpec | null,
+): number {
+  const k = 1 + fibreSpec(fibre).anisotropy;
   let max = 0;
   for (const [x, y] of [[0, 0], [w, 0], [0, h], [w, h]] as Array<[number, number]>) {
     const dx = (x - cx) / k;
