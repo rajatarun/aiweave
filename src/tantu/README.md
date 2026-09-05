@@ -12,6 +12,11 @@ dye wicks through cotton — on the Lucas–Washburn law, not an easing curve.
 47 components. Every one of them verified against WCAG 2.1 AA in both themes
 and both writing directions, on every commit.
 
+**Browse every component: [aiweave.org/storybook](https://aiweave.org/storybook/)**
+— all 114 story renders, in both themes and both writing directions, with the
+accessibility panel live. Evaluating a design system should cost one click
+rather than a clone and an install.
+
 **In production on [aiweave.org](https://aiweave.org).** The loom, the cells,
 both card variants, the buttons, tags, meters, stepper and the ink-bleed
 engine render that site, server-side, out of this source tree rather than a

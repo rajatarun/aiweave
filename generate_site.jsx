@@ -857,7 +857,7 @@ ${brandLayerCss}
                     reads as a link without relying on colour alone (1.4.1). */}
                 This site is built with{" "}
                 <a
-                  href="https://github.com/rajatarun/aiweave/tree/main/src/tantu"
+                  href="/storybook/"
                   style={{ color: "var(--tantu-accent-primary)", textUnderlineOffset: "0.25em" }}
                 >
                   Tantu
