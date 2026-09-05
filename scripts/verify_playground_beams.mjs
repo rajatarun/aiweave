@@ -297,6 +297,77 @@ try {
   check("the discarded draft does not come back",
     (await register()).length === 3 &&
       (await page.locator(".tantu-notice").filter({ hasText: "Draft restored" }).count()) === 0);
+
+  // --- The shop is the register, not a catalogue beside it ---------------
+  //
+  // The shop section claims the cloth off each beam is what is for sale. That
+  // is exactly the kind of claim this file exists to disbelieve: three product
+  // cards rendered from a hardcoded array would look identical on screen and
+  // pass every other sweep in the repository. So drive the register and read
+  // the shop back.
+  const cards = () =>
+    page.$$eval(".tantu-product", (nodes) =>
+      nodes.map((node) => ({
+        title: node.querySelector(".tantu-product-title")?.textContent?.trim() ?? "",
+        note: node.querySelector(".tantu-product-note")?.textContent?.trim() ?? "",
+        reduced: node.querySelector(".tantu-price-reduced") !== null,
+        flagged: node.textContent.includes("Unfixed dye"),
+      })),
+    );
+
+  const shelf = await cards();
+  check("the shop lists one piece per beam", shelf.length === (await register()).length,
+    `${shelf.length} cards, ${(await register()).length} rows`);
+  check("each piece is named for its beam and its bath",
+    shelf.some((c) => c.title.startsWith("Cotton 40s, madder root")),
+    shelf.map((c) => c.title).join(" | "));
+  check("the sett reaches the shop from the register",
+    shelf.some((c) => c.note.includes("48 picks")),
+    shelf.map((c) => c.note).join(" | "));
+
+  // Mordant is the fact the price is drawn from: unfixed dye fades, so that
+  // cloth is seconds. Cotton 60s ships unmordanted and Cotton 40s does not.
+  const madderCard = shelf.find((c) => c.title.startsWith("Cotton 40s"));
+  const indigoCard = shelf.find((c) => c.title.startsWith("Cotton 60s"));
+  check("mordanted cloth sells at list", madderCard && !madderCard.reduced);
+  check("unmordanted cloth sells as seconds", indigoCard && indigoCard.reduced && indigoCard.flagged);
+
+  // The consequence that matters: turning the mordant on is a change to the
+  // beam, and the shop has to follow it. A price computed once at mount would
+  // pass every check above and fail this one.
+  await page.getByRole("button", { name: "Dress Cotton 60s" }).click();
+  // The mordant toggle lives behind the Dye tab, and its native control is
+  // visually hidden behind the knotbox — so open the tab and click the label,
+  // which is what a pointer actually hits.
+  await page.getByRole("tab", { name: "Dye" }).click();
+  await page.locator(".tantu-toggle").filter({ hasText: "Mordant first" }).click();
+  const afterMordant = await cards();
+  check("fixing the dye takes the piece out of seconds",
+    !afterMordant.find((c) => c.title.startsWith("Cotton 60s"))?.reduced,
+    afterMordant.map((c) => `${c.title}:${c.reduced ? "reduced" : "list"}`).join(" | "));
+
+  // The swatch set on the piece is the same control as the bath select, not a
+  // second copy that only colours itself.
+  const swatches = page.locator(".tantu-swatchset");
+  await swatches.getByRole("radio", { name: "Copper sulphate" }).click();
+  check("choosing a bath from the swatches rewrites the register row",
+    // The dye cell also carries the mordant tag, so read it as a substring —
+    // the same way the mordant checks above do.
+    (await rowFor((await register()).find((r) => r[4] === "Dressed")[0]))?.[2].includes("copper sulphate"),
+    JSON.stringify((await register()).find((r) => r[4] === "Dressed")));
+  check("and the piece is renamed with the bath it is now in",
+    (await page.locator(".tantu-provenance").innerText()).toLowerCase().includes("copper sulphate"));
+
+  // And cutting takes the cloth off the shelf, because there is no cloth.
+  const shelfBefore = (await cards()).length;
+  await opener.click();
+  await dialog.waitFor();
+  await confirm().click();
+  await page.getByRole("dialog").waitFor({ state: "detached" });
+  check("cutting the beam takes its cloth out of the shop",
+    (await cards()).length === shelfBefore - 1,
+    `${shelfBefore} → ${(await cards()).length}`);
+
 } finally {
   await browser.close();
   server.close();
