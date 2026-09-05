@@ -219,13 +219,46 @@ jobs:
               --metadata-directive REPLACE
           done
 
-      - name: Re-upload HTML as no-cache
+      # Every file that *names* other files has to be uncacheable, or a
+      # returning reader is served a stale table of contents pointing at
+      # bundles that have long since been replaced.
+      #
+      # index.html names the bundles. index.json is Storybook's story
+      # manifest — the manager fetches it to build the sidebar — and
+      # project.json carries the refs beside it. Only the HTML was being
+      # corrected, so a reader who had opened /storybook/ within the previous
+      # day got a fresh page that drew its sidebar from a day-old manifest:
+      # new stories were deployed, uploaded, and reachable by direct URL,
+      # and simply not listed. Which is indistinguishable, from the outside,
+      # from a deploy that never happened.
+      - name: Re-upload the files that name other files as no-cache
         run: |
           aws s3 cp "s3://${BUCKET}/storybook/" "s3://${BUCKET}/storybook/" \
             --recursive --exclude "*" --include "*.html" \
             --content-type "text/html; charset=utf-8" \
             --cache-control "no-cache, no-store, must-revalidate" \
             --metadata-directive REPLACE
+          for manifest in index.json project.json; do
+            aws s3 cp "s3://${BUCKET}/storybook/${manifest}" "s3://${BUCKET}/storybook/${manifest}" \
+              --content-type "application/json" \
+              --cache-control "no-cache, no-store, must-revalidate" \
+              --metadata-directive REPLACE
+          done
+
+      # Read it back rather than trusting the write. This is the check whose
+      # absence let the stale sidebar ship: every step above reported success
+      # while the object that decides what a reader sees kept a day-long TTL.
+      - name: The manifest really is uncacheable
+        run: |
+          for key in index.html index.json project.json; do
+            cc=$(aws s3api head-object --bucket "$BUCKET" --key "storybook/${key}" \
+                   --query CacheControl --output text)
+            echo "storybook/${key}: ${cc}"
+            case "$cc" in
+              *no-cache*) ;;
+              *) echo "::error::storybook/${key} is cacheable (${cc}) — a returning reader will be served a stale index"; exit 1 ;;
+            esac
+          done
 
       - name: Output Storybook URL
         run: |
@@ -319,6 +352,20 @@ jobs:
             --content-type "text/html; charset=utf-8" \
             --cache-control "no-cache, no-store, must-revalidate" \
             --metadata-directive REPLACE
+
+      # Same readback as Storybook's. The playground has no runtime manifest —
+      # Vite writes the hashed asset names straight into the document — so
+      # index.html is the only file that names others, and it is the only one
+      # that must never be cached.
+      - name: The document really is uncacheable
+        run: |
+          cc=$(aws s3api head-object --bucket "$BUCKET" --key "playground/index.html" \
+                 --query CacheControl --output text)
+          echo "playground/index.html: ${cc}"
+          case "$cc" in
+            *no-cache*) ;;
+            *) echo "::error::playground/index.html is cacheable (${cc}) — a returning reader will be served a stale document"; exit 1 ;;
+          esac
 
       - name: Output playground URL
         run: |
