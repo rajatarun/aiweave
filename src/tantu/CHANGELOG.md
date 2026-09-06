@@ -10,13 +10,16 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
 
 Nothing yet.
 
-## [0.3.2] — 2026-09-06
+## [0.3.3] — 2026-09-06
 
-> Published as 0.3.2. Tags `v0.3.0` and `v0.3.1` were pushed at commits
-> whose manifest read an earlier version, so the release workflow's
-> tag/manifest guard rejected both before anything reached the registry.
-> Neither number was ever published; the version was moved forward rather
-> than re-pointing a tag. There is no 0.3.0 or 0.3.1 to install.
+> Published as 0.3.3. Three earlier numbers were tagged and none reached the
+> registry: `v0.3.0` and `v0.3.1` were pushed at commits whose manifest still
+> read an earlier version, so the workflow's tag/manifest guard rejected them;
+> `v0.3.2` cleared that guard but failed `audit:core`, and the fix for that
+> check landed after the tag was cut, so the tag could not carry it. Each time
+> the version moved forward rather than a tag being re-pointed — a pushed tag
+> is a claim someone may have fetched. There is no 0.3.0, 0.3.1 or 0.3.2 to
+> install.
 
 ### Added
 
