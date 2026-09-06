@@ -8,6 +8,10 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [0.3.0] — 2026-09-06
+
 ### Added
 
 - **`TantuNaksha`** — a long progression as the squared chart it is woven
