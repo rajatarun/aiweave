@@ -100,13 +100,22 @@ function LiveBandhani() {
   useEffect(() => {
     const start = performance.now();
     let frame: number;
+    // Four cycles, then it rests. The sweep used to run forever, which is a
+    // fair demonstration and a hostile page: a story that re-renders on every
+    // animation frame in perpetuity never lets the main thread go idle, and
+    // the story audit — which navigates a single reused page through every
+    // story waiting on `load` — timed out here and nowhere else in 132
+    // stories. Bounding it costs the demonstration nothing (the point is the
+    // cadence, which four cycles show) and leaves the ring at a resting value
+    // a reader can actually look at.
+    const RUN_MS = 7200;
     const tick = (now: number) => {
       // A simple back-and-forth sweep, standing in for a live reading —
       // exactly the shape a consumer polling a sensor or an audio
       // analyser would feed this prop every frame.
-      const t = (now - start) / 1800;
-      setStrength((Math.sin(t) + 1) / 2);
-      frame = requestAnimationFrame(tick);
+      const elapsed = now - start;
+      setStrength((Math.sin(elapsed / 1800) + 1) / 2);
+      if (elapsed < RUN_MS) frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
