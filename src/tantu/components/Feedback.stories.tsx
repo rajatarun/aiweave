@@ -5,6 +5,7 @@ import { TantuAvatarGroup } from "./TantuAvatarGroup.js";
 import { useEffect, useState } from "react";
 import { TantuMeter } from "./TantuMeter.js";
 import { TantuBandhani } from "./TantuBandhani.js";
+import { TantuButton } from "./TantuButton.js";
 import { TantuNotice } from "./TantuNotice.js";
 import { TantuBanner } from "./TantuBanner.js";
 import { TantuRupture } from "./TantuRupture.js";
@@ -96,31 +97,44 @@ export const Meter: Story = {
 };
 
 function LiveBandhani() {
-  const [strength, setStrength] = useState(0.1);
+  // Rests until asked. The sweep was previously self-starting — first
+  // unbounded, then bounded to a few seconds — and both variants made this the
+  // one story of 132 that the story audit could fail on, timing out while the
+  // page re-rendered at frame rate under `waitUntil: "load"`. Bounding it only
+  // lowered the odds; starting on a press removes the failure by construction,
+  // because the audit loads stories and never presses anything.
+  //
+  // It reads better too: the ring shows a real value the moment the page
+  // settles, instead of a number nobody can look at because it never stops.
+  const [strength, setStrength] = useState(0.62);
+  const [running, setRunning] = useState(false);
+
   useEffect(() => {
+    if (!running) return undefined;
     const start = performance.now();
     let frame: number;
-    // Four cycles, then it rests. The sweep used to run forever, which is a
-    // fair demonstration and a hostile page: a story that re-renders on every
-    // animation frame in perpetuity never lets the main thread go idle, and
-    // the story audit — which navigates a single reused page through every
-    // story waiting on `load` — timed out here and nowhere else in 132
-    // stories. Bounding it costs the demonstration nothing (the point is the
-    // cadence, which four cycles show) and leaves the ring at a resting value
-    // a reader can actually look at.
     const RUN_MS = 7200;
     const tick = (now: number) => {
-      // A simple back-and-forth sweep, standing in for a live reading —
-      // exactly the shape a consumer polling a sensor or an audio
-      // analyser would feed this prop every frame.
+      // A back-and-forth sweep, standing in for a live reading — exactly the
+      // shape a consumer polling a sensor or an audio analyser would feed
+      // this prop every frame.
       const elapsed = now - start;
       setStrength((Math.sin(elapsed / 1800) + 1) / 2);
       if (elapsed < RUN_MS) frame = requestAnimationFrame(tick);
+      else setRunning(false);
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, []);
-  return <TantuBandhani label="Live reading" strength={strength} />;
+  }, [running]);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "1rem", alignItems: "center" }}>
+      <TantuBandhani label="Live reading" strength={strength} />
+      <TantuButton variant="secondary" bleed={false} disabled={running} onClick={() => setRunning(true)}>
+        {running ? "Sweeping" : "Run a live sweep"}
+      </TantuButton>
+    </div>
+  );
 }
 
 export const Bandhani: Story = {
@@ -130,8 +144,9 @@ export const Bandhani: Story = {
         story:
           "A live 0..1 reading as a resist-dye ring: the bound knot at centre never takes " +
           "colour, and the ring around it grows and deepens with `strength`. Meant to be " +
-          "driven every frame — the sweep below re-renders on a `requestAnimationFrame` loop, " +
-          "the same cadence a caller polling an audio level or a sensor would use.\n\n" +
+          "driven every frame — press *Run a live sweep* and the ring below re-renders on a " +
+          "`requestAnimationFrame` loop for a few seconds, the same cadence a caller polling " +
+          "an audio level or a sensor would use.\n\n" +
           "`state=\"notice\"` is a second dye, not a brighter version of the first, so it still " +
           "reads under forced colours and without relying on the ring's size alone. The value " +
           "is exposed as `role=\"meter\"` (read on demand, not spoken on every change — it " +
