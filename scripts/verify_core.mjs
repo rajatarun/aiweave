@@ -203,22 +203,36 @@ try {
     const state = await card.getAttribute("data-state");
     const label = state === "reverse" ? "Turn back" : "Turn the cloth";
     await card.getByRole("button", { name: label }).click();
-    await page.waitForTimeout(400); // mid-flight, wherever that lands
+    // Wait for a front to actually be in flight, rather than assuming a fixed
+    // delay lands inside one. *When* it is sampled genuinely does not matter —
+    // the ratio is 1 + a·p at every frame, which is the point made above — but
+    // *that* it is sampled while the front travels does, and the gap between
+    // the click and the first painted frame is machine speed, not physics.
+    //
+    // A fixed 400ms is what failed the 0.3.2 release: six consecutive local
+    // passes, "no front in flight" on the runner, against a component
+    // byte-identical to the one that shipped green in 0.2.0. The assertions
+    // below are unchanged — a missing front still fails, it just has to be
+    // genuinely missing rather than merely late.
+    const front = await page
+      .waitForFunction(
+        () => {
+          const read = (el, prop) => parseFloat(el.style.getPropertyValue(prop));
+          for (const f of document.querySelectorAll(".tantu-rumal-obverse, .tantu-rumal-reverse")) {
+            const rx = read(f, "--tantu-rumal-rx");
+            const ry = read(f, "--tantu-rumal-ry");
+            if (Number.isFinite(rx) && Number.isFinite(ry) && ry > 0 && ry < 9999) {
+              return { rx, ry, ratio: rx / ry };
+            }
+          }
+          return null;
+        },
+        null,
+        { timeout: 5000, polling: "raf" },
+      )
+      .catch(() => null);
 
-    return page.evaluate(() => {
-      const face = document.querySelector(
-        ".tantu-card-rumal .tantu-rumal-reverse, .tantu-card-rumal .tantu-rumal-obverse",
-      );
-      const read = (el, prop) => parseFloat(el.style.getPropertyValue(prop));
-      for (const f of document.querySelectorAll(".tantu-rumal-obverse, .tantu-rumal-reverse")) {
-        const rx = read(f, "--tantu-rumal-rx");
-        const ry = read(f, "--tantu-rumal-ry");
-        if (Number.isFinite(rx) && Number.isFinite(ry) && ry > 0 && ry < 9999) {
-          return { rx, ry, ratio: rx / ry };
-        }
-      }
-      return face ? null : null;
-    });
+    return front ? front.jsonValue() : null;
   };
 
   const woven = await flipAndSampleRatio(0.3);
@@ -228,7 +242,23 @@ try {
     woven ? `rx/ry = ${woven.ratio.toFixed(4)}` : "no front in flight",
   );
 
-  await page.waitForTimeout(2200);
+  // Let the first front finish before the next flip, so the sample cannot
+  // pick up the previous flip's still-travelling ellipse and read a woven
+  // ratio where a felt one is expected. Same reason as above: the previous
+  // fixed delay encoded an assumption about how fast the machine is.
+  await page
+    .waitForFunction(
+      () => {
+        for (const f of document.querySelectorAll(".tantu-rumal-obverse, .tantu-rumal-reverse")) {
+          const ry = parseFloat(f.style.getPropertyValue("--tantu-rumal-ry"));
+          if (Number.isFinite(ry) && ry > 0 && ry < 9999) return false;
+        }
+        return true;
+      },
+      null,
+      { timeout: 5000, polling: "raf" },
+    )
+    .catch(() => {});
   const matted = await flipAndSampleRatio(0);
   check(
     "felt has no threads to climb, so its front stays a circle",
