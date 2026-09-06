@@ -42,6 +42,7 @@ import {
   TantuMakuShuttle,
   TantuMasthead,
   TantuMeter,
+  TantuNaksha,
   TantuNotice,
   TantuPagination,
   TantuPanchang,
@@ -219,6 +220,39 @@ export const SPECIMENS: Specimen[] = [
           { id: "warp", label: "Wind the warp" },
           { id: "dress", label: "Dress the loom" },
           { id: "weave", label: "Weave" },
+        ]}
+      />
+    ),
+  },
+  {
+    name: "TantuNaksha",
+    element: (
+      <TantuNaksha
+        label="Sampler chart"
+        columns={5}
+        bands={[
+          {
+            id: "first",
+            label: "First band",
+            note: "5 squares",
+            nodes: [
+              { id: "n1", label: "Square 1", state: "completed" },
+              { id: "n2", label: "Square 2", state: "completed" },
+              { id: "n3", label: "Square 3", state: "active" },
+              { id: "n4", label: "Square 4", state: "locked" },
+              { id: "n5", label: "Square 5", state: "locked" },
+            ],
+          },
+          {
+            id: "second",
+            label: "Second band",
+            note: "7 squares",
+            nodes: Array.from({ length: 7 }, (_, i) => ({
+              id: `m${i + 1}`,
+              label: `Square ${i + 6}`,
+              state: "locked" as const,
+            })),
+          },
         ]}
       />
     ),
