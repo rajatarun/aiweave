@@ -11,8 +11,10 @@
  *    on an element that had just become tabindex="-1".
  */
 import { describe, expect, it } from "vitest";
+import type { ComponentProps } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { TantuTabs } from "../src/tantu/components/TantuTabs";
+import { TantuNaksha } from "../src/tantu/components/TantuNaksha";
 import { createMakuShuttle, type MakuShuttleHandle } from "../src/tantu/lib/maku-shuttle";
 
 /** The shuttle draws its weft onto a page-level SVG overlay. */
@@ -181,5 +183,167 @@ describe("Maku shuttle — arrow keys belong to the component first", () => {
     } finally {
       shuttle.dispose();
     }
+  });
+});
+
+/**
+ * The 2D extension of that contract.
+ *
+ * TantuNaksha takes the palette's one-row roving tabindex to a chart of up to
+ * ~100 squares. Everything below is a rule that would be invisible until a
+ * keyboard user hit it: a row step that lands on the end of a shorter row, a
+ * band boundary that is crossed rather than stopped at, and locked squares
+ * that stay reachable instead of being skipped — which is what keeps the
+ * chart's whole point available without a mouse.
+ */
+describe("TantuNaksha — roving tabindex across rows", () => {
+  const BANDS = [
+    {
+      id: "first",
+      label: "First band",
+      // 4 columns: squares 1-4 on row 0, 5-6 on row 1 (a short row).
+      nodes: [1, 2, 3, 4, 5, 6].map((n) => ({
+        id: `a${n}`,
+        label: `Square ${n}`,
+        state: (n < 3 ? "completed" : n === 3 ? "active" : "locked") as
+          | "completed"
+          | "active"
+          | "locked",
+      })),
+    },
+    {
+      id: "second",
+      label: "Second band",
+      // squares 7-10 on row 2, 11-12 on row 3.
+      nodes: [7, 8, 9, 10, 11, 12].map((n) => ({
+        id: `b${n}`,
+        label: `Square ${n}`,
+        state: "locked" as const,
+      })),
+    },
+  ];
+
+  function chart(props: Partial<ComponentProps<typeof TantuNaksha>> = {}) {
+    return render(<TantuNaksha bands={BANDS} columns={4} label="Sampler chart" {...props} />);
+  }
+
+  /** The square that currently holds focus, by its number. */
+  function focusedSquare(): string {
+    return (document.activeElement as HTMLElement | null)?.getAttribute("aria-label") ?? "none";
+  }
+
+  function square(n: number) {
+    return screen.getByRole("button", { name: new RegExp(`^Square ${n},`) });
+  }
+
+  it("starts the cursor on the active square and makes it the only tab stop", () => {
+    chart();
+    expect(square(3)).toHaveAttribute("tabindex", "0");
+    const stops = screen
+      .getAllByRole("button")
+      .filter((b) => b.getAttribute("tabindex") === "0");
+    expect(stops).toHaveLength(1);
+  });
+
+  it("walks the flattened order with Left/Right, crossing rows and bands", () => {
+    chart();
+    square(6).focus();
+    fireEvent.keyDown(square(6), { key: "ArrowRight" });
+    // Row 1 ends at square 6 and band two begins at square 7.
+    expect(focusedSquare()).toMatch(/^Square 7,/);
+  });
+
+  it("clamps at the two ends rather than wrapping", () => {
+    chart();
+    square(1).focus();
+    fireEvent.keyDown(square(1), { key: "ArrowLeft" });
+    expect(focusedSquare()).toMatch(/^Square 1,/);
+    square(12).focus();
+    fireEvent.keyDown(square(12), { key: "ArrowRight" });
+    expect(focusedSquare()).toMatch(/^Square 12,/);
+  });
+
+  it("reverses the inline arrows under dir=rtl", () => {
+    const { container } = render(
+      <div dir="rtl">
+        <TantuNaksha bands={BANDS} columns={4} label="Sampler chart" />
+      </div>,
+    );
+    expect(container.firstElementChild).toHaveAttribute("dir", "rtl");
+    square(3).focus();
+    fireEvent.keyDown(square(3), { key: "ArrowRight" });
+    expect(focusedSquare()).toMatch(/^Square 2,/);
+  });
+
+  it("moves a row at a time with Up/Down, holding the column", () => {
+    chart();
+    square(2).focus();
+    fireEvent.keyDown(square(2), { key: "ArrowDown" });
+    expect(focusedSquare()).toMatch(/^Square 6,/); // row 1, column 1
+    fireEvent.keyDown(square(6), { key: "ArrowUp" });
+    expect(focusedSquare()).toMatch(/^Square 2,/);
+  });
+
+  it("lands on the last square of a shorter row instead of nowhere", () => {
+    chart();
+    square(4).focus(); // row 0, column 3
+    fireEvent.keyDown(square(4), { key: "ArrowDown" });
+    // Row 1 holds only squares 5 and 6.
+    expect(focusedSquare()).toMatch(/^Square 6,/);
+  });
+
+  it("crosses the fringe between bands on a row step", () => {
+    chart();
+    square(5).focus(); // row 1, first band
+    fireEvent.keyDown(square(5), { key: "ArrowDown" });
+    expect(focusedSquare()).toMatch(/^Square 7,/); // row 2, second band
+  });
+
+  it("stays put at the top and bottom rows", () => {
+    chart();
+    square(1).focus();
+    fireEvent.keyDown(square(1), { key: "ArrowUp" });
+    expect(focusedSquare()).toMatch(/^Square 1,/);
+    square(11).focus();
+    fireEvent.keyDown(square(11), { key: "ArrowDown" });
+    expect(focusedSquare()).toMatch(/^Square 11,/);
+  });
+
+  it("takes Home and End to the ends of the row", () => {
+    chart();
+    square(9).focus(); // row 2: squares 7-10
+    fireEvent.keyDown(square(9), { key: "End" });
+    expect(focusedSquare()).toMatch(/^Square 10,/);
+    fireEvent.keyDown(square(10), { key: "Home" });
+    expect(focusedSquare()).toMatch(/^Square 7,/);
+  });
+
+  it("takes Ctrl+Home and Ctrl+End to the ends of the chart", () => {
+    chart();
+    square(9).focus();
+    fireEvent.keyDown(square(9), { key: "Home", ctrlKey: true });
+    expect(focusedSquare()).toMatch(/^Square 1,/);
+    fireEvent.keyDown(square(1), { key: "End", ctrlKey: true });
+    expect(focusedSquare()).toMatch(/^Square 12,/);
+  });
+
+  it("keeps locked squares reachable, disabled and silent", () => {
+    const chosen: string[] = [];
+    chart({ onSelect: (node) => chosen.push(node.id) });
+    expect(square(12)).toHaveAttribute("aria-disabled", "true");
+    square(12).focus();
+    expect(focusedSquare()).toMatch(/^Square 12,/);
+    fireEvent.click(square(12));
+    expect(chosen).toEqual([]);
+    fireEvent.click(square(1));
+    expect(chosen).toEqual(["a1"]);
+  });
+
+  it("names each square with its state, and marks the active one current", () => {
+    chart();
+    expect(square(1)).toHaveAccessibleName("Square 1, completed");
+    expect(square(3)).toHaveAccessibleName("Square 3, in progress");
+    expect(square(4)).toHaveAccessibleName("Square 4, locked");
+    expect(square(3)).toHaveAttribute("aria-current", "step");
   });
 });

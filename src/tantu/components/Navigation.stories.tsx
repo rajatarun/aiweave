@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { TantuTabs } from "./TantuTabs.js";
 import { TantuFold } from "./TantuFold.js";
 import { TantuStepper } from "./TantuStepper.js";
+import { TantuNaksha, type NakshaBand, type NakshaState } from "./TantuNaksha.js";
 import { TantuPagination } from "./TantuPagination.js";
 import { TantuTrail } from "./TantuTrail.js";
 
@@ -87,6 +88,65 @@ export const Stepper: Story = {
         { id: "cut", label: "Cut" },
       ]}
     />
+  ),
+};
+
+/**
+ * A hundred squares in four bands of very different sizes — the shape a long
+ * curriculum actually has, and the reason the chart draws band area from node
+ * count rather than taking a scale from the caller.
+ */
+const BAND_SIZES: Array<[string, string, number, string]> = [
+  ["one", "First band", 10, "training"],
+  ["two", "Second band", 20, "no fail state"],
+  ["three", "Third band", 30, "urgency enters"],
+  ["four", "Fourth band", 40, "everything at once"],
+];
+
+const CHART: NakshaBand[] = (() => {
+  let n = 0;
+  return BAND_SIZES.map(([id, label, count, note]) => ({
+    id,
+    label,
+    note,
+    nodes: Array.from({ length: count }, () => {
+      n += 1;
+      const state: NakshaState = n < 14 ? "completed" : n === 14 ? "active" : "locked";
+      return { id: `sq-${n}`, label: `Square ${n}`, state };
+    }),
+  }));
+})();
+
+export const Naksha: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "A naksha is a brocade design squared onto a grid before a single pick is thrown, " +
+          "and also the ordinary word for a map. Both meanings are the component: the plan " +
+          "of a long journey, and how far along it the work has reached.\n\n" +
+          "Three states and no fourth — TantuStepper's own vocabulary. `completed` squares " +
+          "carry the Jamdani pack, `active` is the fell with the batten's accent cord at it, " +
+          "`locked` is bare warp. Locked is neutral cloth on purpose: a chart is mostly " +
+          "unwoven by definition, and a hundred caution dyes is not a state.\n\n" +
+          "Every square is the same size in every band, so a band's area is exactly " +
+          "proportional to its node count and the compression between bands is drawn rather " +
+          "than declared. Bands are parted by the Panchang's fringe — the weft stops and only " +
+          "the warp crosses the gap.\n\n" +
+          "**Keyboard.** TantuAcousticPalette's roving tabindex taken from one row to many. " +
+          "One tab stop in the whole chart; Left/Right walk the flattened order across rows " +
+          "and bands (and swap roles under `dir=\"rtl\"`), Up/Down move a row holding the " +
+          "column, Home/End reach the ends of the row, Ctrl+Home/End the ends of the chart. " +
+          "Locked squares stay in the roving order carrying `aria-disabled` rather than being " +
+          "skipped: they are most of the chart, and a keyboard that could only reach the " +
+          "unlocked handful would hide the one thing the chart is for.",
+      },
+    },
+  },
+  render: () => (
+    <div style={{ maxWidth: "24rem" }}>
+      <TantuNaksha label="Sampler chart" bands={CHART} currentId="sq-14" />
+    </div>
   ),
 };
 

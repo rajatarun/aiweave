@@ -28,6 +28,7 @@ export * from "./components/TantuGuptBandhan.js";
 export * from "./components/TantuTabs.js";
 export * from "./components/TantuFold.js";
 export * from "./components/TantuStepper.js";
+export * from "./components/TantuNaksha.js";
 export * from "./components/TantuPagination.js";
 export * from "./components/TantuTrail.js";
 export * from "./components/TantuPopover.js";
