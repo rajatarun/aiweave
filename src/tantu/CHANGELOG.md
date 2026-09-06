@@ -8,18 +8,28 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
 
-## [0.3.3] — 2026-09-06
+- `audit:core` sampled the rumal dye front a fixed 400ms after the flip, which
+  assumed the click had reached a painted frame by then — an assumption about
+  machine speed, not physics. It now waits for a front to actually be in
+  flight, and for the previous one to clear before the next flip. The
+  assertions are unchanged: a front that never appears still fails. This is
+  what failed the first `v0.3.2` run and passed on a re-run of the same commit.
 
-> Published as 0.3.3. Three earlier numbers were tagged and none reached the
-> registry: `v0.3.0` and `v0.3.1` were pushed at commits whose manifest still
-> read an earlier version, so the workflow's tag/manifest guard rejected them;
-> `v0.3.2` cleared that guard but failed `audit:core`, and the fix for that
-> check landed after the tag was cut, so the tag could not carry it. Each time
-> the version moved forward rather than a tag being re-pointed — a pushed tag
-> is a claim someone may have fetched. There is no 0.3.0, 0.3.1 or 0.3.2 to
-> install.
+## [0.3.2] — 2026-09-06
+
+> Shipped as 0.3.2, with provenance. Two earlier numbers were tagged and never
+> reached the registry: `v0.3.0` and `v0.3.1` were pushed at commits whose
+> manifest still read an earlier version, so the release workflow's
+> tag/manifest guard rejected both. The version moved forward each time rather
+> than a tag being re-pointed — a pushed tag is a claim someone may already
+> have fetched. There is no 0.3.0 or 0.3.1 to install.
+>
+> `v0.3.2` itself failed `audit:core` on its first run and passed on a re-run
+> of the same commit, which is what identified that check as timing-sensitive
+> rather than broken. The hardening for it is under Unreleased above; it is
+> not in 0.3.2.
 
 ### Added
 
