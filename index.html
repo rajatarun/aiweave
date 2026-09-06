@@ -4653,6 +4653,191 @@ textarea.tantu-maku-focus {
     grid-column: span 6;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THE NAKSHA — a long progression as the squared chart it is woven from
+   ═══════════════════════════════════════════════════════════════════════════
+
+   One square per unit of the weave, at a knot multiple, with no curve
+   anywhere: a naksha cannot express one and neither can the cloth. Every
+   square is the same size in every band, so a band's area on the page is
+   exactly proportional to the number of squares it holds — the compression
+   between bands is drawn by the lattice rather than declared by a prop.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.tantu-naksha {
+  --tantu-naksha-columns: 10;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tantu-knot-2);
+}
+
+.tantu-naksha-band-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--tantu-knot-1);
+  margin: 0 0 var(--tantu-knot-1);
+  font-family: var(--tantu-font-meta);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--tantu-ink-primary);
+}
+
+.tantu-naksha-band-note {
+  color: var(--tantu-ink-secondary);
+  letter-spacing: 0.08em;
+}
+
+/* The band fringe, borrowed from the Panchang: the weft stops between bands
+   and only the vertical warp survives to cross the gap. */
+.tantu-naksha-fringe {
+  height: var(--tantu-knot-3);
+  margin-block: var(--tantu-knot-1);
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--tantu-grid-thread) 0,
+    var(--tantu-grid-thread) 1px,
+    transparent 1px,
+    transparent 6px
+  );
+}
+
+.tantu-naksha-field {
+  display: grid;
+  grid-template-columns: repeat(var(--tantu-naksha-columns), minmax(0, 1fr));
+  gap: var(--tantu-gauge-ply);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tantu-naksha-knot {
+  min-width: 0;
+}
+
+.tantu-naksha-block {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: 100%;
+  aspect-ratio: 1;
+  /* The chart squeezes to fit a phone; the hit area does not squeeze past
+     SC 2.5.8. Held at the floor rather than a knot, so closing the sett
+     cannot shrink it back under 24px. */
+  min-block-size: var(--tantu-target-min);
+  padding: 0;
+  border: var(--tantu-gauge-filament) solid var(--tantu-border-hairline);
+  background-color: var(--tantu-bg-substrate);
+  color: var(--tantu-ink-secondary);
+  font-family: var(--tantu-font-meta);
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tantu-naksha-pack {
+  position: absolute;
+  inset: 0;
+}
+
+.tantu-naksha-ordinal {
+  position: relative;
+}
+
+/* Locked: bare warp under tension, dressed and waiting. Neutral cloth — the
+   caution dyes are deliberately nowhere near this rule, because a chart is
+   mostly unwoven by definition and ninety warnings is not a state. */
+.tantu-naksha-block[data-state="locked"] {
+  cursor: default;
+}
+.tantu-naksha-block[data-state="locked"] .tantu-naksha-pack {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--tantu-grid-thread) 0,
+    var(--tantu-grid-thread) 1px,
+    transparent 1px,
+    transparent 5px
+  );
+}
+
+/* Active: the fell. Same bare warp, with the batten sitting at this line —
+   the accent cord the stepper's active marker already wears. Deliberately
+   not a part-filled square: a fill that rises from the edge is a progress
+   bar, and resolution stops at the square. */
+.tantu-naksha-block[data-state="active"] {
+  border-color: var(--tantu-accent-primary);
+  border-width: var(--tantu-gauge-cord);
+  color: var(--tantu-ink-primary);
+}
+.tantu-naksha-block[data-state="active"] .tantu-naksha-pack {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--tantu-grid-thread) 0,
+    var(--tantu-grid-thread) 1px,
+    transparent 1px,
+    transparent 5px
+  );
+}
+
+/* Completed: picks rammed home, in the Jamdani pack idiom rather than a flat
+   paint. The ground stays solid accent and the picks only darken it, so the
+   numeral's contrast is the measured ink-on-accent pairing and not whatever
+   a translucent stripe happened to leave behind. */
+.tantu-naksha-block[data-state="completed"] {
+  border-color: var(--tantu-accent-primary);
+  color: var(--tantu-ink-inverted);
+}
+.tantu-naksha-block[data-state="completed"] .tantu-naksha-pack {
+  background-color: var(--tantu-accent-primary);
+  background-image: repeating-linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--tantu-kala-iron) 20%, transparent) 0,
+    color-mix(in srgb, var(--tantu-kala-iron) 20%, transparent) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+.tantu-naksha-block:hover:not([aria-disabled="true"]) {
+  border-color: var(--tantu-accent-highlight);
+}
+
+/* The gap between squares is two ply, so the ring would be clipped by the
+   neighbouring square without a stacking context of its own. */
+.tantu-naksha-block:focus-visible {
+  outline: var(--tantu-gauge-ply) solid var(--tantu-accent-structural);
+  outline-offset: 2px;
+  z-index: 1;
+}
+
+.tantu-naksha-hint {
+  margin: 0;
+  color: var(--tantu-ink-secondary);
+}
+
+@media (forced-colors: active) {
+  /* Every state on a square is carried by a background fill, which is exactly
+     what this mode takes away. Each one is restated in system colours rather
+     than opted out of. */
+  .tantu-naksha-block {
+    border-color: CanvasText;
+  }
+  .tantu-naksha-block[data-state="completed"] .tantu-naksha-pack {
+    background-color: Highlight;
+  }
+  .tantu-naksha-block[data-state="completed"] {
+    color: HighlightText;
+  }
+  .tantu-naksha-block[data-state="active"] {
+    border-color: Highlight;
+  }
+  .tantu-naksha-block[aria-disabled="true"] {
+    color: GrayText;
+    border-color: GrayText;
+  }
+}
 </style><style>
             /* THE BRAND LAYER, opted into.
 
