@@ -10,7 +10,13 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
 
 Nothing yet.
 
-## [0.3.0] — 2026-09-06
+## [0.3.2] — 2026-09-06
+
+> Published as 0.3.2. Tags `v0.3.0` and `v0.3.1` were pushed at commits
+> whose manifest read an earlier version, so the release workflow's
+> tag/manifest guard rejected both before anything reached the registry.
+> Neither number was ever published; the version was moved forward rather
+> than re-pointing a tag. There is no 0.3.0 or 0.3.1 to install.
 
 ### Added
 
