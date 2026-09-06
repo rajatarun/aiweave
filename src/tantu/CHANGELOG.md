@@ -10,6 +10,46 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
 
 ### Added
 
+- **`TantuNaksha`** — a long progression as the squared chart it is woven
+  from. A naksha is a brocade design squared onto a grid before a single pick
+  is thrown: one square per unit of the weave, no curve expressible, the whole
+  piece laid out at full length while none of it exists yet. It is also the
+  ordinary word for a map, which is the other half of the job.
+
+  Three states and no fourth — `locked` / `active` / `completed`, TantuStepper's
+  vocabulary taken whole rather than extended. `completed` squares carry
+  JamdaniBlock's packed-pick fill, `active` is the fell with the accent cord the
+  stepper's active marker already wears, `locked` is bare warp. Locked is
+  deliberately *neutral* cloth rather than a caution dye: a chart is mostly
+  unwoven by definition, and a hundred warnings is not a state. Bands are parted
+  by TantuPanchang's fringe — the weft stops and only the warp crosses the gap.
+
+  Every square is the same size in every band, so a band's area is exactly
+  proportional to how many squares it holds and the compression between bands is
+  drawn by the lattice rather than declared by a prop.
+
+  The new work is the keyboard contract: TantuAcousticPalette's roving tabindex
+  taken from one row to many. One tab stop in the whole chart; Left/Right walk
+  the flattened order across row and band boundaries (swapping roles under
+  `dir="rtl"`) and clamp at the ends rather than wrapping, Up/Down move a row
+  holding the column and land on the last square of a shorter one, Home/End
+  reach the ends of the row — which is the palette's contract unchanged in a
+  chart one row tall — and Ctrl+Home/End the ends of the chart, per the grid
+  pattern. Locked squares stay **in** the roving order carrying `aria-disabled`
+  rather than being skipped: they are most of any real chart, and a keyboard
+  that could only reach the unlocked handful would hide the one thing the chart
+  exists to show.
+
+  What it refuses to hold is part of the API. A square carries state and nothing
+  else — no time, percentage, attempt count or rank, and no sub-progress within
+  a square; the numeral on a square is its own position, derived, so there is
+  nowhere for a figure to be printed. There is no concept of anyone else's
+  position, and no prop through which one could be supplied.
+
+  The bands are plain flow layout with no pan or zoom of their own and the
+  keyboard contract is expressed in indices rather than geometry, so wrapping
+  the chart in `TantuDarshanLens` later is additive rather than a rewrite.
+
 - **`TantuBandhani`** — a live 0..1 measurement as a resist-dye ring: the
   bound knot at centre stays pale while a ring around it grows and deepens
   with `strength`, driven by the caller's own value rather than an internal
