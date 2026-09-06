@@ -2509,6 +2509,107 @@ textarea.tantu-maku-focus {
 }
 
 /* ============================================================
+   BANDHANI BLOOM — a live 0..1 measurement as a resist-dye ring
+   ============================================================ */
+
+.tantu-bandhani {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: var(--tantu-knot-12);
+  height: var(--tantu-knot-12);
+}
+
+.tantu-bandhani-bloom {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    color-mix(in srgb, var(--tantu-accent-primary) 55%, transparent) 0%,
+    color-mix(in srgb, var(--tantu-accent-primary) 10%, transparent) 60%,
+    transparent 72%
+  );
+  /* The two vars ride the same 0..1 input the caller set on the host, so the
+     resting size (no animation, or reduced motion) and the breathing peak
+     both track `strength` without a second source of truth. */
+  transform: scale(calc(0.55 + var(--tantu-bandhani-strength, 0) * 0.5));
+  opacity: calc(0.28 + var(--tantu-bandhani-strength, 0) * 0.62);
+  transition:
+    transform var(--tantu-motion-unspool) var(--tantu-motion-capillary),
+    opacity var(--tantu-motion-unspool) var(--tantu-motion-capillary),
+    background var(--tantu-motion-unspool) linear;
+  animation: tantu-bandhani-breathe 3.6s ease-in-out infinite;
+}
+
+@keyframes tantu-bandhani-breathe {
+  0%,
+  100% {
+    transform: scale(calc(0.55 + var(--tantu-bandhani-strength, 0) * 0.5));
+  }
+  50% {
+    transform: scale(calc(0.6 + var(--tantu-bandhani-strength, 0) * 0.58));
+  }
+}
+
+/* The bound point itself: the one part of the cloth the dye never reaches. */
+.tantu-bandhani-knot {
+  position: relative;
+  width: var(--tantu-knot-2);
+  height: var(--tantu-knot-2);
+  border-radius: 50%;
+  background: var(--tantu-accent-highlight);
+  box-shadow: 0 0 var(--tantu-knot-3) 2px
+    color-mix(in srgb, var(--tantu-accent-highlight) 45%, transparent);
+}
+
+/* The notice state is a distinct dye, not just a brighter version of the
+   steady one — the same "a tone needs a second signal, not just a colour"
+   rule TantuTag and TantuNotice already follow. */
+.tantu-bandhani[data-state="notice"] .tantu-bandhani-bloom {
+  background: radial-gradient(
+    circle at center,
+    color-mix(in srgb, var(--tantu-state-caution) 60%, transparent) 0%,
+    color-mix(in srgb, var(--tantu-state-caution) 12%, transparent) 60%,
+    transparent 72%
+  );
+}
+.tantu-bandhani[data-state="notice"] .tantu-bandhani-knot {
+  background: var(--tantu-state-caution);
+  box-shadow: 0 0 var(--tantu-knot-3) 2px
+    color-mix(in srgb, var(--tantu-state-caution) 45%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tantu-bandhani-bloom {
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  /* The gradient itself is exactly the kind of meaning a background fill
+     carries that forced colours takes away, so the state is restated as a
+     system-coloured ring rather than opted out of the mode. */
+  .tantu-bandhani-bloom {
+    background: Canvas;
+    border: var(--tantu-gauge-ply) solid CanvasText;
+  }
+  .tantu-bandhani[data-state="notice"] .tantu-bandhani-bloom {
+    border-color: Highlight;
+  }
+  .tantu-bandhani-knot {
+    background-color: CanvasText;
+    box-shadow: none;
+  }
+  .tantu-bandhani[data-state="notice"] .tantu-bandhani-knot {
+    background-color: Highlight;
+  }
+}
+
+/* ============================================================
    STRUCTURAL RUPTURE — the snapped warp (error / 404 state)
    ============================================================ */
 

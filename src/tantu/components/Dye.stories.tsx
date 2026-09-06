@@ -1,6 +1,7 @@
+import { useRef } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { CapillaryBleedSurface } from "./CapillaryBleedSurface.js";
-import { TantuBleedCanvas } from "./TantuBleedCanvas.js";
+import { TantuBleedCanvas, type TantuBleedCanvasHandle } from "./TantuBleedCanvas.js";
 import { InkBleedFilter } from "./InkBleedFilter.js";
 import { TantuButton } from "./TantuButton.js";
 import { TantuCard } from "./TantuCard.js";
@@ -97,6 +98,42 @@ export const Substrate: Story = {
       </div>
     </div>
   ),
+};
+
+export const DrivenByHand: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "The substrate does not only answer pointers. A ref exposes `{ bleed, bleedAt }` — " +
+          "the same handle shape `CapillaryBleedSurface` publishes — so an arriving message, " +
+          "a completed step or a value crossing a threshold can wick dye in the substrate's " +
+          "own language.\n\n" +
+          "A programmatic pulse skips `shouldBleed()` deliberately: there is no gesture to " +
+          "arbitrate, no event to claim, no target whose owner could outrank the substrate. " +
+          "It still honours `prefers-reduced-motion`, and that gate lives *inside* the " +
+          "handle rather than at the call site — the substrate is ambient motion across the " +
+          "whole viewport, carrying no meaning that is lost when it stays still.",
+      },
+    },
+  },
+  render: function DrivenByHandStory() {
+    const loom = useRef<TantuBleedCanvasHandle>(null);
+    return (
+      <div style={{ position: "relative", minHeight: "14rem" }}>
+        <TantuBleedCanvas ref={loom} />
+        <div style={{ position: "relative", padding: "2rem", display: "grid", gap: "1rem", justifyItems: "start" }}>
+          <p style={{ margin: 0 }}>No press reaches the cloth here — the dye is fired from code.</p>
+          <TantuButton
+            bleed={false}
+            onClick={(event) => loom.current?.bleedAt(event)}
+          >
+            Wick from this button
+          </TantuButton>
+        </div>
+      </div>
+    );
+  },
 };
 
 export const FrayedEdge: Story = {
