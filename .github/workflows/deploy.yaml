@@ -158,6 +158,101 @@ jobs:
           echo "Website: http://${BUCKET}.s3-website-us-east-1.amazonaws.com"
           echo "Custom domain (after DNS): https://aiweave.org"
 
+  sounding-hosting:
+    name: Provision sounding.aiweave.org
+    runs-on: ubuntu-latest
+    # After the publish, never before it. The stack creates the distribution
+    # AND the DNS record, so the moment it finishes the hostname resolves — and
+    # a hostname resolving to an empty origin prefix serves an error to anyone
+    # who reaches it. `needs` is what guarantees there is a build there first.
+    needs: sounding
+    if: vars.SOUNDING_OWN_ORIGIN == 'true'
+    env:
+      STACK: sounding-hosting
+      # Not secrets: an ACM ARN and a hosted zone id are both public
+      # identifiers, and the account number is already throughout this file.
+      # Overridable as repository variables so the values can move without a
+      # code change. Defaults are what the account actually has today — see
+      # sounding's infra/HOSTING.md for how they were read.
+      #
+      # The wildcard certificate rather than the in-use apex one: *.aiweave.org
+      # covers this hostname by construction, and it is the only alias here.
+      CERT_ARN: ${{ vars.SOUNDING_CERT_ARN || 'arn:aws:acm:us-east-1:239571291755:certificate/0a47510f-ad86-4e42-b079-64379ad14dbe' }}
+      ZONE_ID: ${{ vars.SOUNDING_HOSTED_ZONE_ID || 'Z08177421DQ2ZF8VY74UQ' }}
+
+    steps:
+      - name: Check out the game
+        uses: actions/checkout@v4
+        with:
+          repository: rajatarun/sounding
+          token: ${{ secrets.GH_TOKEN }}
+          path: sounding
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::239571291755:role/teamweave-github-actions-sam-deployer
+          aws-region: us-east-1
+
+      # The same role and the same mechanism ContextWeave already deploys
+      # CloudFormation with. No CAPABILITY_IAM: this template creates a
+      # certificate, an origin access control, a response headers policy, a
+      # distribution and a DNS record, and no IAM resource of any kind.
+      #
+      # --no-fail-on-empty-changeset because this runs on every deploy once the
+      # switch is on, and a run that changes nothing is the normal case rather
+      # than an error.
+      - name: Deploy the hosting stack
+        run: |
+          aws cloudformation deploy \
+            --region us-east-1 \
+            --stack-name "$STACK" \
+            --template-file sounding/infra/sounding-hosting.yaml \
+            --no-fail-on-empty-changeset \
+            --parameter-overrides \
+                OriginShape=Website \
+                CertificateArn="$CERT_ARN" \
+                HostedZoneId="$ZONE_ID"
+
+      # A stack that reports CREATE_COMPLETE has still only guaranteed that
+      # CloudFront accepted the configuration. Fetch what it actually built, so
+      # the log names the distribution someone will have to find later.
+      - name: What it built
+        run: |
+          aws cloudformation describe-stacks --region us-east-1 \
+            --stack-name "$STACK" \
+            --query "Stacks[0].Outputs[].{Key:OutputKey,Value:OutputValue}" \
+            --output table
+
+      # The distribution is the thing that can be wrong in a way the stack
+      # cannot see: a certificate that does not cover the alias, an origin
+      # prefix with nothing in it. Ask it for the document and read the status.
+      - name: The hostname actually serves the game
+        run: |
+          domain=$(aws cloudformation describe-stacks --region us-east-1 \
+            --stack-name "$STACK" \
+            --query "Stacks[0].Outputs[?OutputKey=='DistributionDomainName'].OutputValue" \
+            --output text)
+          echo "distribution: $domain"
+          # A new distribution takes a few minutes to reach every edge.
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            code=$(curl -s -o /tmp/page.html -w '%{http_code}' "https://${domain}/" || echo 000)
+            echo "  attempt ${attempt}: HTTP ${code}"
+            if [ "$code" = "200" ]; then break; fi
+            sleep 30
+          done
+          if [ "$code" != "200" ]; then
+            echo "::error::${domain} did not serve the game (last HTTP ${code}) — the DNS record may now point at a distribution that returns errors"
+            head -c 400 /tmp/page.html || true
+            exit 1
+          fi
+          if ! grep -qF -- 'SOUNDING' /tmp/page.html; then
+            echo "::error::${domain} answered 200 but the document is not the game"
+            head -c 400 /tmp/page.html
+            exit 1
+          fi
+          echo "the game is being served from its own origin"
+
   storybook:
     name: Publish Storybook to aiweave.org/storybook/
     runs-on: ubuntu-latest
@@ -398,6 +493,14 @@ jobs:
       # distribution reads, and puts the bridge page on the old path. Unset it
       # again to fall back. See sounding's infra/HOSTING.md.
       OWN_ORIGIN: ${{ vars.SOUNDING_OWN_ORIGIN == 'true' }}
+      # A second switch, and the gap between the two is the point. Setting
+      # OWN_ORIGIN publishes the game to the new prefix and provisions the
+      # hostname, leaving the old path serving the old build untouched. Only
+      # once sounding.aiweave.org actually resolves and plays should this be
+      # set, because the bridge's whole job is to send players there — publish
+      # it first and it sends them to an address that does not answer, while
+      # holding the only copy of their saved progress.
+      BRIDGE_LIVE: ${{ vars.SOUNDING_BRIDGE_LIVE == 'true' }}
     # A fourth deliverable on the same domain, and its own job for the same
     # reason Storybook and the playground have theirs: a failure in one should
     # not hold the others back.
@@ -550,7 +653,7 @@ jobs:
       # a second origin. Only ever runs after cutover; before it, PREFIX is
       # `sounding` and this step would overwrite the game with the bridge.
       - name: Publish the bridge page over the old path
-        if: env.OWN_ORIGIN == 'true'
+        if: env.OWN_ORIGIN == 'true' && env.BRIDGE_LIVE == 'true'
         run: |
           aws s3 sync sounding/legacy-origin/ "s3://${BUCKET}/sounding/" \
             --delete \
@@ -569,6 +672,9 @@ jobs:
           URL: ${{ steps.target.outputs.url }}
         run: |
           echo "SOUNDING: $URL"
-          if [ "$OWN_ORIGIN" = "true" ]; then
+          if [ "$OWN_ORIGIN" = "true" ] && [ "$BRIDGE_LIVE" != "true" ]; then
+            echo "The old path still serves the previous build; set SOUNDING_BRIDGE_LIVE once the new hostname plays."
+          fi
+          if [ "$BRIDGE_LIVE" = "true" ]; then
             echo "Bridge:   https://${BUCKET}/sounding/ -> carries saved progress across"
           fi
