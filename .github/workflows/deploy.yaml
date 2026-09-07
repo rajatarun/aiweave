@@ -253,6 +253,118 @@ jobs:
           fi
           echo "the game is being served from its own origin"
 
+  sounding-identity:
+    name: Provision SOUNDING player accounts
+    runs-on: ubuntu-latest
+    # After the publish, for a mundane reason with sharp consequences: the
+    # publish syncs with --delete, so the runtime config written below would be
+    # removed by the next one if this ran first.
+    needs: sounding
+    # A third switch, independent of the hostname. Accounts are optional in the
+    # design — localStorage stays authoritative and an account only mirrors it
+    # — so the game works with this off, and off is the default.
+    if: vars.SOUNDING_AUTH == 'true'
+    env:
+      STACK: sounding-identity
+      ORIGIN: ${{ vars.SOUNDING_ORIGIN || 'https://sounding.aiweave.org' }}
+      PREFIX: ${{ vars.SOUNDING_OWN_ORIGIN == 'true' && 'sounding-app' || 'sounding' }}
+      BUCKET: aiweave.org
+
+    steps:
+      - name: Check out the game
+        uses: actions/checkout@v4
+        with:
+          repository: rajatarun/sounding
+          token: ${{ secrets.GH_TOKEN }}
+          path: sounding
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::239571291755:role/teamweave-github-actions-sam-deployer
+          aws-region: us-east-1
+
+      # CAPABILITY_IAM because the stack creates one role, for the Lambda that
+      # reads and writes a player's progress row. NAMED_IAM is passed too,
+      # matching what ContextWeave already does with this role: the template
+      # names no IAM resource today, and passing it means adding one later does
+      # not fail a deploy for a reason nobody remembers.
+      - name: Deploy the identity stack
+        run: |
+          aws cloudformation deploy \
+            --region us-east-1 \
+            --stack-name "$STACK" \
+            --template-file sounding/infra/sounding-identity.yaml \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset \
+            --parameter-overrides "AllowedOrigin=$ORIGIN"
+
+      - name: What it built
+        run: |
+          aws cloudformation describe-stacks --region us-east-1 \
+            --stack-name "$STACK" \
+            --query "Stacks[0].Outputs[].{Key:OutputKey,Value:OutputValue}" \
+            --output table
+
+      # The pool id, client id and API url are public identifiers — a user pool
+      # client created with GenerateSecret false holds nothing worth hiding —
+      # so they are published as a small document beside the game rather than
+      # baked into the bundle.
+      #
+      # Three things that buys: rotating the pool does not need a rebuild; the
+      # game can fetch it lazily, so a player who never signs in never pays for
+      # it; and its absence is the off switch. No file, no accounts offered,
+      # which is exactly the state the game ships in today.
+      - name: Publish the runtime config beside the game
+        run: |
+          out() {
+            aws cloudformation describe-stacks --region us-east-1 \
+              --stack-name "$STACK" \
+              --query "Stacks[0].Outputs[?OutputKey=='$1'].OutputValue" --output text
+          }
+          POOL=$(out UserPoolId); CLIENT=$(out UserPoolClientId); API=$(out ProgressApiUrl)
+          for v in "$POOL" "$CLIENT" "$API"; do
+            if [ -z "$v" ] || [ "$v" = "None" ]; then
+              echo "::error::the stack did not report every output the game needs"; exit 1
+            fi
+          done
+          printf '{"userPoolId":"%s","userPoolClientId":"%s","progressApiUrl":"%s","region":"us-east-1"}\n' \
+            "$POOL" "$CLIENT" "$API" > auth-config.json
+          cat auth-config.json
+          # no-store: this names the pool the game will talk to, so a stale copy
+          # sends players at an identity provider that may no longer exist.
+          aws s3 cp auth-config.json "s3://${BUCKET}/${PREFIX}/auth-config.json" \
+            --content-type "application/json" \
+            --cache-control "no-cache, no-store, must-revalidate"
+
+      # The API is the half a browser has to be able to reach. CORS is the
+      # thing most likely to be wrong and least likely to be noticed here,
+      # because it fails only in a browser and only for a signed-in player.
+      - name: The API answers, and answers this origin
+        run: |
+          API=$(aws cloudformation describe-stacks --region us-east-1 \
+            --stack-name "$STACK" \
+            --query "Stacks[0].Outputs[?OutputKey=='ProgressApiUrl'].OutputValue" --output text)
+          echo "api: $API"
+          # Unauthenticated: 401 is the correct, healthy answer. A 404 or a
+          # connection failure is not.
+          code=$(curl -s -o /dev/null -w '%{http_code}' "${API}/progress" || echo 000)
+          echo "  unauthenticated GET /progress -> HTTP ${code}"
+          case "$code" in
+            401|403) ;;
+            *) echo "::error::expected the API to refuse an unauthenticated read, got ${code}"; exit 1 ;;
+          esac
+          allow=$(curl -s -X OPTIONS "${API}/progress" \
+            -H "Origin: ${ORIGIN}" \
+            -H "Access-Control-Request-Method: PUT" \
+            -D - -o /dev/null | tr -d '\r' | awk -F': ' '/[Aa]ccess-[Cc]ontrol-[Aa]llow-[Oo]rigin/{print $2}')
+          echo "  preflight allow-origin: ${allow:-<none>}"
+          if [ "$allow" != "$ORIGIN" ]; then
+            echo "::error::the API does not allow ${ORIGIN} — a signed-in player's browser would block every call"
+            exit 1
+          fi
+          echo "accounts are reachable from the game's origin"
+
   storybook:
     name: Publish Storybook to aiweave.org/storybook/
     runs-on: ubuntu-latest
