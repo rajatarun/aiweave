@@ -473,14 +473,27 @@ jobs:
       # Vite writes absolute asset URLs, so a bundle built for the wrong root
       # 404s every asset and renders a page with nothing on it. Cheap to assert,
       # invisible if it fails.
+      # EXPECT and URL arrive as environment variables, never as ${{ }}
+      # interpolated into the script body. EXPECT is `"/assets/` — it opens
+      # with a double quote, which is the whole point of it: that quote is what
+      # makes a root build's `"/assets/` and a subdirectory build's
+      # `"/sounding/assets/` mutually exclusive. Interpolated into the text of a
+      # double-quoted echo it also closes that echo's string, and the generated
+      # script fails to parse before it ever runs a check. As an environment
+      # variable the value is data rather than syntax and the quote is inert.
+      #
+      # -F because it is a fixed string, not a pattern.
       - name: The build really is rooted where it is going
+        env:
+          EXPECT: ${{ steps.target.outputs.expect }}
+          URL: ${{ steps.target.outputs.url }}
         run: |
-          if ! grep -q -- '${{ steps.target.outputs.expect }}' sounding/dist/index.html; then
-            echo "::error::index.html does not reference ${{ steps.target.outputs.expect }} — SOUNDING_BASE_PATH did not take effect"
+          if ! grep -qF -- "$EXPECT" sounding/dist/index.html; then
+            echo "::error::index.html does not reference $EXPECT — SOUNDING_BASE_PATH did not take effect"
             grep -oE '(src|href)="[^"]*"' sounding/dist/index.html | head
             exit 1
           fi
-          echo "assets are correctly prefixed for ${{ steps.target.outputs.url }}"
+          echo "assets are correctly prefixed for $URL"
 
       # --delete so a removed asset does not linger. Scoped to the sounding/
       # prefix, so the site's own objects, storybook/ and playground/ are
@@ -552,8 +565,10 @@ jobs:
           esac
 
       - name: Output the game's URL
+        env:
+          URL: ${{ steps.target.outputs.url }}
         run: |
-          echo "SOUNDING: ${{ steps.target.outputs.url }}"
+          echo "SOUNDING: $URL"
           if [ "$OWN_ORIGIN" = "true" ]; then
             echo "Bridge:   https://${BUCKET}/sounding/ -> carries saved progress across"
           fi
