@@ -382,10 +382,22 @@ jobs:
           echo "Playground: https://${BUCKET}/playground/"
 
   sounding:
-    name: Publish SOUNDING to aiweave.org/sounding/
+    name: Publish SOUNDING
     runs-on: ubuntu-latest
     env:
       BUCKET: aiweave.org
+      # The cutover switch. SOUNDING is moving to its own origin,
+      # sounding.aiweave.org, so its browser storage stops being shared with
+      # Storybook — which renders arbitrary component stories on the same
+      # origin and can therefore read it.
+      #
+      # A repository variable rather than a merge, because the stack that
+      # serves that hostname is applied by hand and may not exist yet. Unset
+      # (the default) this job publishes exactly where it always has. Set to
+      # "true" it publishes the root-based build to the prefix the CloudFront
+      # distribution reads, and puts the bridge page on the old path. Unset it
+      # again to fall back. See sounding's infra/HOSTING.md.
+      OWN_ORIGIN: ${{ vars.SOUNDING_OWN_ORIGIN == 'true' }}
     # A fourth deliverable on the same domain, and its own job for the same
     # reason Storybook and the playground have theirs: a failure in one should
     # not hold the others back.
@@ -429,27 +441,53 @@ jobs:
       # Same reason the playground needs telling: Vite writes absolute asset
       # URLs, so a root-built bundle asks for /assets/... and 404s under
       # /sounding/, leaving a page that loads and renders nothing.
-      - name: Build for /sounding/
+      # On its own hostname the game is served from the root, so the bundle is
+      # built for "/" and CloudFront's OriginPath hides the bucket prefix.
+      - name: Decide where this build is going
+        id: target
+        run: |
+          if [ "$OWN_ORIGIN" = "true" ]; then
+            base=/;          prefix=sounding-app
+            expect='"/assets/'
+            url=https://sounding.aiweave.org/
+          else
+            base=/sounding/; prefix=sounding
+            expect='"/sounding/assets/'
+            url=https://aiweave.org/sounding/
+          fi
+          {
+            echo "base=$base"
+            echo "expect=$expect"
+            echo "url=$url"
+          } >> "$GITHUB_OUTPUT"
+          # PREFIX goes to the environment, not just the outputs, because every
+          # later step addresses the bucket through it.
+          echo "PREFIX=$prefix" >> "$GITHUB_ENV"
+
+      - name: Build
         env:
-          SOUNDING_BASE_PATH: /sounding/
+          SOUNDING_BASE_PATH: ${{ steps.target.outputs.base }}
         run: npm run build
         working-directory: sounding
 
-      - name: The build really is rooted at /sounding/
+      # Vite writes absolute asset URLs, so a bundle built for the wrong root
+      # 404s every asset and renders a page with nothing on it. Cheap to assert,
+      # invisible if it fails.
+      - name: The build really is rooted where it is going
         run: |
-          if ! grep -q '"/sounding/assets/' sounding/dist/index.html; then
-            echo "::error::index.html does not reference /sounding/assets/ — SOUNDING_BASE_PATH did not take effect"
+          if ! grep -q -- '${{ steps.target.outputs.expect }}' sounding/dist/index.html; then
+            echo "::error::index.html does not reference ${{ steps.target.outputs.expect }} — SOUNDING_BASE_PATH did not take effect"
             grep -oE '(src|href)="[^"]*"' sounding/dist/index.html | head
             exit 1
           fi
-          echo "assets are correctly prefixed"
+          echo "assets are correctly prefixed for ${{ steps.target.outputs.url }}"
 
       # --delete so a removed asset does not linger. Scoped to the sounding/
       # prefix, so the site's own objects, storybook/ and playground/ are
       # untouched.
       - name: Upload
         run: |
-          aws s3 sync sounding/dist/ "s3://${BUCKET}/sounding/" \
+          aws s3 sync sounding/dist/ "s3://${BUCKET}/${PREFIX}/" \
             --delete \
             --cache-control "public, max-age=86400"
 
@@ -461,7 +499,7 @@ jobs:
       - name: Re-upload fonts with correct content types
         run: |
           for ext in woff2 woff ttf; do
-            aws s3 cp "s3://${BUCKET}/sounding/" "s3://${BUCKET}/sounding/" \
+            aws s3 cp "s3://${BUCKET}/${PREFIX}/" "s3://${BUCKET}/${PREFIX}/" \
               --recursive --exclude "*" --include "*.${ext}" \
               --content-type "font/${ext}" \
               --cache-control "public, max-age=86400" \
@@ -470,7 +508,7 @@ jobs:
 
       - name: Re-upload HTML as no-cache
         run: |
-          aws s3 cp "s3://${BUCKET}/sounding/" "s3://${BUCKET}/sounding/" \
+          aws s3 cp "s3://${BUCKET}/${PREFIX}/" "s3://${BUCKET}/${PREFIX}/" \
             --recursive --exclude "*" --include "*.html" \
             --content-type "text/html; charset=utf-8" \
             --cache-control "no-cache, no-store, must-revalidate" \
@@ -481,14 +519,41 @@ jobs:
       # hashed bundles, so it is the only one that must never be cached.
       - name: The document really is uncacheable
         run: |
-          cc=$(aws s3api head-object --bucket "$BUCKET" --key "sounding/index.html" \
+          cc=$(aws s3api head-object --bucket "$BUCKET" --key "${PREFIX}/index.html" \
                  --query CacheControl --output text)
-          echo "sounding/index.html: ${cc}"
+          echo "${PREFIX}/index.html: ${cc}"
           case "$cc" in
             *no-cache*) ;;
-            *) echo "::error::sounding/index.html is cacheable (${cc}) — a returning player will be served a stale document"; exit 1 ;;
+            *) echo "::error::${PREFIX}/index.html is cacheable (${cc}) — a returning player will be served a stale document"; exit 1 ;;
+          esac
+
+      # The old address must keep working, and a redirect is not enough: browser
+      # storage is scoped to the origin, so every Seeker who played before the
+      # move has their only saved place under https://aiweave.org, and a 301
+      # never executes there to read it. This page does, handing the save over
+      # in the URL fragment. See sounding's src/engine/handoff.js.
+      #
+      # --delete, so the old game build stops being served from a second URL on
+      # a second origin. Only ever runs after cutover; before it, PREFIX is
+      # `sounding` and this step would overwrite the game with the bridge.
+      - name: Publish the bridge page over the old path
+        if: env.OWN_ORIGIN == 'true'
+        run: |
+          aws s3 sync sounding/legacy-origin/ "s3://${BUCKET}/sounding/" \
+            --delete \
+            --content-type "text/html; charset=utf-8" \
+            --cache-control "no-cache, no-store, must-revalidate"
+          cc=$(aws s3api head-object --bucket "$BUCKET" --key "sounding/index.html" \
+                 --query CacheControl --output text)
+          echo "sounding/index.html (bridge): ${cc}"
+          case "$cc" in
+            *no-cache*) ;;
+            *) echo "::error::the bridge page is cacheable (${cc}) — a player would be sent on with a stale save"; exit 1 ;;
           esac
 
       - name: Output the game's URL
         run: |
-          echo "SOUNDING: https://${BUCKET}/sounding/"
+          echo "SOUNDING: ${{ steps.target.outputs.url }}"
+          if [ "$OWN_ORIGIN" = "true" ]; then
+            echo "Bridge:   https://${BUCKET}/sounding/ -> carries saved progress across"
+          fi
