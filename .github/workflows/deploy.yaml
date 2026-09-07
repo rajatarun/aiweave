@@ -4,6 +4,13 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # SOUNDING lives in its own repository but ships from here, so a merge over
+  # there has to be able to wake this. Its workflow sends this event; only the
+  # `sounding` job answers it (see the guards below), because rebuilding the
+  # site for a change to the game would re-run the Bedrock summarisation step
+  # and pay for it.
+  repository_dispatch:
+    types: [sounding-updated]
 
 permissions:
   contents: read
@@ -12,6 +19,7 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: github.event_name != 'repository_dispatch'
     env:
       BUCKET: aiweave.org
 
@@ -153,6 +161,7 @@ jobs:
   storybook:
     name: Publish Storybook to aiweave.org/storybook/
     runs-on: ubuntu-latest
+    if: github.event_name != 'repository_dispatch'
     env:
       BUCKET: aiweave.org
     # A separate job, not extra steps on the site deploy: a Storybook failure
@@ -267,6 +276,7 @@ jobs:
   playground:
     name: Publish the playground to aiweave.org/playground/
     runs-on: ubuntu-latest
+    if: github.event_name != 'repository_dispatch'
     env:
       BUCKET: aiweave.org
     # Its own job for the same reason Storybook has one: three deliverables
