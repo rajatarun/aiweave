@@ -518,6 +518,26 @@ p, h1, h2, h3, h4, h5, h6, li, td, th, span, div, button, label, a, code {
 .tantu-loom-content > * {
   background-color: var(--tantu-bg-surface-active);
   min-height: var(--tantu-knot-12);
+  /* A direct pick with no declared span takes the whole warp.
+
+     The travel loom below already asserts this — see the Loom Drop, where
+     every direct child is clamped to `span 4` precisely so a consumer's
+     full-width section cannot force an implicit column. The wide warp was
+     left without the matching rule, so an unclassed child fell to the grid
+     default of `span 1`: one twelfth. A consumer laying a full-bleed screen
+     directly into the loom got it rendered in a 92px column inside an 1184px
+     grid, every label wrapped to about one character per line and the page
+     some ten thousand pixels tall.
+
+     That failure is invisible at the travel width, where the clamp already
+     applies, and appears only on a wide viewport — so it survives exactly
+     the testing a mobile-first consumer does. `1 / -1` rather than a span
+     count so it stays correct as the warp changes underneath it.
+
+     This is a default, not a clamp: it sits above the tantu-cell-warp-*
+     utilities in source order at equal specificity, so anything that has
+     opted into a span keeps it. */
+  grid-column: 1 / -1;
 }
 
 /* LOOM CELLS — non-card grid items that compress with the warp */
@@ -531,6 +551,11 @@ p, h1, h2, h3, h4, h5, h6, li, td, th, span, div, button, label, a, code {
 .tantu-cell-warp-4 { grid-column: span 4; }
 .tantu-cell-warp-6 { grid-column: span 6; }
 .tantu-cell-warp-12 { grid-column: span 12; }
+/* The whole warp, whatever the warp currently is. A consumer writing a
+   full-bleed section should not have to know how many threads are on the loom
+   at this width — `warp-12` is the right answer at the wide grid and the wrong
+   one at the travel loom, which is four. */
+.tantu-cell-warp-full { grid-column: 1 / -1; }
 
 /* A weave set inside a card: it borrows the warp but not the wooden frame,
    so it never doubles the loom's own inset padding. */

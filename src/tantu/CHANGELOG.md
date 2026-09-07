@@ -8,7 +8,37 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
 
 ## [Unreleased]
 
+### Added
+
+- **`tantu-cell-warp-full`** — the whole warp, whatever the warp currently is.
+  A consumer writing a full-bleed section inside `TantuLoom` should not have to
+  know how many threads are on the loom at this width: `warp-12` is right at
+  the wide grid and wrong at the travel loom, which is four.
+
 ### Fixed
+
+- **A direct child of `.tantu-loom-content` with no declared span now takes the
+  whole warp at every width, not just below the Loom Drop.** The travel loom
+  has always clamped every direct pick to `span 4`, precisely so a consumer's
+  full-width section cannot force an implicit column — the rule and its comment
+  have been in the sheet for as long as the breakpoint has. The wide warp was
+  left without the matching rule, so an unclassed child fell to the grid
+  default of `span 1`: one twelfth.
+
+  A consumer hit it. A full-bleed screen laid straight into the loom rendered
+  in a 92px column inside an 1184px grid, with every label wrapped to about one
+  character per line and the page some ten thousand pixels tall. The failure is
+  invisible at the travel width, where the clamp already applies, and appears
+  only on a wide viewport — so it survives exactly the testing a mobile-first
+  consumer does.
+
+  This is a default, not a clamp: it sits above the `tantu-cell-warp-*`
+  utilities at equal specificity, so anything that opted into a span keeps it,
+  and `TantuCard`'s own `warpSpan` is unaffected. It is nonetheless a visual
+  change to unclassed children, which is why it is a minor rather than a patch.
+  `npm run audit:loom` measures all of it in a real engine — asserting the
+  declaration exists would be close to a tautology with the fix, and the
+  behaviour that matters is a cascade outcome.
 
 - `audit:core` sampled the rumal dye front a fixed 400ms after the flip, which
   assumed the click had reached a painted frame by then — an assumption about
