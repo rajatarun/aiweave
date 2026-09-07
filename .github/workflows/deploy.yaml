@@ -370,3 +370,115 @@ jobs:
       - name: Output playground URL
         run: |
           echo "Playground: https://${BUCKET}/playground/"
+
+  sounding:
+    name: Publish SOUNDING to aiweave.org/sounding/
+    runs-on: ubuntu-latest
+    env:
+      BUCKET: aiweave.org
+    # A fourth deliverable on the same domain, and its own job for the same
+    # reason Storybook and the playground have theirs: a failure in one should
+    # not hold the others back.
+    #
+    # The game lives in its own repository (rajatarun/sounding) but deploys
+    # from this one, because this is where the bucket's OIDC role is trusted.
+    # Putting the job in the game's repository would mean widening that role's
+    # trust policy to a second repo — a change to the AWS account, to publish
+    # static files it already publishes for three other things.
+    #
+    # The cost of that choice is the trigger: a push to *this* repo deploys
+    # the game, a push to the game's repo does not. Run this workflow manually
+    # (workflow_dispatch) after a change over there, or wire a
+    # repository_dispatch from it if that becomes tedious.
+
+    steps:
+      - name: Check out the game
+        uses: actions/checkout@v4
+        with:
+          repository: rajatarun/sounding
+          # Also covers the repository being private; a public checkout would
+          # not need it.
+          token: ${{ secrets.GH_TOKEN }}
+          path: sounding
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: sounding/package-lock.json
+
+      - run: npm ci
+        working-directory: sounding
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::239571291755:role/teamweave-github-actions-sam-deployer
+          aws-region: us-east-1
+
+      # Same reason the playground needs telling: Vite writes absolute asset
+      # URLs, so a root-built bundle asks for /assets/... and 404s under
+      # /sounding/, leaving a page that loads and renders nothing.
+      - name: Build for /sounding/
+        env:
+          SOUNDING_BASE_PATH: /sounding/
+        run: npm run build
+        working-directory: sounding
+
+      - name: The build really is rooted at /sounding/
+        run: |
+          if ! grep -q '"/sounding/assets/' sounding/dist/index.html; then
+            echo "::error::index.html does not reference /sounding/assets/ — SOUNDING_BASE_PATH did not take effect"
+            grep -oE '(src|href)="[^"]*"' sounding/dist/index.html | head
+            exit 1
+          fi
+          echo "assets are correctly prefixed"
+
+      # --delete so a removed asset does not linger. Scoped to the sounding/
+      # prefix, so the site's own objects, storybook/ and playground/ are
+      # untouched.
+      - name: Upload
+        run: |
+          aws s3 sync sounding/dist/ "s3://${BUCKET}/sounding/" \
+            --delete \
+            --cache-control "public, max-age=86400"
+
+      # The game does not import Tantu's optional typefaces, so this matches
+      # nothing today and is a no-op. It stays because the day someone adds a
+      # font back, S3's MIME guess for .woff2/.woff is unreliable across CLI
+      # versions and Safari rejects a font served with the wrong type — a
+      # failure that is silent and looks like the font was never wired in.
+      - name: Re-upload fonts with correct content types
+        run: |
+          for ext in woff2 woff ttf; do
+            aws s3 cp "s3://${BUCKET}/sounding/" "s3://${BUCKET}/sounding/" \
+              --recursive --exclude "*" --include "*.${ext}" \
+              --content-type "font/${ext}" \
+              --cache-control "public, max-age=86400" \
+              --metadata-directive REPLACE
+          done
+
+      - name: Re-upload HTML as no-cache
+        run: |
+          aws s3 cp "s3://${BUCKET}/sounding/" "s3://${BUCKET}/sounding/" \
+            --recursive --exclude "*" --include "*.html" \
+            --content-type "text/html; charset=utf-8" \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --metadata-directive REPLACE
+
+      # Read it back rather than trusting the write, the same check the other
+      # two subdirectory deploys carry. index.html is the only file naming the
+      # hashed bundles, so it is the only one that must never be cached.
+      - name: The document really is uncacheable
+        run: |
+          cc=$(aws s3api head-object --bucket "$BUCKET" --key "sounding/index.html" \
+                 --query CacheControl --output text)
+          echo "sounding/index.html: ${cc}"
+          case "$cc" in
+            *no-cache*) ;;
+            *) echo "::error::sounding/index.html is cacheable (${cc}) — a returning player will be served a stale document"; exit 1 ;;
+          esac
+
+      - name: Output the game's URL
+        run: |
+          echo "SOUNDING: https://${BUCKET}/sounding/"
