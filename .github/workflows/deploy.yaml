@@ -366,11 +366,19 @@ jobs:
           echo "accounts are reachable from the game's origin"
 
   storybook:
-    name: Publish Storybook to aiweave.org/storybook/
+    name: Publish Storybook
     runs-on: ubuntu-latest
     if: github.event_name != 'repository_dispatch'
     env:
       BUCKET: aiweave.org
+      # The cutover switch, same shape as SOUNDING_OWN_ORIGIN. Unset (the
+      # default) this job keeps publishing exactly where it always has, at
+      # aiweave.org/storybook/. Set to "true" it builds Storybook for the
+      # domain root, publishes it to the prefix storybook-hosting's
+      # distribution reads, and stops touching the old prefix — which then
+      # keeps serving whatever was last published there, frozen, rather than
+      # being deleted out from under anyone who bookmarked it.
+      OWN_ORIGIN: ${{ vars.STORYBOOK_OWN_ORIGIN == 'true' }}
     # A separate job, not extra steps on the site deploy: a Storybook failure
     # should not stop aiweave.org from shipping, and vice versa. Both are
     # already gated by the Tantu workflow, which builds Storybook and renders
@@ -393,30 +401,59 @@ jobs:
           role-to-assume: arn:aws:iam::239571291755:role/teamweave-github-actions-sam-deployer
           aws-region: us-east-1
 
-      # Storybook is served from a subdirectory, so the preview bundle has to
-      # be built knowing that. .storybook/main.ts reads this and hands it to
-      # Vite as `base`; without it every asset in iframe.html would request
-      # /assets/... at the domain root and 404. The manager's own URLs are
-      # already relative, so only the preview needs telling.
-      - name: Build Storybook for /storybook/
+      # Storybook is served from a subdirectory unless OWN_ORIGIN is set, so
+      # the preview bundle has to be built knowing which. .storybook/main.ts
+      # reads STORYBOOK_BASE_PATH and hands it to Vite as `base`; without it
+      # every asset in iframe.html would request /assets/... at whatever root
+      # it is actually served from and 404.
+      - name: Decide where this build is going
+        id: target
+        run: |
+          if [ "$OWN_ORIGIN" = "true" ]; then
+            base=/;             prefix=storybook-app
+            expect='"/assets/'
+            url=https://storybook.aiweave.org/
+          else
+            base=/storybook/;  prefix=storybook
+            expect='"/storybook/assets/'
+            url=https://aiweave.org/storybook/
+          fi
+          {
+            echo "base=$base"
+            echo "expect=$expect"
+            echo "url=$url"
+          } >> "$GITHUB_OUTPUT"
+          # PREFIX goes to the environment, not just the outputs, because
+          # every later step addresses the bucket through it.
+          echo "PREFIX=$prefix" >> "$GITHUB_ENV"
+
+      - name: Build Storybook
         env:
-          STORYBOOK_BASE_PATH: /storybook/
+          STORYBOOK_BASE_PATH: ${{ steps.target.outputs.base }}
         run: npm run build:storybook
 
-      - name: The build really is rooted at /storybook/
+      # EXPECT and URL arrive as environment variables, never interpolated
+      # into the script body — see the sounding job's identical check for why
+      # that quote-opening string cannot be ${{ }}-substituted into a
+      # double-quoted echo without corrupting the generated script.
+      - name: The build really is rooted where it is going
+        env:
+          EXPECT: ${{ steps.target.outputs.expect }}
+          URL: ${{ steps.target.outputs.url }}
         run: |
-          if ! grep -q '"/storybook/assets/' storybook-static/iframe.html; then
-            echo "::error::iframe.html does not reference /storybook/assets/ — STORYBOOK_BASE_PATH did not take effect"
+          if ! grep -qF -- "$EXPECT" storybook-static/iframe.html; then
+            echo "::error::iframe.html does not reference $EXPECT — STORYBOOK_BASE_PATH did not take effect"
             grep -oE 'src="[^"]*"' storybook-static/iframe.html | head
             exit 1
           fi
-          echo "preview assets are correctly prefixed"
+          echo "preview assets are correctly rooted for $URL"
 
       # --delete so a removed story does not linger as a stale page. Scoped to
-      # the storybook/ prefix, so the site's own objects are untouched.
+      # the PREFIX, so the site's own objects (and, off-cutover, the other
+      # prefix) are untouched.
       - name: Upload
         run: |
-          aws s3 sync storybook-static/ "s3://${BUCKET}/storybook/" \
+          aws s3 sync storybook-static/ "s3://${BUCKET}/${PREFIX}/" \
             --delete \
             --cache-control "public, max-age=86400"
 
@@ -428,7 +465,7 @@ jobs:
       - name: Re-upload fonts with correct content types
         run: |
           for ext in woff2 woff ttf; do
-            aws s3 cp "s3://${BUCKET}/storybook/" "s3://${BUCKET}/storybook/" \
+            aws s3 cp "s3://${BUCKET}/${PREFIX}/" "s3://${BUCKET}/${PREFIX}/" \
               --recursive --exclude "*" --include "*.${ext}" \
               --content-type "font/${ext}" \
               --cache-control "public, max-age=86400" \
@@ -442,20 +479,20 @@ jobs:
       # index.html names the bundles. index.json is Storybook's story
       # manifest — the manager fetches it to build the sidebar — and
       # project.json carries the refs beside it. Only the HTML was being
-      # corrected, so a reader who had opened /storybook/ within the previous
+      # corrected, so a reader who had opened Storybook within the previous
       # day got a fresh page that drew its sidebar from a day-old manifest:
       # new stories were deployed, uploaded, and reachable by direct URL,
       # and simply not listed. Which is indistinguishable, from the outside,
       # from a deploy that never happened.
       - name: Re-upload the files that name other files as no-cache
         run: |
-          aws s3 cp "s3://${BUCKET}/storybook/" "s3://${BUCKET}/storybook/" \
+          aws s3 cp "s3://${BUCKET}/${PREFIX}/" "s3://${BUCKET}/${PREFIX}/" \
             --recursive --exclude "*" --include "*.html" \
             --content-type "text/html; charset=utf-8" \
             --cache-control "no-cache, no-store, must-revalidate" \
             --metadata-directive REPLACE
           for manifest in index.json project.json; do
-            aws s3 cp "s3://${BUCKET}/storybook/${manifest}" "s3://${BUCKET}/storybook/${manifest}" \
+            aws s3 cp "s3://${BUCKET}/${PREFIX}/${manifest}" "s3://${BUCKET}/${PREFIX}/${manifest}" \
               --content-type "application/json" \
               --cache-control "no-cache, no-store, must-revalidate" \
               --metadata-directive REPLACE
@@ -467,25 +504,126 @@ jobs:
       - name: The manifest really is uncacheable
         run: |
           for key in index.html index.json project.json; do
-            cc=$(aws s3api head-object --bucket "$BUCKET" --key "storybook/${key}" \
+            cc=$(aws s3api head-object --bucket "$BUCKET" --key "${PREFIX}/${key}" \
                    --query CacheControl --output text)
-            echo "storybook/${key}: ${cc}"
+            echo "${PREFIX}/${key}: ${cc}"
             case "$cc" in
               *no-cache*) ;;
-              *) echo "::error::storybook/${key} is cacheable (${cc}) — a returning reader will be served a stale index"; exit 1 ;;
+              *) echo "::error::${PREFIX}/${key} is cacheable (${cc}) — a returning reader will be served a stale index"; exit 1 ;;
             esac
           done
 
       - name: Output Storybook URL
+        env:
+          URL: ${{ steps.target.outputs.url }}
         run: |
-          echo "Storybook: https://${BUCKET}/storybook/"
+          echo "Storybook: $URL"
+          if [ "$OWN_ORIGIN" != "true" ]; then
+            echo "Set the repository variable STORYBOOK_OWN_ORIGIN=true to move Storybook to storybook.aiweave.org — see infra/HOSTING.md."
+          fi
+
+  storybook-hosting:
+    name: Provision storybook.aiweave.org
+    runs-on: ubuntu-latest
+    # After the publish, never before it. The stack creates the distribution
+    # AND the DNS record, so the moment it finishes the hostname resolves —
+    # and a hostname resolving to an empty origin prefix serves an error to
+    # anyone who reaches it. `needs` is what guarantees there is a build there
+    # first.
+    needs: storybook
+    if: vars.STORYBOOK_OWN_ORIGIN == 'true'
+    env:
+      STACK: storybook-hosting
+      # Not secrets: an ACM ARN and a hosted zone id are both public
+      # identifiers, and the account number is already throughout this file.
+      # Overridable as repository variables so the values can move without a
+      # code change. Defaults are the same wildcard certificate and zone
+      # sounding-hosting uses — see sounding's infra/HOSTING.md for how they
+      # were read.
+      CERT_ARN: ${{ vars.STORYBOOK_CERT_ARN || 'arn:aws:acm:us-east-1:239571291755:certificate/0a47510f-ad86-4e42-b079-64379ad14dbe' }}
+      ZONE_ID: ${{ vars.STORYBOOK_HOSTED_ZONE_ID || 'Z08177421DQ2ZF8VY74UQ' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::239571291755:role/teamweave-github-actions-sam-deployer
+          aws-region: us-east-1
+
+      # The same role and the same mechanism sounding-hosting already deploys
+      # CloudFormation with. No CAPABILITY_IAM: this template creates a
+      # certificate, an origin access control, a response headers policy, a
+      # distribution and a DNS record, and no IAM resource of any kind.
+      #
+      # --no-fail-on-empty-changeset because this runs on every deploy once
+      # the switch is on, and a run that changes nothing is the normal case
+      # rather than an error.
+      - name: Deploy the hosting stack
+        run: |
+          aws cloudformation deploy \
+            --region us-east-1 \
+            --stack-name "$STACK" \
+            --template-file infra/storybook-hosting.yaml \
+            --no-fail-on-empty-changeset \
+            --parameter-overrides \
+                OriginShape=Website \
+                CertificateArn="$CERT_ARN" \
+                HostedZoneId="$ZONE_ID"
+
+      - name: What it built
+        run: |
+          aws cloudformation describe-stacks --region us-east-1 \
+            --stack-name "$STACK" \
+            --query "Stacks[0].Outputs[].{Key:OutputKey,Value:OutputValue}" \
+            --output table
+
+      # The distribution is the thing that can be wrong in a way the stack
+      # cannot see: a certificate that does not cover the alias, an origin
+      # prefix with nothing in it. Ask it for the document and read the
+      # status. "storybook" (case-insensitive) is Storybook's own default
+      # page title, present whether or not this project has customised
+      # anything else about the manager.
+      - name: The hostname actually serves Storybook
+        run: |
+          domain=$(aws cloudformation describe-stacks --region us-east-1 \
+            --stack-name "$STACK" \
+            --query "Stacks[0].Outputs[?OutputKey=='DistributionDomainName'].OutputValue" \
+            --output text)
+          echo "distribution: $domain"
+          # A new distribution takes a few minutes to reach every edge.
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            code=$(curl -s -o /tmp/page.html -w '%{http_code}' "https://${domain}/" || echo 000)
+            echo "  attempt ${attempt}: HTTP ${code}"
+            if [ "$code" = "200" ]; then break; fi
+            sleep 30
+          done
+          if [ "$code" != "200" ]; then
+            echo "::error::${domain} did not serve Storybook (last HTTP ${code}) — the DNS record may now point at a distribution that returns errors"
+            head -c 400 /tmp/page.html || true
+            exit 1
+          fi
+          if ! grep -qi -- 'storybook' /tmp/page.html; then
+            echo "::error::${domain} answered 200 but the document is not Storybook"
+            head -c 400 /tmp/page.html
+            exit 1
+          fi
+          echo "Storybook is being served from its own origin"
 
   playground:
-    name: Publish the playground to aiweave.org/playground/
+    name: Publish the playground
     runs-on: ubuntu-latest
     if: github.event_name != 'repository_dispatch'
     env:
       BUCKET: aiweave.org
+      # The cutover switch, same shape as STORYBOOK_OWN_ORIGIN and
+      # SOUNDING_OWN_ORIGIN. Unset (the default) this job keeps publishing
+      # exactly where it always has, at aiweave.org/playground/. Set to
+      # "true" it builds the playground for the domain root, publishes it to
+      # the prefix playground-hosting's distribution reads, and stops
+      # touching the old prefix.
+      OWN_ORIGIN: ${{ vars.PLAYGROUND_OWN_ORIGIN == 'true' }}
     # Its own job for the same reason Storybook has one: three deliverables
     # ship from this repository and a failure in any of them should not hold
     # the other two. Storybook answers "what is in the box"; this answers what
@@ -518,33 +656,58 @@ jobs:
           role-to-assume: arn:aws:iam::239571291755:role/teamweave-github-actions-sam-deployer
           aws-region: us-east-1
 
-      # Vite writes absolute asset URLs, so a bundle built for the domain root
-      # asks for /assets/... and 404s the moment it is served from /playground/
-      # — the HTML loads and nothing but unstyled text appears.
-      #
+      # Vite writes absolute asset URLs, so a bundle built for the wrong root
+      # 404s every asset and renders a page with nothing on it — see
+      # vite.config.ts's own comment on PLAYGROUND_BASE_PATH.
+      - name: Decide where this build is going
+        id: target
+        run: |
+          if [ "$OWN_ORIGIN" = "true" ]; then
+            base=/;             prefix=playground-app
+            expect='"/assets/'
+            url=https://playground.aiweave.org/
+          else
+            base=/playground/;  prefix=playground
+            expect='"/playground/assets/'
+            url=https://aiweave.org/playground/
+          fi
+          {
+            echo "base=$base"
+            echo "expect=$expect"
+            echo "url=$url"
+          } >> "$GITHUB_OUTPUT"
+          # PREFIX goes to the environment, not just the outputs, because
+          # every later step addresses the bucket through it.
+          echo "PREFIX=$prefix" >> "$GITHUB_ENV"
+
       # Built in the default mode, which aliases Tantu at ../src: this is a
       # demonstration of what the repository does *now*, including components
       # that have not been released yet. The published package is proven
       # separately by `npm run build:npm`, which the verify sweep covers.
-      - name: Build the playground for /playground/
+      - name: Build the playground
         env:
-          PLAYGROUND_BASE_PATH: /playground/
+          PLAYGROUND_BASE_PATH: ${{ steps.target.outputs.base }}
         run: npm --prefix playground run build
 
-      - name: The build really is rooted at /playground/
+      # EXPECT and URL arrive as environment variables, never interpolated
+      # into the script body — see the sounding job's identical check for why.
+      - name: The build really is rooted where it is going
+        env:
+          EXPECT: ${{ steps.target.outputs.expect }}
+          URL: ${{ steps.target.outputs.url }}
         run: |
-          if ! grep -q '"/playground/assets/' playground/dist/index.html; then
-            echo "::error::index.html does not reference /playground/assets/ — PLAYGROUND_BASE_PATH did not take effect"
+          if ! grep -qF -- "$EXPECT" playground/dist/index.html; then
+            echo "::error::index.html does not reference $EXPECT — PLAYGROUND_BASE_PATH did not take effect"
             grep -oE '(src|href)="[^"]*"' playground/dist/index.html | head
             exit 1
           fi
-          echo "playground assets are correctly prefixed"
+          echo "playground assets are correctly rooted for $URL"
 
-      # --delete so a removed asset does not linger. Scoped to the playground/
-      # prefix, so the site's own objects and storybook/ are untouched.
+      # --delete so a removed asset does not linger. Scoped to PREFIX, so the
+      # site's own objects (and, off-cutover, the other prefix) are untouched.
       - name: Upload
         run: |
-          aws s3 sync playground/dist/ "s3://${BUCKET}/playground/" \
+          aws s3 sync playground/dist/ "s3://${BUCKET}/${PREFIX}/" \
             --delete \
             --cache-control "public, max-age=86400"
 
@@ -555,7 +718,7 @@ jobs:
       - name: Re-upload fonts with correct content types
         run: |
           for ext in woff2 woff ttf; do
-            aws s3 cp "s3://${BUCKET}/playground/" "s3://${BUCKET}/playground/" \
+            aws s3 cp "s3://${BUCKET}/${PREFIX}/" "s3://${BUCKET}/${PREFIX}/" \
               --recursive --exclude "*" --include "*.${ext}" \
               --content-type "font/${ext}" \
               --cache-control "public, max-age=86400" \
@@ -564,7 +727,7 @@ jobs:
 
       - name: Re-upload HTML as no-cache
         run: |
-          aws s3 cp "s3://${BUCKET}/playground/" "s3://${BUCKET}/playground/" \
+          aws s3 cp "s3://${BUCKET}/${PREFIX}/" "s3://${BUCKET}/${PREFIX}/" \
             --recursive --exclude "*" --include "*.html" \
             --content-type "text/html; charset=utf-8" \
             --cache-control "no-cache, no-store, must-revalidate" \
@@ -576,17 +739,90 @@ jobs:
       # that must never be cached.
       - name: The document really is uncacheable
         run: |
-          cc=$(aws s3api head-object --bucket "$BUCKET" --key "playground/index.html" \
+          cc=$(aws s3api head-object --bucket "$BUCKET" --key "${PREFIX}/index.html" \
                  --query CacheControl --output text)
-          echo "playground/index.html: ${cc}"
+          echo "${PREFIX}/index.html: ${cc}"
           case "$cc" in
             *no-cache*) ;;
-            *) echo "::error::playground/index.html is cacheable (${cc}) — a returning reader will be served a stale document"; exit 1 ;;
+            *) echo "::error::${PREFIX}/index.html is cacheable (${cc}) — a returning reader will be served a stale document"; exit 1 ;;
           esac
 
       - name: Output playground URL
+        env:
+          URL: ${{ steps.target.outputs.url }}
         run: |
-          echo "Playground: https://${BUCKET}/playground/"
+          echo "Playground: $URL"
+          if [ "$OWN_ORIGIN" != "true" ]; then
+            echo "Set the repository variable PLAYGROUND_OWN_ORIGIN=true to move the playground to playground.aiweave.org — see infra/HOSTING.md."
+          fi
+
+  playground-hosting:
+    name: Provision playground.aiweave.org
+    runs-on: ubuntu-latest
+    # After the publish, never before it — same reasoning as storybook-hosting
+    # and sounding-hosting.
+    needs: playground
+    if: vars.PLAYGROUND_OWN_ORIGIN == 'true'
+    env:
+      STACK: playground-hosting
+      CERT_ARN: ${{ vars.PLAYGROUND_CERT_ARN || 'arn:aws:acm:us-east-1:239571291755:certificate/0a47510f-ad86-4e42-b079-64379ad14dbe' }}
+      ZONE_ID: ${{ vars.PLAYGROUND_HOSTED_ZONE_ID || 'Z08177421DQ2ZF8VY74UQ' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::239571291755:role/teamweave-github-actions-sam-deployer
+          aws-region: us-east-1
+
+      - name: Deploy the hosting stack
+        run: |
+          aws cloudformation deploy \
+            --region us-east-1 \
+            --stack-name "$STACK" \
+            --template-file infra/playground-hosting.yaml \
+            --no-fail-on-empty-changeset \
+            --parameter-overrides \
+                OriginShape=Website \
+                CertificateArn="$CERT_ARN" \
+                HostedZoneId="$ZONE_ID"
+
+      - name: What it built
+        run: |
+          aws cloudformation describe-stacks --region us-east-1 \
+            --stack-name "$STACK" \
+            --query "Stacks[0].Outputs[].{Key:OutputKey,Value:OutputValue}" \
+            --output table
+
+      # "Tantu Playground" is the playground's own <title> — see
+      # playground/index.html.
+      - name: The hostname actually serves the playground
+        run: |
+          domain=$(aws cloudformation describe-stacks --region us-east-1 \
+            --stack-name "$STACK" \
+            --query "Stacks[0].Outputs[?OutputKey=='DistributionDomainName'].OutputValue" \
+            --output text)
+          echo "distribution: $domain"
+          # A new distribution takes a few minutes to reach every edge.
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            code=$(curl -s -o /tmp/page.html -w '%{http_code}' "https://${domain}/" || echo 000)
+            echo "  attempt ${attempt}: HTTP ${code}"
+            if [ "$code" = "200" ]; then break; fi
+            sleep 30
+          done
+          if [ "$code" != "200" ]; then
+            echo "::error::${domain} did not serve the playground (last HTTP ${code}) — the DNS record may now point at a distribution that returns errors"
+            head -c 400 /tmp/page.html || true
+            exit 1
+          fi
+          if ! grep -qF -- 'Tantu Playground' /tmp/page.html; then
+            echo "::error::${domain} answered 200 but the document is not the playground"
+            head -c 400 /tmp/page.html
+            exit 1
+          fi
+          echo "the playground is being served from its own origin"
 
   sounding:
     name: Publish SOUNDING
