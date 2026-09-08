@@ -1,0 +1,344 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+# Storybook — its own origin, storybook.aiweave.org, instead of aiweave.org/storybook/.
+#
+# WHY THIS EXISTS. Storybook renders arbitrary component stories, which makes
+# it by far the largest script surface on whatever origin it is served from.
+# SOUNDING was moved off aiweave.org for exactly this reason (see
+# https://github.com/rajatarun/sounding/blob/main/infra/HOSTING.md) — sharing
+# an origin with Storybook meant any story could read the game's storage.
+# Giving Storybook its own hostname finishes that separation from the other
+# side: nothing served from storybook.aiweave.org can read cookies or
+# localStorage set by aiweave.org, the playground, or sounding.aiweave.org,
+# and a compromised or careless story addon can no longer reach them either.
+#
+# It also removes the base-path indirection: STORYBOOK_BASE_PATH stops being
+# load-bearing, iframe.html and every asset it references resolve at the
+# domain root, and the URL a reader bookmarks does not carry a prefix that
+# can only ever mean "not the real site."
+#
+# This template is deliberately a near-duplicate of sounding-hosting.yaml
+# (rajatarun/sounding/infra/sounding-hosting.yaml) rather than a shared
+# module: it is applied by a different job, against a different prefix, and
+# read by people deciding whether to run it — a second file they can read
+# top to bottom beats one they have to trace through a parameter to
+# understand.
+#
+# WHAT IT DELIBERATELY DOES NOT DO:
+#
+#   - It does not create, modify or delete the aiweave.org bucket, its public
+#     access block, its website configuration or its bucket policy. It only
+#     names the bucket as an origin. Every one of those settings is
+#     re-asserted on every run of the `deploy` job in this repository, and a
+#     stack that also owned them would fight that job silently.
+#   - It does not touch the existing aiweave.org CloudFront distribution. A
+#     second alias on that distribution would put Storybook in the request
+#     path of the site, the playground and (if cut over) sounding — see
+#     sounding's HOSTING.md § New distribution, or a second alias on the
+#     existing one for the reasoning; it applies here unchanged.
+#   - It does not touch
+#     arn:aws:iam::239571291755:role/teamweave-github-actions-sam-deployer,
+#     and adds no permission to it. That role already deploys CloudFormation
+#     for sounding-hosting with exactly this shape.
+#   - It enables no access logging. Standard logging is opt-in and stays off
+#     by default; turning it on is a decision for whoever owns the account,
+#     not a default this template sets.
+#
+# UNDO: delete the Route 53 record (or set HostedZoneId to the empty string
+# and update), then delete the stack. Nothing outside this stack changes
+# state. The one thing a delete does NOT recall is HSTS, which lives in
+# browsers — hence the deliberately short default max-age below.
+
+Description: >-
+  A dedicated CloudFront distribution, certificate and DNS record for
+  storybook.aiweave.org, served from a prefix of the existing site bucket.
+
+Parameters:
+  SubdomainName:
+    Type: String
+    Default: storybook.aiweave.org
+    Description: The hostname Storybook is served from.
+
+  SiteBucketName:
+    Type: String
+    Default: aiweave.org
+    Description: >-
+      The EXISTING site bucket. This stack reads its name to build an origin
+      domain and does nothing else with it — no bucket resource, no policy.
+
+  OriginPrefix:
+    Type: String
+    Default: storybook-app
+    Description: >-
+      The key prefix in that bucket holding the root-based build, with no
+      leading or trailing slash. It cannot be `storybook`: that prefix still
+      holds the subpath build at aiweave.org/storybook/ until the deploy
+      workflow's STORYBOOK_OWN_ORIGIN switch stops publishing there. This
+      name appears in exactly two places — here, and the `storybook` job in
+      this repository's .github/workflows/deploy.yaml. They must agree.
+
+  OriginShape:
+    Type: String
+    Default: Website
+    AllowedValues: [Website, RestOac]
+    Description: >-
+      `Website` points at the S3 *website* endpoint as a custom origin: it
+      matches the bucket's current, workflow-asserted configuration, needs no
+      bucket policy change, and keeps the bucket's ErrorDocument behaviour.
+      `RestOac` points at the REST endpoint with an Origin Access Control,
+      which is the better shape in general and requires a bucket policy
+      change this stack will not make on a bucket serving several
+      deliverables — and which the deploy workflow's put-bucket-policy step
+      would overwrite on its next run. See sounding's HOSTING.md § What to
+      check first for how to confirm which shape the account's existing
+      aiweave.org distribution already uses; storybook-hosting and
+      playground-hosting should use the same shape sounding-hosting does.
+
+  CertificateArn:
+    Type: String
+    Default: ""
+    Description: >-
+      An EXISTING us-east-1 ACM certificate covering SubdomainName — the
+      wildcard *.aiweave.org already does, and is the same certificate
+      sounding-hosting uses. Leave empty to have this stack request one,
+      which requires HostedZoneId to also be set: without it the stack will
+      sit in CREATE_IN_PROGRESS until somebody adds the validation record by
+      hand.
+
+  HostedZoneId:
+    Type: String
+    Default: ""
+    Description: >-
+      The Route 53 public hosted zone for aiweave.org. Set it and this stack
+      creates the A/AAAA alias records and validates the certificate. Leave
+      it empty to manage DNS by hand.
+
+  HstsMaxAgeSeconds:
+    Type: Number
+    Default: 300
+    Description: >-
+      Deliberately five minutes to begin with. HSTS is the one thing here a
+      stack delete cannot recall: browsers remember it for whatever max-age
+      they were told. Raise it to 31536000 once the hostname has been serving
+      correctly for a while, not before.
+
+  ContentSecurityPolicy:
+    Type: String
+    Default: ""
+    Description: >-
+      Leave empty on the first apply. Storybook's own build injects inline
+      scripts and styles, so a CSP tight enough to be worth having needs to be
+      tested against the distribution's own d-name before it is pointed at by
+      DNS — the failure mode is a blank Storybook.
+
+Conditions:
+  UseWebsiteOrigin: !Equals [!Ref OriginShape, Website]
+  UseRestOrigin: !Equals [!Ref OriginShape, RestOac]
+  CreateCertificate: !Equals [!Ref CertificateArn, ""]
+  ManageDns: !Not [!Equals [!Ref HostedZoneId, ""]]
+  SetCsp: !Not [!Equals [!Ref ContentSecurityPolicy, ""]]
+
+Resources:
+  # ----------------------------------------------------------------- the cert
+  # A SEPARATE certificate, not a SAN added to the existing one — ACM cannot
+  # add a name to an issued certificate. This one is new, unreferenced by
+  # anything else, and free.
+  Certificate:
+    Type: AWS::CertificateManager::Certificate
+    Condition: CreateCertificate
+    Properties:
+      DomainName: !Ref SubdomainName
+      ValidationMethod: DNS
+      DomainValidationOptions: !If
+        - ManageDns
+        - - DomainName: !Ref SubdomainName
+            HostedZoneId: !Ref HostedZoneId
+        - !Ref AWS::NoValue
+
+  # ------------------------------------------------------ origin access (REST)
+  OriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Condition: UseRestOrigin
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${AWS::StackName}-oac"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  # --------------------------------------------------------------- headers
+  SecurityHeaders:
+    Type: AWS::CloudFront::ResponseHeadersPolicy
+    Properties:
+      ResponseHeadersPolicyConfig:
+        Name: !Sub "${AWS::StackName}-security-headers"
+        Comment: Headers for Storybook's own origin.
+        SecurityHeadersConfig:
+          StrictTransportSecurity:
+            Override: true
+            AccessControlMaxAgeSec: !Ref HstsMaxAgeSeconds
+            # Not IncludeSubdomains: this is a leaf name and has no children,
+            # and asserting it here would be a claim about hostnames this
+            # stack does not own. Not Preload, for the same reason plus the
+            # fact that preload is effectively permanent.
+            IncludeSubdomains: false
+            Preload: false
+          ContentTypeOptions:
+            Override: true
+          FrameOptions:
+            Override: true
+            # SAMEORIGIN, not DENY: Storybook's manager iframes its own
+            # preview (manager index.html embeds iframe.html from the same
+            # origin) — DENY breaks the sidebar-to-canvas layout entirely.
+            FrameOption: SAMEORIGIN
+          ReferrerPolicy:
+            Override: true
+            ReferrerPolicy: no-referrer
+          ContentSecurityPolicy: !If
+            - SetCsp
+            - Override: true
+              ContentSecurityPolicy: !Ref ContentSecurityPolicy
+            - !Ref AWS::NoValue
+
+  # ---------------------------------------------------------- the distribution
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub "Storybook — ${SubdomainName}"
+        Aliases: [!Ref SubdomainName]
+        HttpVersion: http2and3
+        IPV6Enabled: true
+        PriceClass: PriceClass_All
+
+        # Required. Without it a request for / reaches the origin as / — on a
+        # REST origin that is an AccessDenied, and with an OriginPath set it
+        # is not a document either way. Applies to the ROOT only; CloudFront
+        # never applies it to /some/path/, which is why /iframe.html and the
+        # hashed asset paths are untouched by this.
+        DefaultRootObject: index.html
+
+        ViewerCertificate:
+          AcmCertificateArn: !If [CreateCertificate, !Ref Certificate, !Ref CertificateArn]
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+
+        Origins:
+          - Id: site-bucket
+            # OriginPath is what lets one bucket back several hostnames. A
+            # request for / on this distribution becomes
+            # /<OriginPrefix>/index.html at the bucket, and nothing on this
+            # hostname can address a key outside that prefix.
+            OriginPath: !Sub "/${OriginPrefix}"
+            DomainName: !If
+              - UseWebsiteOrigin
+              - !Sub "${SiteBucketName}.s3-website-${AWS::Region}.amazonaws.com"
+              - !Sub "${SiteBucketName}.s3.${AWS::Region}.amazonaws.com"
+            # An S3 website endpoint speaks HTTP only — this hop is
+            # unencrypted inside AWS's network no matter what is configured
+            # here. Saying it out loud rather than letting it be discovered:
+            # the bucket is public-read and the objects are a public
+            # Storybook build, so there is nothing confidential on this hop,
+            # and the viewer-to-CloudFront hop is HTTPS and forced.
+            CustomOriginConfig: !If
+              - UseWebsiteOrigin
+              - OriginProtocolPolicy: http-only
+                HTTPPort: 80
+              - !Ref AWS::NoValue
+            S3OriginConfig: !If
+              - UseRestOrigin
+              - OriginAccessIdentity: ""
+              - !Ref AWS::NoValue
+            OriginAccessControlId: !If
+              - UseRestOrigin
+              - !GetAtt OriginAccessControl.Id
+              - !Ref AWS::NoValue
+
+        DefaultCacheBehavior:
+          TargetOriginId: site-bucket
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD]
+          CachedMethods: [GET, HEAD]
+          # An S3 website endpoint does not compress; Storybook's manager
+          # bundle is large enough that this is worth having.
+          Compress: true
+          # Managed-CachingOptimized. Chosen specifically because it RESPECTS
+          # the origin's Cache-Control, which is what makes an invalidation
+          # unnecessary on deploy: hashed asset filenames are cached hard,
+          # and index.html/index.json/project.json are uploaded no-store and
+          # read back by the deploy job to prove it. A policy with a MinTTL
+          # above zero would override that and make every deploy invisible
+          # for the TTL.
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          ResponseHeadersPolicyId: !Ref SecurityHeaders
+
+        # No CustomErrorResponses. Storybook has no client-side router in the
+        # SPA-deep-link sense — the manager reads ?path= off its own
+        # index.html/iframe.html, both of which are real files at the root,
+        # and every other request is a real object (a story asset or the
+        # manifest). A 403/404 -> 200 /index.html catch-all would only turn a
+        # genuinely missing asset into a silently broken preview.
+
+        # No Logging block. See the header of this file.
+
+  # --------------------------------------------------------------------- DNS
+  DnsRecords:
+    Type: AWS::Route53::RecordSetGroup
+    Condition: ManageDns
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      RecordSets:
+        # Written out twice rather than with a YAML anchor: this file is read
+        # by people deciding whether to run it, and an anchor is one more
+        # thing to have to trust the parser about.
+        - Name: !Ref SubdomainName
+          Type: A
+          AliasTarget:
+            # CloudFront's fixed hosted zone id — the same value in every
+            # account and region. Alias queries to CloudFront are not
+            # charged.
+            HostedZoneId: Z2FDTNDATAQYW2
+            DNSName: !GetAtt Distribution.DomainName
+            EvaluateTargetHealth: false
+        - Name: !Ref SubdomainName
+          Type: AAAA
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2
+            DNSName: !GetAtt Distribution.DomainName
+            EvaluateTargetHealth: false
+
+Outputs:
+  SubdomainUrl:
+    Description: Where Storybook will be served once DNS resolves.
+    Value: !Sub "https://${SubdomainName}/"
+
+  DistributionId:
+    Value: !Ref Distribution
+
+  DistributionDomainName:
+    Description: >-
+      Test against THIS name before creating any DNS record. It serves the
+      same content with a CloudFront-issued certificate, so the whole
+      hosting change can be proved with nothing pointing at it.
+    Value: !GetAtt Distribution.DomainName
+
+  CertificateInUse:
+    Value: !If [CreateCertificate, !Ref Certificate, !Ref CertificateArn]
+
+  OriginKeyPrefix:
+    Description: The bucket prefix the deploy workflow must publish to.
+    Value: !Sub "s3://${SiteBucketName}/${OriginPrefix}/"
+
+  BucketPolicyStatementIfRestOac:
+    Condition: UseRestOrigin
+    Description: >-
+      This stack will NOT write this. Add it by hand to the bucket policy —
+      the deploy workflow's put-bucket-policy step replaces the whole policy
+      on every run and would delete it again.
+    Value: !Sub |
+      {"Sid":"AllowStorybookDistribution","Effect":"Allow",
+       "Principal":{"Service":"cloudfront.amazonaws.com"},
+       "Action":"s3:GetObject",
+       "Resource":"arn:aws:s3:::${SiteBucketName}/${OriginPrefix}/*",
+       "Condition":{"StringEquals":{"AWS:SourceArn":"arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}"}}}
