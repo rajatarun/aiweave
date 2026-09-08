@@ -18,6 +18,7 @@ export * from "./components/TantuCard.js";
 export * from "./components/ChambaRumalCard.js";
 export * from "./components/TantuLayout.js";
 export * from "./components/TalimThread.js";
+export * from "./components/BaluchariReveal.js";
 export * from "./components/TantuButton.js";
 export * from "./components/TantuInput.js";
 export * from "./components/TantuTextarea.js";

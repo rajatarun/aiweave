@@ -8,7 +8,24 @@ under the contract described in [VERSIONING.md](./VERSIONING.md).
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-09-08
+
 ### Added
+
+- **`BaluchariReveal`** — a line of text drawn in the way a Baluchari border is
+  woven: a single left-to-right clip-path sweep with a gold shuttle leading the
+  edge, done once, never repeating. Built for a consumer that needed a moment
+  to arrive woven in rather than simply appearing, and generalized rather than
+  left in that consumer's own tree, because a reveal primitive that presumed a
+  vocabulary or a tone would not be reusable — `children` is opaque content;
+  the shuttle is Tantu's, the sentence belongs entirely to the host. Motion and
+  accessibility follow existing precedent rather than inventing new
+  conventions: `bleedMotionAllowed()` gates the sweep the same way every
+  capillary/dye component already does, a `prefers-reduced-motion` block backs
+  that up for hosts rendering static markup, the drawn line is `aria-hidden`
+  while it sweeps, and the finished sentence is exposed once through a
+  `role="status"` region — suppressible via `announce={false}` when a host is
+  already announcing the same text through its own channel.
 
 - **`tantu-cell-warp-full`** — the whole warp, whatever the warp currently is.
   A consumer writing a full-bleed section inside `TantuLoom` should not have to

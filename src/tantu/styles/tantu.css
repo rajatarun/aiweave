@@ -4862,3 +4862,87 @@ textarea.tantu-maku-focus {
     border-color: GrayText;
   }
 }
+
+/* ------------------------------------------------------------------------
+   Baluchari Reveal — a line drawn in with the thread, not after it.
+   See BaluchariReveal.tsx for the craft note and the accessibility contract.
+   ------------------------------------------------------------------------ */
+
+.tantu-baluchari {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  isolation: isolate;
+}
+
+.tantu-baluchari-line {
+  margin: 0;
+  /* The reveal itself: an inset clip sweeping open left to right. Clip-path
+     rather than width or transform, because clipping never reflows layout
+     and never blurs the glyphs mid-sweep the way a scaling transform would. */
+  clip-path: inset(0 100% 0 0);
+  animation: tantu-baluchari-wipe var(--tantu-baluchari-duration, 1900ms) ease-out
+    var(--tantu-baluchari-delay, 150ms) both;
+}
+.tantu-baluchari-done .tantu-baluchari-line {
+  /* Settled state, held rather than left to the animation's fill — a later
+     re-render (a font swap, a container resize) must not replay the sweep. */
+  animation: none;
+  clip-path: inset(0 0 0 0);
+}
+
+.tantu-baluchari-shuttle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--tantu-zari-pure-gold, currentColor) 20%,
+    var(--tantu-zari-pure-gold, currentColor) 80%,
+    transparent
+  );
+  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--tantu-zari-pure-gold, currentColor) 55%, transparent);
+  opacity: 0;
+  animation: tantu-baluchari-shuttle-pass var(--tantu-baluchari-duration, 1900ms) linear
+    var(--tantu-baluchari-delay, 150ms) both;
+}
+.tantu-baluchari-done .tantu-baluchari-shuttle {
+  animation: none;
+  opacity: 0;
+}
+
+@keyframes tantu-baluchari-wipe {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+/* The shuttle leads the clip edge by construction — both run the same
+   duration over the same span, so the gold thread sits exactly at the front
+   of the reveal rather than trailing or racing ahead of it. It fades in and
+   out at the very ends so it never appears to switch on or snap off. */
+@keyframes tantu-baluchari-shuttle-pass {
+  0%   { left: 0%;   opacity: 0; }
+  6%   { opacity: 1; }
+  94%  { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The component itself already renders fully revealed with no animation
+     when `bleedMotionAllowed()` is false — see BaluchariReveal.tsx. This is
+     the belt to that suspenders: a consumer rendering static markup (SSR, a
+     snapshot, a host that does not evaluate the component's own JS check for
+     some reason) still gets a settled, motionless result under this media
+     query, the same guarantee every other capillary/dye component makes. */
+  .tantu-baluchari-line {
+    animation: none !important;
+    clip-path: inset(0 0 0 0) !important;
+  }
+  .tantu-baluchari-shuttle {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+}
