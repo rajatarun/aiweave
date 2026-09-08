@@ -5,6 +5,7 @@ import { TantuCard } from "./TantuCard.js";
 import { ChambaRumalCard } from "./ChambaRumalCard.js";
 import { TantuStack, TantuCut, TantuMasthead } from "./TantuLayout.js";
 import { TalimThread } from "./TalimThread.js";
+import { BaluchariReveal } from "./BaluchariReveal.js";
 
 const meta = {
   title: "Layout/The loom",
@@ -202,4 +203,23 @@ export const TalimCode: Story = {
     },
   },
   render: () => <TalimThread code="T-0421-WARP" />,
+};
+
+export const Baluchari: Story = {
+  name: "Baluchari reveal",
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "A line drawn in with the thread rather than after it, the way a Baluchari " +
+          "border weaves its narrative directly into the silk. The words are never " +
+          "Tantu's own — a consuming app supplies them — only the shuttle belongs here.",
+      },
+    },
+  },
+  render: () => (
+    <BaluchariReveal>
+      There is nothing here to see. Only to hear.
+    </BaluchariReveal>
+  ),
 };
