@@ -13,6 +13,7 @@
  */
 import type { ReactElement } from "react";
 import {
+  BaluchariReveal,
   CapillaryBleedSurface,
   ChambaRumalCard,
   InkBleedFilter,
@@ -525,6 +526,15 @@ export const SPECIMENS: Specimen[] = [
     axeNote: "An <svg> filter definition with no rendered output.",
   },
   { name: "TalimThread", element: <TalimThread code="T-0421" /> },
+  {
+    name: "BaluchariReveal",
+    element: <BaluchariReveal>a place you find by trusting what you hear</BaluchariReveal>,
+    axeNote:
+      "The role=\"status\" region is empty at mount by design — it fills once " +
+      "the sweep finishes, and this environment's default matchMedia (see " +
+      "tests/setup.ts) does not report reduced motion, so the sweep is still " +
+      "running at render time. An empty live region is not itself a violation.",
+  },
   {
     name: "TantuAcousticToggle",
     element: <TantuAcousticToggle />,
