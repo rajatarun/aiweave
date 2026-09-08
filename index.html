@@ -519,6 +519,26 @@ p, h1, h2, h3, h4, h5, h6, li, td, th, span, div, button, label, a, code {
 .tantu-loom-content > * {
   background-color: var(--tantu-bg-surface-active);
   min-height: var(--tantu-knot-12);
+  /* A direct pick with no declared span takes the whole warp.
+
+     The travel loom below already asserts this — see the Loom Drop, where
+     every direct child is clamped to `span 4` precisely so a consumer's
+     full-width section cannot force an implicit column. The wide warp was
+     left without the matching rule, so an unclassed child fell to the grid
+     default of `span 1`: one twelfth. A consumer laying a full-bleed screen
+     directly into the loom got it rendered in a 92px column inside an 1184px
+     grid, every label wrapped to about one character per line and the page
+     some ten thousand pixels tall.
+
+     That failure is invisible at the travel width, where the clamp already
+     applies, and appears only on a wide viewport — so it survives exactly
+     the testing a mobile-first consumer does. `1 / -1` rather than a span
+     count so it stays correct as the warp changes underneath it.
+
+     This is a default, not a clamp: it sits above the tantu-cell-warp-*
+     utilities in source order at equal specificity, so anything that has
+     opted into a span keeps it. */
+  grid-column: 1 / -1;
 }
 
 /* LOOM CELLS — non-card grid items that compress with the warp */
@@ -532,6 +552,11 @@ p, h1, h2, h3, h4, h5, h6, li, td, th, span, div, button, label, a, code {
 .tantu-cell-warp-4 { grid-column: span 4; }
 .tantu-cell-warp-6 { grid-column: span 6; }
 .tantu-cell-warp-12 { grid-column: span 12; }
+/* The whole warp, whatever the warp currently is. A consumer writing a
+   full-bleed section should not have to know how many threads are on the loom
+   at this width — `warp-12` is the right answer at the wide grid and the wrong
+   one at the travel loom, which is four. */
+.tantu-cell-warp-full { grid-column: 1 / -1; }
 
 /* A weave set inside a card: it borrows the warp but not the wooden frame,
    so it never doubles the loom's own inset padding. */
@@ -4838,6 +4863,89 @@ textarea.tantu-maku-focus {
     border-color: GrayText;
   }
 }
+
+/* ------------------------------------------------------------------------
+   Baluchari Reveal — a line drawn in with the thread, not after it.
+   See BaluchariReveal.tsx for the craft note and the accessibility contract.
+   ------------------------------------------------------------------------ */
+
+.tantu-baluchari {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  isolation: isolate;
+}
+
+.tantu-baluchari-line {
+  margin: 0;
+  /* The reveal itself: an inset clip sweeping open left to right. Clip-path
+     rather than width or transform, because clipping never reflows layout
+     and never blurs the glyphs mid-sweep the way a scaling transform would. */
+  clip-path: inset(0 100% 0 0);
+  animation: tantu-baluchari-wipe var(--tantu-baluchari-duration, 1900ms) ease-out
+    var(--tantu-baluchari-delay, 150ms) both;
+}
+.tantu-baluchari-done .tantu-baluchari-line {
+  /* Settled state, held rather than left to the animation's fill — a later
+     re-render (a font swap, a container resize) must not replay the sweep. */
+  animation: none;
+  clip-path: inset(0 0 0 0);
+}
+
+.tantu-baluchari-shuttle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--tantu-zari-pure-gold, currentColor) 20%,
+    var(--tantu-zari-pure-gold, currentColor) 80%,
+    transparent
+  );
+  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--tantu-zari-pure-gold, currentColor) 55%, transparent);
+  opacity: 0;
+  animation: tantu-baluchari-shuttle-pass var(--tantu-baluchari-duration, 1900ms) linear
+    var(--tantu-baluchari-delay, 150ms) both;
+}
+.tantu-baluchari-done .tantu-baluchari-shuttle {
+  animation: none;
+  opacity: 0;
+}
+
+@keyframes tantu-baluchari-wipe {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+/* The shuttle leads the clip edge by construction — both run the same
+   duration over the same span, so the gold thread sits exactly at the front
+   of the reveal rather than trailing or racing ahead of it. It fades in and
+   out at the very ends so it never appears to switch on or snap off. */
+@keyframes tantu-baluchari-shuttle-pass {
+  0%   { left: 0%;   opacity: 0; }
+  6%   { opacity: 1; }
+  94%  { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+
+/* No component-local reduced-motion rule here, on purpose — `!important` is
+   reserved for the one shared vestibular-safety floor near the top of this
+   file (see "cascade manners" in tests/stylesheet.test.ts), which stills
+   every Tantu animation by running it out in 1ms rather than cancelling it.
+   That is not a coincidence for these two keyframes specifically: both are
+   authored `forwards` reveals whose `to`/`100%` frame IS the settled state
+   — the line fully unclipped, the shuttle faded out past the end — so
+   running either out in 1ms already lands exactly where a reduced-motion
+   reader needs to be. A component that needed a DIFFERENT settled state
+   than its own final keyframe would raise specificity with a doubled class
+   instead of adding `!important` here; this one doesn't need to. The belt-
+   and-suspenders case (a consumer whose JS never runs — SSR, a snapshot) is
+   covered by the same shared floor, not by anything local. See
+   `bleedMotionAllowed()` in BaluchariReveal.tsx for the JS-side half, which
+   answers a different question (whether to fire `onRevealed` immediately). */
 </style><style>
             /* THE BRAND LAYER, opted into.
 
