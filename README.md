@@ -8,6 +8,11 @@ Brand assets for AIWeave are available in `assets/` and are used by the generate
 - `assets/aiweave-icon.svg` (icon mark)
 - `assets/favicon.svg` (favicon)
 
+The platform this site catalogs — how the admin UI's two gates (identity,
+then mcp-observatory's propose/commit authorization) sit in front of the
+content orchestrator, RoutineWeave and the rest of the Weave repos — is
+diagrammed in [`docs/architecture/`](docs/architecture/).
+
 ## Tantu type primitives
 
 `build.py` generates the three Tantu typefaces (`Kasuti-Gauze`, `Talim-Mono`,

@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1520 950" role="img" aria-labelledby="dtitle ddesc">
+<title id="dtitle">AI Weave platform — request-authorization architecture</title>
+<desc id="ddesc">How a click in the tarunraja.info admin UI becomes a committed write: one wallet/SIWE gate decides who may act, one mcp-observatory propose-score-commit gate decides whether the specific action may proceed, shared by the content orchestrator, RoutineWeave and the rest of the platform.</desc>
+<style>
+  svg { color-scheme: dark light; }
+  svg {
+    --bg: #12100e; --bg-elev: #1a1714;
+    --ink: #faf7f0; --ink2: #c8c0b2;
+    --line: #6e4a35;
+    --gate: #c5a059; --gate-wash: rgba(197,160,89,0.14);
+    --indigo: #2b5377;
+    --copper: #4c8a63;
+    --rust: #d98a2b;
+    --block: #d8695a;
+  }
+  @media (prefers-color-scheme: light) {
+    svg {
+      --bg: #f3eee2; --bg-elev: #e8e1d0;
+      --ink: #12100e; --ink2: #524a42;
+      --line: rgba(110,74,53,0.55);
+      --gate: #82231d; --gate-wash: rgba(130,35,29,0.09);
+      --indigo: #0d233a;
+      --copper: #294d34;
+      --rust: #945412;
+      --block: #82231d;
+    }
+  }
+  .bgrect { fill: var(--bg); }
+  .box-gate-auth { fill: var(--bg-elev); stroke: var(--indigo); stroke-width: 2; }
+  .box-gate-mcp { fill: var(--gate-wash); stroke: var(--gate); stroke-width: 2.5; }
+  .box-iface { fill: var(--bg-elev); stroke: var(--indigo); stroke-width: 1.5; }
+  .box-iface-dim { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 4 4; }
+  .box-orch { fill: var(--bg-elev); stroke: var(--ink2); stroke-width: 1.5; }
+  .box-know { fill: var(--bg-elev); stroke: var(--copper); stroke-width: 1.5; }
+  .box-data { fill: var(--bg-elev); stroke: var(--rust); stroke-width: 1.5; }
+  .box-sat { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 5 5; }
+  .ttl { font: 700 15px ui-sans-serif, Inter, Segoe UI, sans-serif; fill: var(--ink); }
+  .ttl-sm { font: 700 13px ui-sans-serif, Inter, Segoe UI, sans-serif; fill: var(--ink); }
+  .det { font: 400 11.5px ui-sans-serif, Inter, Segoe UI, sans-serif; fill: var(--ink2); }
+  .det-sm { font: 400 10.5px ui-sans-serif, Inter, Segoe UI, sans-serif; fill: var(--ink2); }
+  .lane { font: 700 10.5px ui-monospace, SFMono-Regular, monospace; fill: var(--ink2); letter-spacing: 0.08em; }
+  .edge { fill: none; stroke: var(--ink2); stroke-width: 1.5; }
+  .edge-dashed { fill: none; stroke: var(--ink2); stroke-width: 1.5; stroke-dasharray: 5 4; }
+  .edge-block { fill: none; stroke: var(--block); stroke-width: 1.75; stroke-dasharray: 2 4; }
+  .lbl { font: 400 10.5px ui-sans-serif, Inter, Segoe UI, sans-serif; fill: var(--ink2); }
+  .lbl-block { font: 600 10.5px ui-sans-serif, Inter, Segoe UI, sans-serif; fill: var(--block); }
+  .lbl-bg { fill: var(--bg); }
+  .head { font: 400 13.5px ui-sans-serif, Inter, Segoe UI, sans-serif; fill: var(--ink2); }
+</style>
+<rect class="bgrect" x="0" y="0" width="1520" height="950"/>
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="var(--ink2)"/>
+  </marker>
+  <marker id="arrowblock" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="var(--block)"/>
+  </marker>
+</defs>
+<text x="760.0" y="28" text-anchor="middle" class="ttl" font-size="20">AI Weave — request-authorization architecture</text>
+<text x="760.0" y="52" text-anchor="middle" class="head">Two gates, not one: identity decides who may open the admin UI; mcp-observatory decides whether the specific action may commit.</text>
+<path class="edge" d="M 460,66 L 460,90" marker-end="url(#arrow)"/>
+<rect class="lbl-bg" x="360.8" y="63.0" width="198.4" height="14" rx="3"/>
+<text x="460.0" y="74.0" text-anchor="middle" class="lbl">connect wallet + sign SIWE message</text>
+<path class="edge" d="M 300.0,160 L 290.0,210" marker-end="url(#arrow)"/>
+<rect class="lbl-bg" x="260.2" y="170.0" width="69.6" height="14" rx="3"/>
+<text x="295.0" y="181.0" text-anchor="middle" class="lbl">session JWT</text>
+<path class="edge" d="M 620.0,160 L 630.0,210" marker-end="url(#arrow)"/>
+<rect class="lbl-bg" x="590.2" y="170.0" width="69.6" height="14" rx="3"/>
+<text x="625.0" y="181.0" text-anchor="middle" class="lbl">session JWT</text>
+<path class="edge" d="M 290.0,280 L 290.0,340" marker-end="url(#arrow)"/>
+<rect class="lbl-bg" x="207.6" y="295.0" width="164.8" height="14" rx="3"/>
+<text x="290.0" y="306.0" text-anchor="middle" class="lbl">approve · generate · publish</text>
+<path class="edge" d="M 555.0,280 L 365.0,340" marker-end="url(#arrow)"/>
+<rect class="lbl-bg" x="374.8" y="295.0" width="170.4" height="14" rx="3"/>
+<text x="460.0" y="306.0" text-anchor="middle" class="lbl">approve · regenerate (staged)</text>
+<path class="edge" d="M 630.0,280 L 630.0,340" marker-end="url(#arrow)"/>
+<rect class="lbl-bg" x="544.8" y="295.0" width="170.4" height="14" rx="3"/>
+<text x="630.0" y="306.0" text-anchor="middle" class="lbl">enable · run routine (staged)</text>
+<path class="edge" d="M 365.0,420 L 550.0,480" marker-end="url(#arrow)"/>
+<rect class="lbl-bg" x="391.9" y="435.0" width="131.2" height="14" rx="3"/>
+<text x="457.5" y="446.0" text-anchor="middle" class="lbl">status-changing action</text>
+<path class="edge" d="M 630.0,420 L 630.0,480" marker-end="url(#arrow)"/>
+<rect class="lbl-bg" x="578.4" y="435.0" width="103.2" height="14" rx="3"/>
+<text x="630.0" y="446.0" text-anchor="middle" class="lbl">enable/run action</text>
+<path class="edge-dashed" d="M 820,380.0 L 800,380 L 800,525 L 790,530.0" marker-end="url(#arrow)"/>
+<rect class="lbl-bg" x="748.4" y="417.0" width="103.2" height="14" rx="3"/>
+<text x="800.0" y="428.0" text-anchor="middle" class="lbl">agent tool action</text>
+<path class="edge-block" d="M 470,530.0 L 100,495 L 100,125 L 140,125.0" marker-end="url(#arrowblock)"/>
+<rect class="lbl-bg" x="51.2" y="295.0" width="97.6" height="14" rx="3"/>
+<text x="100.0" y="306.0" text-anchor="middle" class="lbl-block">BLOCK → rejected</text>
+<path class="edge" d="M 630.0,580 L 630,800" marker-end="url(#arrow)"/>
+<rect class="lbl-bg" x="561.6" y="675.0" width="136.8" height="14" rx="3"/>
+<text x="630.0" y="686.0" text-anchor="middle" class="lbl">ALLOW / REVIEW → commit</text>
+<path class="edge" d="M 215.0,420 L 210.0,640" marker-end="url(#arrow)"/>
+<rect class="lbl-bg" x="172.1" y="515.0" width="80.8" height="14" rx="3"/>
+<text x="212.5" y="526.0" text-anchor="middle" class="lbl">Mon 15:15 UTC</text>
+<path class="edge" d="M 210.0,720 L 210,800" marker-end="url(#arrow)"/>
+<rect class="lbl-bg" x="147.2" y="745.0" width="125.6" height="14" rx="3"/>
+<text x="210.0" y="756.0" text-anchor="middle" class="lbl">draft article written</text>
+<path class="edge" d="M 300,420 L 370.0,640" marker-end="url(#arrow)"/>
+<rect class="lbl-bg" x="294.6" y="515.0" width="80.8" height="14" rx="3"/>
+<text x="335.0" y="526.0" text-anchor="middle" class="lbl">Mon 00:00 UTC</text>
+<path class="edge" d="M 970.0,420 L 890.0,640" marker-end="url(#arrow)"/>
+<rect class="lbl-bg" x="884.0" y="515.0" width="92.0" height="14" rx="3"/>
+<text x="930.0" y="526.0" text-anchor="middle" class="lbl">query-expertise</text>
+<path class="edge" d="M 1045.0,420 L 1050.0,640" marker-end="url(#arrow)"/>
+<rect class="lbl-bg" x="1026.7" y="515.0" width="41.6" height="14" rx="3"/>
+<text x="1047.5" y="526.0" text-anchor="middle" class="lbl">invoke</text>
+<path class="edge-dashed" d="M 440,420 L 440,468 L 1290,468 L 1290.0,420" marker-end="url(#arrow)"/>
+<rect class="lbl-bg" x="779.8" y="453.0" width="170.4" height="14" rx="3"/>
+<text x="865.0" y="464.0" text-anchor="middle" class="lbl">public reads/writes — no auth</text>
+<path class="edge-dashed" d="M 790,530.0 L 1180,525 L 1180,800" marker-end="url(#arrow)"/>
+<rect class="lbl-bg" x="897.0" y="512.5" width="176.0" height="14" rx="3"/>
+<text x="985.0" y="523.5" text-anchor="middle" class="lbl">same propose → commit contract</text>
+<text x="140" y="82" class="lane">INTERFACE</text>
+<text x="140" y="332" class="lane">ORCHESTRATION</text>
+<text x="140" y="472" class="lane">AUTHORIZATION</text>
+<text x="140" y="632" class="lane">KNOWLEDGE / EXTERNAL</text>
+<text x="140" y="792" class="lane">DATA / PLATFORM</text>
+<rect class="box-gate-auth" x="140" y="90" width="640" height="70" rx="10"/>
+<text x="460.0" y="119.0" text-anchor="middle" class="ttl">Wallet connect + SIWE session</text>
+<text x="460.0" y="137.0" text-anchor="middle" class="det">AuthChain — allowlisted address, JWT</text>
+<rect class="box-iface" x="140" y="210" width="300" height="70" rx="10"/>
+<text x="290.0" y="239.0" text-anchor="middle" class="ttl">Content Manager</text>
+<text x="290.0" y="257.0" text-anchor="middle" class="det">existing admin tab — unchanged</text>
+<rect class="box-iface" x="480" y="210" width="300" height="70" rx="10"/>
+<text x="630.0" y="239.0" text-anchor="middle" class="ttl">Control Room</text>
+<text x="630.0" y="257.0" text-anchor="middle" class="det">new tab, this session — same gate</text>
+<rect class="box-iface-dim" x="1160" y="340" width="260" height="80" rx="10"/>
+<text x="1290.0" y="362.0" text-anchor="middle" class="ttl">Public site</text>
+<text x="1290.0" y="382.0" text-anchor="middle" class="det-sm">/site/posts</text>
+<text x="1290.0" y="396.0" text-anchor="middle" class="det-sm">/public/subscribe — no gate</text>
+<rect class="box-orch" x="140" y="340" width="300" height="80" rx="10"/>
+<text x="290.0" y="374.0" text-anchor="middle" class="ttl">ai-content-orchestrator</text>
+<text x="290.0" y="392.0" text-anchor="middle" class="det">admin_api · automation · newsletter</text>
+<rect class="box-orch" x="480" y="340" width="300" height="80" rx="10"/>
+<text x="630.0" y="374.0" text-anchor="middle" class="ttl">RoutineWeave</text>
+<text x="630.0" y="392.0" text-anchor="middle" class="det">stock research · reminders · custom routines</text>
+<rect class="box-orch" x="820" y="340" width="300" height="80" rx="10"/>
+<text x="970.0" y="374.0" text-anchor="middle" class="ttl">TeamWeave</text>
+<text x="970.0" y="392.0" text-anchor="middle" class="det">Bedrock agent pipelines</text>
+<rect class="box-gate-mcp" x="470" y="480" width="320" height="100" rx="10"/>
+<text x="630.0" y="512.0" text-anchor="middle" class="ttl">mcp-observatory</text>
+<text x="630.0" y="532.0" text-anchor="middle" class="det-sm">propose → score 6 risk signals</text>
+<text x="630.0" y="546.0" text-anchor="middle" class="det-sm">→ commit / block</text>
+<rect class="box-know" x="140" y="640" width="140" height="80" rx="10"/>
+<text x="210.0" y="674.0" text-anchor="middle" class="ttl-sm">Gemini</text>
+<text x="210.0" y="692.0" text-anchor="middle" class="det-sm">weekly draft generation</text>
+<rect class="box-know" x="300" y="640" width="140" height="80" rx="10"/>
+<text x="370.0" y="674.0" text-anchor="middle" class="ttl-sm">SES</text>
+<text x="370.0" y="692.0" text-anchor="middle" class="det-sm">newsletter delivery</text>
+<rect class="box-know" x="820" y="640" width="140" height="80" rx="10"/>
+<text x="890.0" y="674.0" text-anchor="middle" class="ttl-sm">ContextWeave</text>
+<text x="890.0" y="692.0" text-anchor="middle" class="det-sm">GraphRAG + CAG</text>
+<rect class="box-know" x="980" y="640" width="140" height="80" rx="10"/>
+<text x="1050.0" y="674.0" text-anchor="middle" class="ttl-sm">Bedrock</text>
+<text x="1050.0" y="692.0" text-anchor="middle" class="det-sm">Agents</text>
+<rect class="box-data" x="140" y="800" width="620" height="90" rx="10"/>
+<text x="450.0" y="839.0" text-anchor="middle" class="ttl">DynamoDB + S3</text>
+<text x="450.0" y="857.0" text-anchor="middle" class="det">articles · events · subscribers · routine state</text>
+<rect class="box-sat" x="800" y="800" width="620" height="90" rx="10"/>
+<text x="1110.0" y="827.0" text-anchor="middle" class="ttl">Rest of the gated platform</text>
+<text x="1110.0" y="847.0" text-anchor="middle" class="det-sm">ToolWeave · CipherWeave · DeviceWeave · ScreenWeave</text>
+<text x="1110.0" y="861.0" text-anchor="middle" class="det-sm">TrainWeave → DeployWeave · DataDictionary · IntentWeave · PromptWeave</text>
+</svg>
