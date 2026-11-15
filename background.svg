@@ -268,7 +268,7 @@
   <text x="335"  y="145" class="arch-text" font-family="monospace" font-size="13" opacity="0.3">Python</text>
   <text x="585"  y="295" class="arch-text" font-family="monospace" font-size="18" opacity="0.28">API</text>
   <text x="1265" y="615" class="arch-text" font-family="monospace" font-size="15" opacity="0.25">Agent</text>
-  <text x="65"   y="688" class="arch-text" font-family="monospace" font-size="12" opacity="0.25">GraphRAG</text>
+  <text x="65"   y="688" class="arch-text" font-family="monospace" font-size="12" opacity="0.25">OpenAPI</text>
   <text x="1780" y="360" class="arch-text" font-family="monospace" font-size="14" opacity="0.28">LoRA</text>
   <text x="1748" y="720" class="arch-text" font-family="monospace" font-size="12" opacity="0.25">Fine-tuning</text>
   <text x="420"  y="718" class="arch-text" font-family="monospace" font-size="12" opacity="0.25">Embeddings</text>

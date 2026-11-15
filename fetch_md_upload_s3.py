@@ -10,14 +10,14 @@ import boto3
 GH_OWNER = "rajatarun"
 GH_GRAPHQL_URL = "https://api.github.com/graphql"
 GH_API_URL = "https://api.github.com"
-RAG_BUCKET = "contextweave-rag-artifacts-239571291755-prod"
-
-PINNED_REPOS = ["DataDictionary", "mcp-observatory"]
+# Destination is supplied by the deploy workflow (repository variable RAG_BUCKET).
+# The script refuses to guess a default so the bucket name is not hardcoded here.
+PINNED_REPOS = ["DataDictionary"]
 EXCLUDED_REPOS = {"aiweave"}
 
 PREFERRED_ORDER = [
-    "TrainWeave", "TeamWeave", "TaskWeave", "ToolWeave", "ContextWeave",
-    "ScreenWeave", "DeployWeave", "CipherWeave", "mcp-observatory", "DataDictionary",
+    "TrainWeave", "TeamWeave", "TaskWeave", "ToolWeave",
+    "ScreenWeave", "DeployWeave", "CipherWeave", "DataDictionary",
 ]
 
 LIST_REPOS_QUERY = """
@@ -146,6 +146,10 @@ def main():
     if not token:
         print("[WARN] GH_TOKEN not set — unauthenticated API calls (60 req/hr limit)")
 
+    rag_bucket = os.environ.get("RAG_BUCKET", "").strip()
+    if not rag_bucket:
+        raise SystemExit("RAG_BUCKET is not set")
+
     s3 = boto3.client("s3", region_name="us-east-1")
 
     print("[INFO] Discovering repos via GitHub GraphQL...")
@@ -176,8 +180,8 @@ def main():
             basename = os.path.basename(file_path)
             s3_key = f"raw/{repo_name}/{basename}"
 
-            if upload_to_s3(s3, RAG_BUCKET, s3_key, content):
-                print(f"       -> s3://{RAG_BUCKET}/{s3_key} ({len(content):,} bytes)")
+            if upload_to_s3(s3, rag_bucket, s3_key, content):
+                print(f"       -> s3://{rag_bucket}/{s3_key} ({len(content):,} bytes)")
                 total_uploaded += 1
             else:
                 total_failed += 1
