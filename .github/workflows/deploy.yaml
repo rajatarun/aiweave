@@ -47,6 +47,7 @@ jobs:
       - name: Fetch all .md files and upload to RAG S3 bucket
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          RAG_BUCKET: ${{ vars.RAG_BUCKET }}
         run: python fetch_md_upload_s3.py
 
       - name: Set up Node.js
@@ -194,8 +195,8 @@ jobs:
           role-to-assume: arn:aws:iam::239571291755:role/teamweave-github-actions-sam-deployer
           aws-region: us-east-1
 
-      # The same role and the same mechanism ContextWeave already deploys
-      # CloudFormation with. No CAPABILITY_IAM: this template creates a
+      # The same role already used for CloudFormation deploys from this
+      # workflow. No CAPABILITY_IAM: this template creates a
       # certificate, an origin access control, a response headers policy, a
       # distribution and a DNS record, and no IAM resource of any kind.
       #
@@ -286,7 +287,7 @@ jobs:
 
       # CAPABILITY_IAM because the stack creates one role, for the Lambda that
       # reads and writes a player's progress row. NAMED_IAM is passed too,
-      # matching what ContextWeave already does with this role: the template
+      # matching other stacks already deployed with this role: the template
       # names no IAM resource today, and passing it means adding one later does
       # not fail a deploy for a reason nobody remembers.
       - name: Deploy the identity stack

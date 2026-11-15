@@ -74,18 +74,16 @@ const brandLayerCss = (() => {
 const GH_OWNER = "rajatarun";
 const GH_GRAPHQL_URL = "https://api.github.com/graphql";
 
-const PINNED_REPOS = ["DataDictionary", "mcp-observatory", "DeviceWeave", "IntentWeave"];
+const PINNED_REPOS = ["DataDictionary", "DeviceWeave", "IntentWeave"];
 
 const PREFERRED_ORDER = [
   "TrainWeave",
   "TeamWeave",
   "TaskWeave",
   "ToolWeave",
-  "ContextWeave",
   "ScreenWeave",
   "DeployWeave",
   "CipherWeave",
-  "mcp-observatory",
   "DataDictionary",
   "DeviceWeave",
   "IntentWeave",
@@ -112,27 +110,15 @@ const REPO_META = {
   },
   ToolWeave: {
     icon: "⚒",
-    tagline: "FastMCP server · Natural language → REST API · Bedrock · Lambda",
+    tagline: "Tool registry and integration plumbing · OpenAPI · FastMCP",
     tech: ["FastMCP", "Lambda", "DynamoDB", "Bedrock", "OpenAPI"],
-    fallback_desc: "FastMCP server converting natural language requests into secure REST API calls via AWS Lambda.",
-  },
-  ContextWeave: {
-    icon: "◆",
-    tagline: "GraphRAG + CAG · Memgraph · pgvector · Neptune Analytics",
-    tech: ["GraphRAG", "Memgraph", "pgvector", "Neptune", "Bedrock", "CAG"],
-    fallback_desc: "AWS-native GraphRAG and CAG platform with adaptive routing.",
+    fallback_desc: "Turns OpenAPI specs into MCP tools and provides the registry and integration plumbing so clients can call your HTTP APIs.",
   },
   ScreenWeave: {
     icon: "⬚",
     tagline: "Website crawling + visual QA · Playwright · Claude 3.5 Sonnet",
     tech: ["Playwright", "Claude 3.5", "Bedrock", "EC2", "S3"],
     fallback_desc: "AWS-native website crawling and visual QA platform using Playwright automation.",
-  },
-  "mcp-observatory": {
-    icon: "◉",
-    tagline: "Two-phase PROPOSE/COMMIT · Risk scoring · Safe MCP execution",
-    tech: ["FastMCP", "PROPOSE/COMMIT", "Risk Scoring", "PostgreSQL", "Observability"],
-    fallback_desc: "Two-phase execution framework for high-risk MCP tool operations.",
   },
   DeployWeave: {
     icon: "⬟",
@@ -168,9 +154,8 @@ const REPO_META = {
 
 const ARCH_LAYERS = [
   { icon: "◎", label: "ORCHESTRATION", chips: ["TeamWeave", "TaskWeave", "Step Functions", "API Gateway"] },
-  { icon: "⊞", label: "RETRIEVAL & RAG", chips: ["ContextWeave", "Memgraph", "pgvector", "Neptune Analytics"] },
   { icon: "⚙", label: "EXECUTION & TOOLS", chips: ["ToolWeave", "TrainWeave", "FastMCP", "EC2 Spot", "Lambda"] },
-  { icon: "⊛", label: "SECURITY & SAFETY", chips: ["CipherWeave", "mcp-observatory", "KMS", "PROPOSE/COMMIT"] },
+  { icon: "⊛", label: "SECURITY & SAFETY", chips: ["CipherWeave", "KMS", "IAM", "Secrets Manager"] },
   { icon: "⬢", label: "COMPUTE & DEPLOY", chips: ["DeployWeave", "CDK", "CodePipeline", "Blue-green"] },
 ];
 
@@ -191,13 +176,13 @@ const STORY_PANELS = [
     step: "03",
     cmd: "execute",
     title: "Execute with Tools",
-    body: "ToolWeave translates natural language into signed REST calls. Each tool invocation passes through risk scoring before commit.",
+    body: "ToolWeave turns OpenAPI specs into MCP tools and provides the registry and integration plumbing for calling your HTTP APIs.",
   },
   {
     step: "04",
     cmd: "observe",
     title: "Observe Everything",
-    body: "mcp-observatory captures every PROPOSE/COMMIT pair. Structured logs, risk scores, and latency traces flow to CloudWatch & SIEM.",
+    body: "Structured logs and latency traces flow to CloudWatch, so every run is visible in the same account that executes it.",
   },
 ];
 
@@ -422,6 +407,7 @@ function SikkuKolamOrnament({ cols = 8, rows = 2 }) {
 }
 
 function SiteApp({ reposData, tantuCss }) {
+  const toolCount = reposData.length;
   return (
     <html lang="en" data-theme="light">
       <head>
@@ -435,7 +421,7 @@ function SiteApp({ reposData, tantuCss }) {
         <title>AIWeave — AWS-native AI infrastructure, open source</title>
         <meta
           name="description"
-          content="Twelve open-source, AWS-native tools for building production AI systems without proprietary lock-in: fine-tuning, multi-agent orchestration, GraphRAG, tool execution and deployment on Lambda, Bedrock and Step Functions."
+          content={`${toolCount} open-source, AWS-native tools for building production systems without proprietary lock-in: fine-tuning, multi-agent orchestration, tool execution and deployment on Lambda, Bedrock and Step Functions.`}
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -660,8 +646,8 @@ ${brandLayerCss}
                   [ BUILD · FINE-TUNE · ORCHESTRATE · DEPLOY ]
                 </p>
                 <p style={{ maxWidth: "680px", margin: "0 auto var(--tantu-knot-4)", fontSize: "0.95rem", color: "var(--tantu-ink-secondary)", lineHeight: 1.8 }}>
-                  Twelve production-ready tools for building AI systems on AWS primitives — fine-tuning,
-                  multi-agent orchestration, retrieval, tool execution and deployment — with no proprietary
+                  {toolCount} production-ready tools for building systems on AWS primitives — fine-tuning,
+                  multi-agent orchestration, tool execution and deployment — with no proprietary
                   lock-in and no platform between you and your own account.
                 </p>
                 <div style={{ display: "flex", gap: "var(--tantu-knot-2)", justifyContent: "center", flexWrap: "wrap" }}>
@@ -678,7 +664,7 @@ ${brandLayerCss}
             {/* Stat Band (3-up desktop, stacked mobile) */}
             <TantuCard warpSpan={4} reliefLevel="kanthi" absorbent>
               <div style={{ textAlign: "center" }}>
-                <span style={{ fontFamily: "var(--tantu-font-meta)", fontSize: "2.2rem", fontWeight: 700, color: "var(--tantu-accent-primary)" }}>10</span>
+                <span style={{ fontFamily: "var(--tantu-font-meta)", fontSize: "2.2rem", fontWeight: 700, color: "var(--tantu-accent-primary)" }}>{toolCount}</span>
                 <div style={{ fontFamily: "var(--tantu-font-meta)", fontSize: "0.75rem", color: "var(--tantu-ink-secondary)", marginTop: "var(--tantu-knot-1)" }}>OPEN SOURCE TOOLS</div>
               </div>
             </TantuCard>
@@ -860,7 +846,7 @@ ${brandLayerCss}
                 <strong>AIWeave</strong> is an ecosystem of open-source, AWS-native AI infrastructure tools built for engineers who need production-grade AI systems without proprietary lock-in.
               </p>
               <p style={{ fontSize: "0.95rem", color: "var(--tantu-ink-secondary)", lineHeight: 1.8, marginBottom: "var(--tantu-knot-3)" }}>
-                Every library is composed on AWS primitives: Lambda, Bedrock, Step Functions, DynamoDB, EC2 Spot, API Gateway, S3, and Neptune. Each one runs in your own account, under your own IAM, and can be adopted on its own — nothing here requires the rest of the ecosystem.
+                Every library is composed on AWS primitives: Lambda, Bedrock, Step Functions, DynamoDB, EC2 Spot, API Gateway, and S3. Each one runs in your own account, under your own IAM, and can be adopted on its own — nothing here requires the rest of the ecosystem.
               </p>
               {/* These name AIWeave's own stack. The Tantu credit used to sit
                   among them as a peer of Bedrock and Lambda, which put a UI
