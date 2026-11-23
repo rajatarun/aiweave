@@ -17,6 +17,8 @@ import {
   BaluchariReveal,
   CapillaryBleedSurface,
   ChambaRumalCard,
+  DoctorHealthCard,
+  FlowTimeline,
   InkBleedFilter,
   JamdaniBlock,
   KasutiMatrix,
@@ -558,5 +560,54 @@ export const SPECIMENS: Specimen[] = [
   {
     name: "TantuAcousticPalette",
     element: <TantuAcousticPalette />,
+  },
+  {
+    name: "FlowTimeline",
+    element: (
+      <FlowTimeline
+        flowId="run-042"
+        events={[
+          {
+            id: "ev-1",
+            type: "flow.started",
+            timestamp: "2026-11-23T12:00:00Z",
+            title: "Morning briefing flow",
+            summary: "Started local flow on Raspberry Pi 5.",
+          },
+          {
+            id: "ev-2",
+            type: "approval.requested",
+            timestamp: "2026-11-23T12:00:02Z",
+            stepName: "device.unlock_front_door",
+            details: { device_id: "lock-01" },
+          },
+          {
+            id: "ev-3",
+            type: "flow.completed",
+            timestamp: "2026-11-23T12:00:05Z",
+            summary: "Completed all 3 steps.",
+          },
+        ]}
+      />
+    ),
+  },
+  {
+    name: "DoctorHealthCard",
+    element: (
+      <DoctorHealthCard
+        status="healthy"
+        hostLabel="PI5-01"
+        checkedAt="2026-11-23T12:00:00Z"
+        sqliteWal={{ enabled: true, journalMode: "wal", dbPath: "/var/lib/weaveos/state.db" }}
+        plugins={[
+          { name: "cipherweave", mode: "active", version: "0.2.0" },
+          { name: "gatewayweave", mode: "fallback", detail: "unsigned local dev mode" },
+        ]}
+        securityPosture={[
+          { id: "ed25519", label: "Ed25519 Passport Admission", level: "pass" },
+          { id: "pii", label: "VeilWeave PII Firewall", level: "pass" },
+        ]}
+      />
+    ),
   },
 ];

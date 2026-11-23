@@ -92,7 +92,11 @@ const PREFERRED_ORDER = [
   "TrainWeave",
   "DeployWeave",
   "ScreenWeave",
+  "PromptWeave",
   "mcp-observatory",
+  "weave",
+  "WeaveCore",
+  "aiweave",
   "DataDictionary",
 ];
 
@@ -204,6 +208,30 @@ const REPO_META = {
     tagline: "Server-side conversation thread store · SQLite WAL CAS + DynamoDB",
     tech: ["Python", "Threads", "SQLite WAL", "CAS", "DynamoDB"],
     fallback_desc: "Keeps short-lived, server-side message threads with atomic CAS so multi-turn requests send only the new turn.",
+  },
+  PromptWeave: {
+    icon: "✎",
+    tagline: "Deterministic zero-dependency prompt compiler · IntentSpec · SHA-256 prompt_id",
+    tech: ["Python", "Prompt Compiler", "SQLite WAL", "Templates", "SHA-256"],
+    fallback_desc: "Deterministic zero-dependency prompt compiler transforming structured IntentSpecs into model-family-optimized prompts with SHA-256 content fingerprints.",
+  },
+  WeaveCore: {
+    icon: "◎",
+    tagline: "Dual-Mode Composition Architecture guide & Stage 1 offline quickstart",
+    tech: ["Architecture", "Quickstart", "Fixtures", "Contracts"],
+    fallback_desc: "Stage 1 offline quickstart, synthetic fixtures, and canonical Dual-Mode Composition Architecture documentation for the Weave ecosystem.",
+  },
+  aiweave: {
+    icon: "✦",
+    tagline: "React 19 @weaveaijs/tantu design system & SystemUI agentic components",
+    tech: ["React 19", "TypeScript", "Tantu UI", "Vitest", "Storybook"],
+    fallback_desc: "React 19 @weaveaijs/tantu design system (including ApprovalSheet, FlowTimeline, and DoctorHealthCard SystemUI primitives) and portfolio static site.",
+  },
+  weave: {
+    icon: "◈",
+    tagline: "Canonical 20-repo ecosystem registry & Draft 2020-12 cross-repo JSON contracts",
+    tech: ["JSON Schema", "Ecosystem", "Contracts", "Quickstart"],
+    fallback_desc: "Canonical dual-mode umbrella front door, 20-repository ecosystem.json registry, versioned cross-component JSON Schema contracts, and multi-component quickstart.",
   },
 };
 

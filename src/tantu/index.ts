@@ -36,6 +36,8 @@ export * from "./components/TantuPopover.js";
 export * from "./components/TantuTooltip.js";
 export * from "./components/TantuDialog.js";
 export * from "./components/ApprovalSheet.js";
+export * from "./components/FlowTimeline.js";
+export * from "./components/DoctorHealthCard.js";
 export * from "./components/TantuTraceSearch.js";
 export * from "./components/TantuMakuShuttle.js";
 export * from "./components/TantuDarshanLens.js";
