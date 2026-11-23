@@ -12,12 +12,15 @@ GH_GRAPHQL_URL = "https://api.github.com/graphql"
 GH_API_URL = "https://api.github.com"
 # Destination is supplied by the deploy workflow (repository variable RAG_BUCKET).
 # The script refuses to guess a default so the bucket name is not hardcoded here.
-PINNED_REPOS = ["DataDictionary"]
-EXCLUDED_REPOS = {"aiweave"}
+PINNED_REPOS = ["WeaveOS", "mcp-observatory", "DataDictionary"]
+EXCLUDED_REPOS = {"aiweave", "weave", "weavecore"}
 
 PREFERRED_ORDER = [
-    "TrainWeave", "TeamWeave", "TaskWeave", "ToolWeave",
-    "ScreenWeave", "DeployWeave", "CipherWeave", "DataDictionary",
+    "WeaveOS", "HarnessWeave", "CipherWeave", "ContextWeave",
+    "GatewayWeave", "ModelWeave", "DeviceWeave", "ToolWeave",
+    "IntentWeave", "RoutineWeave", "ChaosWeave", "TeamWeave",
+    "TrainWeave", "DeployWeave", "ScreenWeave", "mcp-observatory",
+    "DataDictionary",
 ]
 
 LIST_REPOS_QUERY = """
@@ -176,9 +179,9 @@ def main():
                 total_failed += 1
                 continue
 
-            # Flatten path — strip all directory prefixes, keep only the filename
-            basename = os.path.basename(file_path)
-            s3_key = f"raw/{repo_name}/{basename}"
+            # Preserve relative path so nested docs (e.g. docs/README.md) never collide with root README.md
+            rel_path = file_path.lstrip("/")
+            s3_key = f"raw/{repo_name}/{rel_path}"
 
             if upload_to_s3(s3, rag_bucket, s3_key, content):
                 print(f"       -> s3://{rag_bucket}/{s3_key} ({len(content):,} bytes)")
