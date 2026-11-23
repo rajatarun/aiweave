@@ -74,27 +74,82 @@ const brandLayerCss = (() => {
 const GH_OWNER = "rajatarun";
 const GH_GRAPHQL_URL = "https://api.github.com/graphql";
 
-const PINNED_REPOS = ["DataDictionary", "DeviceWeave", "IntentWeave"];
+const PINNED_REPOS = ["WeaveOS", "mcp-observatory", "DataDictionary", "DeviceWeave", "IntentWeave"];
 
 const PREFERRED_ORDER = [
-  "TrainWeave",
-  "TeamWeave",
-  "TaskWeave",
-  "ToolWeave",
-  "ScreenWeave",
-  "DeployWeave",
+  "WeaveOS",
+  "HarnessWeave",
   "CipherWeave",
-  "DataDictionary",
+  "ContextWeave",
+  "GatewayWeave",
+  "ModelWeave",
   "DeviceWeave",
+  "ToolWeave",
   "IntentWeave",
+  "RoutineWeave",
+  "ChaosWeave",
+  "TeamWeave",
+  "TrainWeave",
+  "DeployWeave",
+  "ScreenWeave",
+  "mcp-observatory",
+  "DataDictionary",
 ];
 
 const REPO_META = {
+  WeaveOS: {
+    icon: "◉",
+    tagline: "Local-first Agent OS for Raspberry Pi · llama.cpp · MCP-over-UDS · .wapp store",
+    tech: ["Python", "FastAPI", "SQLite WAL", "llama.cpp", "A2A 1.0"],
+    fallback_desc: "Local-first Agent OS running multi-step agentic flows on Raspberry Pi 5/4 with hybrid cloud fallback, local identity, PII firewall, and .wapp app admission.",
+  },
+  HarnessWeave: {
+    icon: "⟐",
+    tagline: "Agent run ledger, evals & cost guardrails · SQLite WAL + PostgreSQL",
+    tech: ["Python", "SQLite WAL", "PostgreSQL", "Evals", "Observability"],
+    fallback_desc: "Execution harness for recording multi-step agent runs, evaluating trajectories, and enforcing budget limits standalone or inside WeaveOS.",
+  },
+  GatewayWeave: {
+    icon: "⛨",
+    tagline: "Offline regression gate for model, prompt & router changes · GGUF + Bedrock",
+    tech: ["Python", "Replay Gate", "GGUF SHA-256", "OpenAI-Compat", "Bedrock"],
+    fallback_desc: "Offline regression gate that replays frozen traffic against candidate models or prompts and issues signed PASS/FAIL passports.",
+  },
+  ModelWeave: {
+    icon: "❖",
+    tagline: "Role-based model router · cheap-fast / reasoning / judge · SQLite + DynamoDB",
+    tech: ["Python", "Role Routing", "SQLite WAL", "DynamoDB", "Outcomes"],
+    fallback_desc: "Maps semantic roles to concrete local or cloud models and learns from reported outcomes offline or on AWS.",
+  },
+  ContextWeave: {
+    icon: "◐",
+    tagline: "Evidence-backed memory & VeilWeave PII egress redaction · SQLite FTS5 + GraphRAG",
+    tech: ["Python", "SQLite FTS5", "VeilWeave PII", "GraphRAG", "Memory"],
+    fallback_desc: "Isolated expertise/health/finance memory stores and fail-closed PII egress redaction for local and cloud agents.",
+  },
+  RoutineWeave: {
+    icon: "⏱",
+    tagline: "Scheduled & event-driven agent routines · Cron · SNS · Webhooks",
+    tech: ["Python", "Cron", "EventBridge", "SNS", "Webhooks"],
+    fallback_desc: "Runs declarative agent routines on schedules or event triggers with delivery to webhooks, Slack, or local handlers.",
+  },
+  ChaosWeave: {
+    icon: "⚡",
+    tagline: "Agent resilience & fault injection · MCPChaosProxy (UDS/in-proc) · Scoring",
+    tech: ["Python", "Chaos Testing", "MCP Proxy", "UDS", "Resilience"],
+    fallback_desc: "Injects latency, timeouts, tool errors, and prompt injections into MCP tool calls to certify agent resilience.",
+  },
+  "mcp-observatory": {
+    icon: "◎",
+    tagline: "Proposal-commit approval gate & OTel span exporter · SQLite WAL + Postgres",
+    tech: ["Python", "MCP", "SQLite WAL", "OpenTelemetry", "Approvals"],
+    fallback_desc: "Cryptographic proposal-commit approval ledger and span telemetry contract for auditable MCP tool execution.",
+  },
   TrainWeave: {
     icon: "⚙",
-    tagline: "AWS LoRA fine-tuning · EC2 Spot · ~52% cost savings vs SageMaker",
-    tech: ["LoRA", "EC2 Spot", "Lambda", "S3", "SAM"],
-    fallback_desc: "Automated LoRA fine-tuning on AWS EC2 Spot instances, Lambda-orchestrated for maximum cost efficiency.",
+    tagline: "Ephemeral EC2 Spot LoRA fine-tuning · Qwen2.5/Qwen3 GGUF edge export",
+    tech: ["LoRA", "EC2 Spot", "GGUF", "Lambda", "S3"],
+    fallback_desc: "Automated LoRA fine-tuning on AWS EC2 Spot instances with optional GGUF export provenance for Raspberry Pi edge inference.",
   },
   TeamWeave: {
     icon: "⬡",
@@ -110,27 +165,27 @@ const REPO_META = {
   },
   ToolWeave: {
     icon: "⚒",
-    tagline: "Tool registry and integration plumbing · OpenAPI · FastMCP",
-    tech: ["FastMCP", "Lambda", "DynamoDB", "Bedrock", "OpenAPI"],
-    fallback_desc: "Turns OpenAPI specs into MCP tools and provides the registry and integration plumbing so clients can call your HTTP APIs.",
+    tagline: "OpenAPI-to-MCP tool registry & LAN allowlist guard · FastMCP · SQLite + DynamoDB",
+    tech: ["FastMCP", "OpenAPI", "SQLite WAL", "DynamoDB", "LAN Guard"],
+    fallback_desc: "Turns OpenAPI specs into MCP tools with an offline SQLite catalog, LAN SSRF guard, and AWS Lambda deployment.",
   },
   ScreenWeave: {
     icon: "⬚",
-    tagline: "Website crawling + visual QA · Playwright · Claude 3.5 Sonnet",
-    tech: ["Playwright", "Claude 3.5", "Bedrock", "EC2", "S3"],
-    fallback_desc: "AWS-native website crawling and visual QA platform using Playwright automation.",
+    tagline: "Website crawling & visual QA · Playwright (local single-tab + AWS EC2)",
+    tech: ["Playwright", "Local Mode", "Visual QA", "EC2", "S3"],
+    fallback_desc: "Website crawling and visual QA with both a zero-AWS local single-tab Playwright mode and an AWS EC2/S3 crawler stack.",
   },
   DeployWeave: {
     icon: "⬟",
-    tagline: "AI/ML deployment automation · AWS CDK · CodePipeline",
-    tech: ["CDK", "CodePipeline", "CodeDeploy", "Lambda", "SAM"],
-    fallback_desc: "Infrastructure-as-code deployment automation for AI/ML workloads on AWS.",
+    tagline: "Bedrock agent lifecycle, LoRA catalog & token-wallet invocation gateway",
+    tech: ["Bedrock", "DynamoDB", "FastMCP", "Lambda", "SAM"],
+    fallback_desc: "Provisions Bedrock agents with TTLs, attaches LoRA adapters, and enforces real-time token-wallet budgets.",
   },
   CipherWeave: {
     icon: "⊛",
-    tagline: "Secrets & encryption layer · AWS KMS · SSM · Zero-trust pipelines",
-    tech: ["KMS", "SSM Parameter Store", "Secrets Manager", "Lambda", "IAM"],
-    fallback_desc: "AWS-native encryption and secrets management layer for AI data pipelines.",
+    tagline: "ES256/DPoP token issuer, JTI replay ledger & encryption strategy · Local PEM + AWS KMS",
+    tech: ["ES256", "DPoP", "SQLite WAL", "KMS", "Zero-Trust"],
+    fallback_desc: "Zero-trust identity and encryption layer supporting both local PEM/SQLite issuers and AWS KMS/SSM pipelines.",
   },
   DataDictionary: {
     icon: "◫",
@@ -139,16 +194,16 @@ const REPO_META = {
     fallback_desc: "Centralized schema registry and data dictionary for AWS-native data pipelines.",
   },
   DeviceWeave: {
-    icon: "📱",
-    tagline: "Edge AI & IoT orchestration · AWS Greengrass · AWS IoT Core",
-    tech: ["IoT Core", "Greengrass", "Edge AI", "Lambda"],
-    fallback_desc: "AWS-native edge AI deployment and IoT device orchestration framework.",
+    icon: "⌂",
+    tagline: "Policy-checked local-first IoT hub · Kasa LAN · MQTT · GPIO · SQLite WAL",
+    tech: ["Python", "Kasa LAN", "MQTT", "GPIO", "SQLite WAL"],
+    fallback_desc: "Turns natural-language commands into policy-checked (BLOCK > MODIFY > ALLOW) control of local and cloud IoT devices.",
   },
   IntentWeave: {
-    icon: "⚡",
-    tagline: "Intent-driven LLM routing · Bedrock · CloudWatch",
-    tech: ["Bedrock", "Intent Routing", "CloudWatch", "DynamoDB"],
-    fallback_desc: "Natural language intent parsing and cost-optimized model routing engine on AWS.",
+    icon: "⇄",
+    tagline: "Server-side conversation thread store · SQLite WAL CAS + DynamoDB",
+    tech: ["Python", "Threads", "SQLite WAL", "CAS", "DynamoDB"],
+    fallback_desc: "Keeps short-lived, server-side message threads with atomic CAS so multi-turn requests send only the new turn.",
   },
 };
 
