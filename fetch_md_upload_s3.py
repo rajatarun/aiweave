@@ -4,8 +4,29 @@ APIs and uploads them flat to S3: raw/<projectname>/<basename>.md
 """
 
 import os
-import requests
+
 import boto3
+from botocore.exceptions import BotoCoreError, ClientError
+
+try:
+    import requests
+    _HTTP_ERRORS: tuple[type[BaseException], ...] = (
+        requests.RequestException,
+        OSError,
+        ValueError,
+        KeyError,
+        RuntimeError,
+    )
+except ImportError:  # pragma: no cover - allows unit testing without requests installed
+    requests = None  # type: ignore[assignment]
+    _HTTP_ERRORS = (OSError, ValueError, KeyError, RuntimeError)
+
+_S3_ERRORS: tuple[type[BaseException], ...] = (
+    BotoCoreError,
+    ClientError,
+    OSError,
+    RuntimeError,
+)
 
 GH_OWNER = "rajatarun"
 GH_GRAPHQL_URL = "https://api.github.com/graphql"
@@ -37,6 +58,8 @@ query($owner: String!, $after: String) {
 
 
 def _gh_graphql(query: str, variables: dict, token: str) -> dict:
+    if requests is None:
+        raise RuntimeError("requests is required for GitHub GraphQL API calls")
     headers = {"Content-Type": "application/json"}
     if token:
         headers["Authorization"] = f"Bearer {token}"
@@ -50,7 +73,9 @@ def _gh_graphql(query: str, variables: dict, token: str) -> dict:
     return resp.json()
 
 
-def _gh_rest_get(path: str, token: str, params: dict = None) -> dict:
+def _gh_rest_get(path: str, token: str, params: dict | None = None) -> dict:
+    if requests is None:
+        raise RuntimeError("requests is required for GitHub REST API calls")
     headers = {"Accept": "application/vnd.github.v3+json"}
     if token:
         headers["Authorization"] = f"Bearer {token}"
@@ -82,7 +107,7 @@ def discover_weave_repos(token: str) -> list:
             if not page_info.get("hasNextPage"):
                 break
             cursor = page_info["endCursor"]
-        except Exception as e:
+        except _HTTP_ERRORS as e:
             print(f"[WARN] discover_weave_repos error: {e}")
             break
     return found
@@ -110,7 +135,7 @@ def list_md_files(repo_name: str, token: str) -> list:
             for item in tree_data.get("tree", [])
             if item["type"] == "blob" and item["path"].lower().endswith(".md")
         ]
-    except Exception as e:
+    except _HTTP_ERRORS as e:
         print(f"[WARN] Failed to list files for {repo_name}: {e}")
         return []
 
@@ -122,10 +147,12 @@ def fetch_raw_content(repo_name: str, file_path: str, token: str) -> str | None:
     if token:
         headers["Authorization"] = f"Bearer {token}"
     try:
+        if requests is None:
+            raise RuntimeError("requests is required to fetch raw GitHub content")
         resp = requests.get(url, headers=headers, timeout=30)
         resp.raise_for_status()
         return resp.text
-    except Exception as e:
+    except _HTTP_ERRORS as e:
         print(f"[WARN] Failed to fetch {repo_name}/{file_path}: {e}")
         return None
 
@@ -139,7 +166,7 @@ def upload_to_s3(s3, bucket: str, key: str, content: str) -> bool:
             ContentType="text/markdown; charset=utf-8",
         )
         return True
-    except Exception as e:
+    except _S3_ERRORS as e:
         print(f"[WARN] S3 upload failed for {key}: {e}")
         return False
 
@@ -168,7 +195,7 @@ def main():
         md_paths = list_md_files(repo_name, token)
 
         if not md_paths:
-            print(f"       No .md files found")
+            print("       No .md files found")
             continue
 
         print(f"       {len(md_paths)} .md file(s): {md_paths}")

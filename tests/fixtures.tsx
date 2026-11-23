@@ -13,6 +13,7 @@
  */
 import type { ReactElement } from "react";
 import {
+  ApprovalSheet,
   BaluchariReveal,
   CapillaryBleedSurface,
   ChambaRumalCard,
@@ -296,6 +297,21 @@ export const SPECIMENS: Specimen[] = [
       <TantuDialog open title="Cut the cloth" onClose={() => {}}>
         <p>This cannot be undone once the selvedge is crossed.</p>
       </TantuDialog>
+    ),
+  },
+  {
+    name: "ApprovalSheet",
+    element: (
+      <ApprovalSheet
+        open
+        toolName="device.set_thermostat"
+        riskTier="medium"
+        agentName="home-concierge"
+        summary="Adjust living room temperature to 21C."
+        args={{ room: "living_room", target_c: 21 }}
+        onApprove={() => {}}
+        onReject={() => {}}
+      />
     ),
   },
   { name: "TantuTag", element: <TantuTag>Selvedge</TantuTag> },

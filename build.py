@@ -1,7 +1,7 @@
-import sys
+import math
 import os
 import shutil
-import math
+import sys
 
 # Reproducible output.
 #
