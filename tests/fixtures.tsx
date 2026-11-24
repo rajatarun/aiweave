@@ -73,6 +73,8 @@ import {
   TantuTraceSearch,
   TantuTrail,
   TantuUnwoven,
+  TelemetrySummaryCard,
+  WappTrustBadge,
 } from "../src/tantu";
 
 export interface Specimen {
@@ -607,6 +609,55 @@ export const SPECIMENS: Specimen[] = [
           { id: "ed25519", label: "Ed25519 Passport Admission", level: "pass" },
           { id: "pii", label: "VeilWeave PII Firewall", level: "pass" },
         ]}
+      />
+    ),
+  },
+  {
+    name: "TelemetrySummaryCard",
+    element: (
+      <TelemetrySummaryCard
+        title="Edge Telemetry Rollup"
+        windowLabel="Last 24h"
+        totalEvents={1420}
+        p50LatencyMs={42.5}
+        p95LatencyMs={189.2}
+        errorRate={0.012}
+        errorCount={17}
+        totalCostUsd={1.85}
+        totalTokensIn={125000}
+        totalTokensOut={48200}
+        repos={[
+          {
+            sourceRepo: "HarnessWeave",
+            totalEvents: 820,
+            errorRate: 0,
+            p50LatencyMs: 38.0,
+            p95LatencyMs: 140.5,
+            totalCostUsd: 1.2,
+          },
+          {
+            sourceRepo: "ModelWeave",
+            totalEvents: 600,
+            errorRate: 0.028,
+            p50LatencyMs: 55.4,
+            p95LatencyMs: 210.0,
+            totalCostUsd: 0.65,
+          },
+        ]}
+      />
+    ),
+  },
+  {
+    name: "WappTrustBadge",
+    element: (
+      <WappTrustBadge
+        appId="com.weave.morning-brief"
+        name="Morning Brief Agent"
+        version="1.4.0"
+        signerKeyId="ed25519:9a4f2c"
+        signatureStatus="verified"
+        chaosCertification={{ certified: true, score: 0.94, profile: "edge_pi" }}
+        permissions={["network:lan", "memory:read"]}
       />
     ),
   },
