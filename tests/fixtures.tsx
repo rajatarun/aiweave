@@ -62,6 +62,8 @@ import {
   TantuSlider,
   TantuSpindle,
   TantuStack,
+  PolicyGuardBanner,
+  SLOReportCard,
   TantuStepper,
   TantuSwatchSet,
   TantuTable,
@@ -658,6 +660,50 @@ export const SPECIMENS: Specimen[] = [
         signatureStatus="verified"
         chaosCertification={{ certified: true, score: 0.94, profile: "edge_pi" }}
         permissions={["network:lan", "memory:read"]}
+      />
+    ),
+  },
+  {
+    name: "SLOReportCard",
+    element: (
+      <SLOReportCard
+        report={{
+          schema: "slo-report-v1",
+          evaluated_at: "2026-11-24T12:00:00Z",
+          window_label: "last_24h",
+          source_repo: "HarnessWeave",
+          status: "pass",
+          metrics: {
+            total_events: 420,
+            error_rate: 0.01,
+            p50_latency_ms: 90.0,
+            p95_latency_ms: 320.0,
+            total_cost_usd: 0.85,
+          },
+          targets: {
+            max_p95_latency_ms: 2000,
+            max_error_rate: 0.05,
+            max_cost_usd: 5.0,
+            min_events: 1,
+          },
+          breaches: [],
+        }}
+      />
+    ),
+  },
+  {
+    name: "PolicyGuardBanner",
+    element: (
+      <PolicyGuardBanner
+        policy={{
+          schema: "agent-policy-v1",
+          policy_id: "pol-edge-specimen",
+          subject_id: "contract-pi-01",
+          enforcement_mode: "enforce",
+          routing_mode: "prefer_local",
+          max_cost_usd_per_call: 0.01,
+          denied_tools: ["shell:exec"],
+        }}
       />
     ),
   },
