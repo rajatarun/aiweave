@@ -18,6 +18,7 @@ import {
   CapillaryBleedSurface,
   ChambaRumalCard,
   DoctorHealthCard,
+  FleetHealthGrid,
   FlowTimeline,
   InkBleedFilter,
   JamdaniBlock,
@@ -64,6 +65,7 @@ import {
   TantuStack,
   PolicyGuardBanner,
   SLOReportCard,
+  SnapshotStatusCard,
   TantuStepper,
   TantuSwatchSet,
   TantuTable,
@@ -703,6 +705,66 @@ export const SPECIMENS: Specimen[] = [
           routing_mode: "prefer_local",
           max_cost_usd_per_call: 0.01,
           denied_tools: ["shell:exec"],
+        }}
+      />
+    ),
+  },
+  {
+    name: "FleetHealthGrid",
+    element: (
+      <FleetHealthGrid
+        fleet={{
+          schema: "fleet-health-v1",
+          fleet_id: "home-edge-fleet",
+          generated_at: "2026-11-24T12:00:00Z",
+          nodes: [
+            {
+              node_id: "pi5-living-room",
+              status: "healthy",
+              slo_passed: true,
+              budget_mode: "normal",
+              active_wapps: 3,
+              last_seen_at: "2026-11-24T11:59:55Z",
+            },
+          ],
+          summary: {
+            total_nodes: 1,
+            healthy: 1,
+            degraded: 0,
+            offline: 0,
+            overall_status: "healthy",
+          },
+        }}
+      />
+    ),
+  },
+  {
+    name: "SnapshotStatusCard",
+    element: (
+      <SnapshotStatusCard
+        verified={true}
+        snapshot={{
+          schema: "node-snapshot-v1",
+          snapshot_id: "snap-specimen-001",
+          node_id: "pi5-living-room",
+          created_at: "2026-11-24T12:00:00Z",
+          components: [
+            {
+              name: "weaveos_db",
+              kind: "sqlite_db",
+              relative_path: "dbs/state.sqlite3",
+              sha256: "a".repeat(64),
+              size_bytes: 4096,
+              encrypted: false,
+            },
+          ],
+          checksum_sha256: "0123456789abcdef".repeat(4),
+          signature: {
+            alg: "ES256",
+            kid: "pi5-key-01",
+            value: "c2lnbmF0dXJl",
+            signed_at: "2026-11-24T12:00:01Z",
+          },
         }}
       />
     ),
